@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>智慧园区一张图 · 数据专题</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .ds-col--right{overflow-y:auto;min-height:0;scrollbar-width:thin}
+
+  /* ===== 园区影像台（视频/照片） ===== */
+  .park-hero{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden;border-radius:var(--r-xs);border:1px solid var(--dark-line)}
+  .park-hero__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.05) brightness(.95);transition:opacity .3s}
+  .park-hero__grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
+  .park-hero__scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.14) 2px 4px);pointer-events:none}
+  .park-hero__vig{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 50%,transparent 55%,rgba(0,0,0,.5));pointer-events:none}
+  .park-hero__osd{position:absolute;inset:0;color:#E6F0FA;font-family:var(--font-num);font-size:11px;pointer-events:none;letter-spacing:.04em}
+  .park-hero__osd .tl{position:absolute;top:9px;left:11px;display:flex;align-items:center;gap:6px}
+  .park-hero__osd .tr{position:absolute;top:9px;right:11px}
+  .park-hero__osd .bl{position:absolute;bottom:9px;left:11px;font-family:var(--font-zh);font-size:11.5px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+  .park-hero__osd .br{position:absolute;bottom:9px;right:11px}
+  .park-hero__osd .rec{width:8px;height:8px;border-radius:50%;background:#E63946;box-shadow:0 0 8px #E63946;animation:blink 1.2s infinite;display:inline-block}
+  .park-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .pth{position:relative;aspect-ratio:16/10;border-radius:var(--r-xs);overflow:hidden;border:1.5px solid var(--dark-line);cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .pth img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.62);transition:filter .2s}
+  .pth span{position:absolute;left:0;right:0;bottom:0;font-size:10px;color:#fff;padding:4px 6px 3px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-family:var(--font-zh);text-shadow:0 1px 2px rgba(0,0,0,.9)}
+  .pth:hover img{filter:brightness(.9)}
+  .pth.on{border-color:#00B0FF;box-shadow:0 0 10px rgba(0,176,255,.5)}
+  .pth.on img{filter:brightness(1)}
+
+  /* ===== 园区简介 ===== */
+  .intro p{font-size:12px;color:var(--dark-fg-2);line-height:1.75;text-indent:2em}
+  .intro .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .intro .tags i{font-style:normal;font-size:10.5px;padding:2px 8px;border-radius:10px;background:rgba(30,144,255,.12);color:#9BD2FF;border:1px solid var(--dark-line)}
+
+  /* ===== 大棚数量分布 ===== */
+  .gh-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+  .gh-row .gn{font-size:11.5px;color:var(--dark-fg);width:74px;flex-shrink:0}
+  .gh-row .gbar{flex:1;height:9px;background:var(--dark-panel-2);border-radius:5px;overflow:hidden}
+  .gh-row .gfill{height:100%;border-radius:5px}
+  .gh-row .gv{font-family:var(--font-num);font-size:13px;color:var(--dark-fg);width:36px;text-align:right;font-weight:700}
+
+  /* ===== 智能化运营 / 种植分布 通用进度 ===== */
+  .op-row{margin:9px 0}
+  .op-row .oh{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px}
+  .op-row .oh .on{color:var(--dark-fg)} .op-row .oh .ov{font-family:var(--font-num);color:var(--dark-fg-2)}
+  .op-row .obar{height:7px;background:var(--dark-panel-2);border-radius:4px;overflow:hidden}
+  .op-row .ofill{height:100%;border-radius:4px}
+
+  /* 种植分布品种色 */
+  .crop-row .cfill{height:100%;border-radius:4px}
+  .crop-legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:10.5px;color:var(--dark-fg-2);margin-top:8px}
+  .crop-legend span{display:inline-flex;align-items:center;gap:5px}
+  .crop-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body class="screen">
+<div class="screen-app">
+  <header class="ds-top">
+    <div class="ds-top__side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg><span>数据专题 · 06</span></div>
+    <div class="ds-top__title">智慧园区<span class="accent">一张图</span></div>
+    <div class="ds-top__actions"><a class="ds-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a><span class="ds-top__side" style="min-width:auto"><span class="ds-dot ds-dot--ok"></span>实时</span></div>
+  </header>
+
+  <section class="ds-kpi-band">
+    <div class="ds-kpi"><div class="ds-kpi__label">园区大棚</div><div class="ds-kpi__val breath">42<span class="ds-kpi__unit">栋</span></div><div class="ds-kpi__trend">木兰金秋</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">智能化覆盖</div><div class="ds-kpi__val breath">96<span class="ds-kpi__unit">%</span></div><div class="ds-kpi__trend up">▲ 4.0%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">种植品种</div><div class="ds-kpi__val breath">6<span class="ds-kpi__unit">个</span></div><div class="ds-kpi__trend">草莓为主</div></div>
+    <div class="ds-kpi ds-kpi--berry"><div class="ds-kpi__label">今日客流</div><div class="ds-kpi__val breath">1,286<span class="ds-kpi__unit">人</span></div><div class="ds-kpi__trend up">▲ 周末高峰</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">采摘收入</div><div class="ds-kpi__val breath">8.6<span class="ds-kpi__unit">万</span></div><div class="ds-kpi__trend up">▲ 22%</div></div>
+  </section>
+
+  <section class="ds-main">
+    <!-- 左：简介 + 大棚数量分布 + 智能化运营 -->
+    <div class="ds-col ds-col--left">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>园区简介</h3><span class="ds-top__side" style="min-width:auto;font-size:11px;color:var(--berry)">省级示范</span></div><div class="ds-panel__body intro">
+        <p>木兰金秋基地是黄陂区草莓数字农事核心示范园，占地 3000 亩，建有大棚 42 栋，集成物联网监测、水肥一体化、AI 病虫害识别与全程溯源，实现「种植—管护—采摘—溯源」全链路数字化运营，并开放农旅采摘体验。</p>
+        <div class="tags"><i>数字农业试点</i><i>全程溯源</i><i>水肥一体化</i><i>农旅融合</i></div>
+      </div></div>
+
+      <div class="ds-panel"><div class="ds-panel__head"><h3>大棚数量分布</h3><span class="ds-top__side" style="min-width:auto;font-size:11px">合计 <b class="text-num" style="color:var(--tech)">42</b> 栋</span></div><div class="ds-panel__body">
+        <div class="gh-row"><span class="gn">标准种植棚</span><div class="gbar"><div class="gfill" style="width:86%;background:linear-gradient(90deg,#22C55E,#16A34A)"></div></div><span class="gv">36</span></div>
+        <div class="gh-row"><span class="gn">育苗棚</span><div class="gbar"><div class="gfill" style="width:14%;background:linear-gradient(90deg,#7B2CBF,#5B0E91)"></div></div><span class="gv">3</span></div>
+        <div class="gh-row"><span class="gn">水肥首部</span><div class="gbar"><div class="gfill" style="width:10%;background:linear-gradient(90deg,#1E90FF,#0B5394)"></div></div><span class="gv">2</span></div>
+        <div class="gh-row"><span class="gn">分拣冷链</span><div class="gbar"><div class="gfill" style="width:6%;background:linear-gradient(90deg,#F59E0B,#B45309)"></div></div><span class="gv">1</span></div>
+        <div class="flex justify-between mt-3" style="font-size:10.5px;color:var(--dark-fg-3);padding-top:8px;border-top:1px dashed var(--dark-line)"><span>智能设备 <b class="text-num" style="color:var(--tech)">132</b> 台</span><span>视频监控 <b class="text-num" style="color:var(--tech)">24</b> 路</span><span>安防 <b class="text-num" style="color:var(--tech)">8</b> 区</span></div>
+      </div></div>
+
+      <div class="ds-panel"><div class="ds-panel__head"><h3>智能化运营</h3></div><div class="ds-panel__body">
+        <div class="op-row"><div class="oh"><span class="on">物联设备在线率</span><span class="ov">98% · 129/132</span></div><div class="obar"><div class="ofill" style="width:98%;background:linear-gradient(90deg,#22C55E,#16A34A)"></div></div></div>
+        <div class="op-row"><div class="oh"><span class="on">智能化覆盖</span><span class="ov">96%</span></div><div class="obar"><div class="ofill" style="width:96%;background:linear-gradient(90deg,#1E90FF,#0B5394)"></div></div></div>
+        <div class="op-row"><div class="oh"><span class="on">AI 病虫害识别准确率</span><span class="ov">94%</span></div><div class="obar"><div class="ofill" style="width:94%;background:linear-gradient(90deg,#7B2CBF,#5B0E91)"></div></div></div>
+        <div class="op-row"><div class="oh"><span class="on">自动化灌溉覆盖</span><span class="ov">86% · 36/42</span></div><div class="obar"><div class="ofill" style="width:86%;background:linear-gradient(90deg,#0EA5E9,#0369A1)"></div></div></div>
+      </div></div>
+    </div>
+
+    <!-- 中：园区影像台（视频/照片） -->
+    <div class="ds-col ds-col--center">
+      <div class="ds-panel" style="flex:1;min-height:0"><div class="ds-panel__head"><h3>园区影像 · 视频 / 照片</h3><span class="ds-top__side" style="min-width:auto;font-size:12px"><span class="ds-dot ds-dot--danger"></span>LIVE · 24 路</span></div>
+        <div class="ds-panel__body" style="padding:12px">
+          <div class="park-hero">
+            <img class="park-hero__img" id="park-img" src="assets/ref/park-1.png" alt="园区全景">
+            <div class="park-hero__grid"></div>
+            <div class="park-hero__vig"></div>
+            <div class="park-hero__scan"></div>
+            <div class="park-hero__osd">
+              <div class="tl"><span class="rec"></span>LIVE · <span id="park-cam">园区全景 · 制高点球机</span></div>
+              <div class="tr"><span id="park-time">--:--:--</span></div>
+              <div class="bl">木兰金秋基地 · 主入口</div>
+              <div class="br">CH01 · 4K</div>
+            </div>
+          </div>
+          <div class="park-thumbs" id="park-thumbs">
+            <div class="pth on" data-img="assets/ref/park-1.png" data-cam="园区全景 · 制高点球机"><img src="assets/ref/park-1.png" alt=""><span>主入口全景</span></div>
+            <div class="pth" data-img="assets/ref/trace-1.png" data-cam="溯源体验走廊 · 枪机"><img src="assets/ref/trace-1.png" alt=""><span>溯源走廊</span></div>
+            <div class="pth" data-img="assets/ref/plant-2.png" data-cam="智能种植大棚 · 球机"><img src="assets/ref/plant-2.png" alt=""><span>种植大棚</span></div>
+            <div class="pth" data-img="mrtfh2ww-image.png" data-cam="3号棚棚内 · 实景监控"><img src="mrtfh2ww-image.png" alt=""><span>棚内实景</span></div>
+          </div>
+          <div class="flex gap-2 mt-3" style="font-size:10.5px;color:var(--dark-fg-3)">
+            <div style="flex:1;padding:6px 8px;border:1px solid var(--dark-line);border-radius:var(--r-xs);text-align:center">视频路数 <b class="text-num" style="color:var(--tech)">24</b></div>
+            <div style="flex:1;padding:6px 8px;border:1px solid var(--dark-line);border-radius:var(--r-xs);text-align:center">在线 <b class="text-num" style="color:var(--ok)">23</b></div>
+            <div style="flex:1;padding:6px 8px;border:1px solid var(--dark-line);border-radius:var(--r-xs);text-align:center">存储 <b class="text-num" style="color:var(--tech)">30</b> 天</div>
+            <div style="flex:1;padding:6px 8px;border:1px solid var(--dark-line);border-radius:var(--r-xs);text-align:center">照片档案 <b class="text-num" style="color:var(--tech)">1.2万</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：种植分布 + 客流预警 -->
+    <div class="ds-col ds-col--right">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>种植分布</h3><span class="ds-top__side" style="min-width:auto;font-size:11px">3000 亩 · 6 品种</span></div><div class="ds-panel__body">
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#E63946;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>红颜</span><span class="ov">1350 亩 · 45%</span></div><div class="obar"><div class="cfill" style="width:45%;background:#E63946"></div></div></div>
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#1E90FF;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>章姬</span><span class="ov">600 亩 · 20%</span></div><div class="obar"><div class="cfill" style="width:20%;background:#1E90FF"></div></div></div>
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#14B8A6;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>淡雪</span><span class="ov">360 亩 · 12%</span></div><div class="obar"><div class="cfill" style="width:12%;background:#14B8A6"></div></div></div>
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#F59E0B;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>白草莓</span><span class="ov">300 亩 · 10%</span></div><div class="obar"><div class="cfill" style="width:10%;background:#F59E0B"></div></div></div>
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#7B2CBF;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>越心</span><span class="ov">240 亩 · 8%</span></div><div class="obar"><div class="cfill" style="width:8%;background:#7B2CBF"></div></div></div>
+        <div class="op-row crop-row"><div class="oh"><span class="on"><i style="background:#8FA8C2;width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px"></i>其他</span><span class="ov">150 亩 · 5%</span></div><div class="obar"><div class="cfill" style="width:5%;background:#8FA8C2"></div></div></div>
+        <div class="mt-3" style="font-size:10.5px;color:var(--dark-fg-3);padding-top:8px;border-top:1px dashed var(--dark-line)">主力品种 <b style="color:var(--berry)">红颜</b>，占种植面积近半 · 全部接入溯源</div>
+      </div></div>
+
+      <div class="ds-panel"><div class="ds-panel__head"><h3>客流预警</h3></div><div class="ds-panel__body">
+        <div class="ds-metric"><span class="ds-metric__label">采摘园承载</span><span class="ds-metric__val" style="font-size:18px;color:var(--warn)">286/300</span></div>
+        <div class="progress" style="background:var(--dark-panel-2)"><div class="progress__bar progress__bar--warn" style="width:95%"></div></div>
+        <div style="font-size:11px;color:var(--dark-fg-2);margin-top:8px">接近上限，建议启动分流预案</div>
+        <button class="btn btn--sm btn--primary" style="width:100%;margin-top:10px" onclick="location.href='p44-emergency.html'">启动客流疏导</button>
+      </div></div>
+    </div>
+  </section>
+
+  <footer class="ds-marquee"><span class="ds-marquee__tag">园区动态</span><div class="ds-marquee__track"><div class="ds-marquee__items">
+    <span class="mk"><i class="ds-dot ds-dot--danger"></i>采摘园客流接近上限 <b>286/300</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>园区大棚 <b>42 栋</b> · 智能化 <b>96%</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>种植 <b>3000 亩</b> · 主力红颜 <b>45%</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>今日采摘收入 <b>8.6 万元</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--danger"></i>采摘园客流接近上限 <b>286/300</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>种植 <b>3000 亩</b> · 主力红颜 <b>45%</b></span>
+  </div></div></footer>
+</div>
+
+<script>
+(function(){
+  /* 影像台：缩略图切换大画面 + 机位名 */
+  var img=document.getElementById('park-img'), cam=document.getElementById('park-cam');
+  document.querySelectorAll('#park-thumbs .pth').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('#park-thumbs .pth').forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on');
+      img.style.opacity='0';
+      setTimeout(function(){ img.src=t.dataset.img; cam.textContent=t.dataset.cam; img.style.opacity='1'; },120);
+    });
+  });
+  /* OSD 走秒 */
+  function tick(){var d=new Date(),p=function(n){return (n<10?'0':'')+n};var e=document.getElementById('park-time');if(e)e.textContent=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+  tick(); setInterval(tick,1000);
+})();
+</script>
+</body>
+</html>

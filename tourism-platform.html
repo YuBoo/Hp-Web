@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>数字营销与农旅服务系统 · 黄陂草莓农文旅销平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+:root{
+  --tm-red:#FF3B30;--tm-red-deep:#E02E24;--tm-red-soft:#FFE8D6;--tm-green:#4CD964;
+  --tm-green-soft:#E6F9EA;--tm-orange:#FF9F40;--tm-cream:#FFF7F2;--tm-ink:#2B1810;--tm-muted:#9A6B5E;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--tm-cream);font-family:var(--font-zh);color:var(--tm-ink)}
+.tm-top{background:linear-gradient(120deg,#FFE8D6 0%,#FFEFE0 60%,#FFF3E8 100%);padding:16px 36px;display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--tm-red);position:relative;overflow:hidden}
+.tm-top::after{content:"";position:absolute;right:-30px;top:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,59,48,.12),transparent 70%);pointer-events:none}
+.tm-logo{width:44px;height:44px;background:var(--tm-red);border-radius:13px;display:grid;place-items:center;color:#fff;box-shadow:0 4px 12px rgba(255,59,48,.3);flex-shrink:0}
+.tm-title{font-size:22px;font-weight:800;color:var(--tm-red);letter-spacing:1px;line-height:1.2}
+.tm-sub{font-size:11px;color:var(--tm-muted);margin-top:3px;letter-spacing:.5px}
+.tm-spacer{flex:1}
+.tm-btn{padding:8px 16px;border-radius:22px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-weight:500;cursor:pointer}
+.tm-btn--ghost{background:#fff;color:var(--tm-red);border:1.5px solid var(--tm-red)}
+.tm-btn--solid{background:var(--tm-red);color:#fff;border:1.5px solid var(--tm-red)}
+.tm-main{max-width:1320px;margin:0 auto;padding:24px 36px 48px}
+.tm-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.tm-card{background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 3px 14px rgba(255,59,48,.06);border:1px solid #FFEFE0}
+.tm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tm-head h3{margin:0;font-size:15px;font-weight:700;color:var(--tm-red);display:flex;align-items:center;gap:8px}
+.tm-head h3 svg{width:18px;height:18px}
+.tm-more{font-size:12px;color:#C8A89E;text-decoration:none}
+.tm-more:hover{color:var(--tm-red)}
+.tm-tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:11px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.tm-tag--red{background:var(--tm-red);color:#fff}
+.tm-tag--green{background:var(--tm-green);color:#fff}
+.tm-tag--orange{background:var(--tm-orange);color:#fff}
+/* 电商 */
+.tm-search{display:flex;gap:8px;margin-bottom:14px}
+.tm-search input{flex:1;height:38px;border:1.5px solid var(--tm-red-soft);border-radius:22px;padding:0 16px;font-size:13px;outline:none;background:var(--tm-cream)}
+.tm-search input:focus{border-color:var(--tm-red)}
+.tm-search button{background:var(--tm-red);color:#fff;border:none;border-radius:22px;padding:0 20px;font-size:13px;font-weight:600;cursor:pointer}
+.tm-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.tm-cat{background:var(--tm-cream);border-radius:13px;padding:14px 6px;text-align:center;font-size:12px;color:#7A5A4E;cursor:pointer;transition:.15s}
+.tm-cat:hover{background:var(--tm-red-soft);color:var(--tm-red)}
+.tm-cat i{width:38px;height:38px;background:#fff;border-radius:50%;display:grid;place-items:center;margin:0 auto 7px;color:var(--tm-red);border:1.5px solid var(--tm-red-soft)}
+.tm-promo{background:linear-gradient(95deg,#FF3B30,#FF7A5E);color:#fff;border-radius:13px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:500}
+/* 占位图 */
+.tm-ph{border-radius:13px;display:grid;place-items:center;color:#fff;font-weight:600;position:relative;overflow:hidden}
+/* 功能入口 */
+.tm-entry{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tm-entry a{background:var(--tm-cream);border-radius:15px;padding:18px 8px;text-align:center;text-decoration:none;color:#7A5A4E;font-size:13px;font-weight:500;transition:.15s}
+.tm-entry a:hover{background:var(--tm-red-soft)}
+.tm-entry a i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;margin:0 auto 9px;color:#fff}
+/* 会员 */
+.tm-member{background:linear-gradient(135deg,#FFF1E8,#FFE8D6);border-radius:15px;padding:18px}
+.tm-member__top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.tm-member__lv{font-size:13px;color:var(--tm-muted);font-weight:500}
+.tm-member__lv b{color:var(--tm-red)}
+.tm-member__bar{height:10px;background:#fff;border-radius:5px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.05)}
+.tm-member__bar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,#FF3B30,#FFB199);border-radius:5px}
+.tm-member__pts{font-size:11px;color:var(--tm-muted);margin-top:10px;display:flex;justify-content:space-between}
+.tm-member__pts b{color:var(--tm-red);font-family:var(--font-num);font-size:14px}
+/* KPI */
+.tm-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.tm-kpi__item{text-align:center;padding:8px 0;border-right:1px dashed #FFEFE0}
+.tm-kpi__item:last-child{border:none}
+.tm-kpi__num{font-size:28px;font-weight:800;color:var(--tm-red);font-family:var(--font-num);line-height:1}
+.tm-kpi__num .u{font-size:14px;font-weight:600}
+.tm-kpi__lbl{font-size:12px;color:#9A8077;margin-top:8px}
+.tm-kpi__trend{font-size:10px;color:var(--tm-green);margin-top:3px}
+.tm-foot{text-align:center;color:#C8A89E;font-size:11px;padding:24px 0 0}
+</style>
+</head>
+<body>
+<div class="tm-top">
+  <div class="tm-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-.7 0-1.4.4-1.8 1C9.3 3.3 8 3.5 7 4.4c-1.9 1.7-1.9 4.6 0 7.6 1 1.5 1.8 2.9 1.8 4.5V18h6.4v-1.5c0-1.6.8-3 1.8-4.5 1.9-3 1.9-5.9 0-7.6-1-1-2.3-1.1-3.2-.4-.4-.6-1.1-1-1.8-1z"/><path d="M11 18h2v3h-2z"/></svg></div>
+  <div>
+    <div class="tm-title">数字营销与农旅服务系统</div>
+    <div class="tm-sub">黄陂草莓 · 农文旅销平台 · 公众服务门户</div>
+  </div>
+  <div class="tm-spacer"></div>
+  <a class="tm-btn tm-btn--solid" href="tourism-admin.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>运营后台</a>
+  <a class="tm-btn tm-btn--ghost" href="index.html">返回门户</a>
+</div>
+
+<div class="tm-main">
+  <div class="tm-grid">
+
+    <!-- 电商商城 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 13h12L22 7H6"/></svg>电商商城</h3><a class="tm-more">更多 ›</a></div>
+      <div class="tm-search"><input placeholder="搜索 草莓鲜果 · 草莓酱"><button>搜索</button></div>
+      <div class="tm-cats">
+        <div class="tm-cat"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18l-2 12H5z"/><path d="M8 8a4 4 0 0 1 8 0"/></svg></i>草莓零食</div>
+        <div class="tm-cat"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 2 4 5 4 8a4 4 0 0 1-8 0c0-3 1-6 4-8z"/><path d="M12 14v7"/></svg></i>草莓鲜果</div>
+        <div class="tm-cat"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M5 8l3 2M19 8l-3 2M4 16h16"/><circle cx="12" cy="14" r="3"/></svg></i>现摘鲜果</div>
+        <div class="tm-cat"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/></svg></i>加工品</div>
+      </div>
+      <div class="tm-promo"><span>🍓 满 100 减 20 · 限时特惠</span><span class="tm-tag tm-tag--red">新户 5 元券</span></div>
+    </div>
+
+    <!-- VR全景漫游 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>VR 全景漫游</h3><a class="tm-more">云游览 ›</a></div>
+      <div class="tm-ph" style="height:150px;background:linear-gradient(180deg,rgba(43,24,16,.08),rgba(43,24,16,.62)),url('assets/ref/plant-2.png') center/cover #2B1810">
+        <span class="tm-tag tm-tag--red" style="position:absolute;top:10px;left:10px">VR 360°</span>
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff" opacity=".95"><path d="M8 5v14l11-7z"/></svg>
+        <span style="position:absolute;bottom:12px;left:14px;font-size:13px">木兰金秋 · 智能温室群</span>
+      </div>
+      <div style="font-size:12px;color:#9A8077;margin-top:10px;display:flex;justify-content:space-between"><span>沉浸式游览 · 48 个全景</span><span style="color:var(--tm-red)">▶ 立即体验</span></div>
+    </div>
+
+    <!-- 社区动态 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z"/></svg>社区动态</h3><a class="tm-more">更多 ›</a></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="tm-ph" style="height:96px;background:linear-gradient(180deg,rgba(43,24,16,.05) 40%,rgba(43,24,16,.72)),url('mrtfh2ww-image.png') center/cover #2B1810"><span class="tm-tag tm-tag--green" style="position:absolute;top:8px;left:8px">DAY</span><span style="position:absolute;bottom:8px;left:10px;font-size:11px">草莓文化节</span></div>
+        <div class="tm-ph" style="height:96px;background:linear-gradient(180deg,rgba(43,24,16,.05) 40%,rgba(43,24,16,.72)),url('assets/ref/park-1.png') center/cover #2B1810"><span class="tm-tag tm-tag--green" style="position:absolute;top:8px;left:8px">DAY</span><span style="position:absolute;bottom:8px;left:10px;font-size:11px">亲子采摘</span></div>
+        <div class="tm-ph" style="height:96px;background:linear-gradient(180deg,rgba(43,24,16,.05) 40%,rgba(43,24,16,.72)),url('assets/ref/pest-1.png') center/cover #2B1810"><span class="tm-tag tm-tag--green" style="position:absolute;top:8px;left:8px">DAY</span><span style="position:absolute;bottom:8px;left:10px;font-size:11px">研学体验</span></div>
+        <div class="tm-ph" style="height:96px;background:linear-gradient(180deg,rgba(43,24,16,.05) 40%,rgba(43,24,16,.72)),url('assets/ref/trace-1.png') center/cover #2B1810"><span class="tm-tag tm-tag--green" style="position:absolute;top:8px;left:8px">DAY</span><span style="position:absolute;bottom:8px;left:10px;font-size:11px">民宿度假</span></div>
+      </div>
+    </div>
+
+    <!-- 草莓故事 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M4 4v12"/></svg>草莓故事</h3><a class="tm-more">专栏视频 ›</a></div>
+      <div class="tm-ph" style="height:130px;background:linear-gradient(180deg,rgba(43,24,16,.12),rgba(43,24,16,.66)),url('assets/strawberry-3d.png') center/cover #2B1810">
+        <span class="tm-tag tm-tag--red" style="position:absolute;top:10px;left:10px">▶ 轮播</span>
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="#fff" opacity=".92"><circle cx="12" cy="12" r="10" fill="rgba(0,0,0,.25)"/><path d="M9 8v8l7-4z" fill="#fff"/></svg>
+        <span style="position:absolute;bottom:12px;left:14px;font-size:13px">《智慧大棚里的黑科技》</span>
+      </div>
+      <div style="font-size:12px;color:#9A8077;margin-top:10px">专栏 · 12 集 · 揭秘草莓从育苗到采摘的数字科技</div>
+    </div>
+
+    <!-- 快捷功能 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-2 8 9-12h-7z"/></svg>快捷功能</h3></div>
+      <div class="tm-entry">
+        <a href="tourism-admin.html"><i style="background:var(--tm-red)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 13h12L22 7H6"/></svg></i>电商商城</a>
+        <a href="tourism-admin.html"><i style="background:var(--tm-green)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></i>我的预约</a>
+        <a href="tourism-admin.html"><i style="background:var(--tm-orange)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19V5M18 5v14M6 12h12"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/></svg></i>智能路线</a>
+      </div>
+      <div style="font-size:12px;color:#9A8077;margin-top:12px;line-height:1.7">一键直达常用服务 · 采摘预约 / 路线生成 / 商品购买</div>
+    </div>
+
+    <!-- 会员成长 -->
+    <div class="tm-card" style="grid-column:span 4">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>会员成长体系</h3></div>
+      <div class="tm-member">
+        <div class="tm-member__top"><span class="tm-member__lv">普通会员 → <b>银卡会员</b></span><span class="tm-tag tm-tag--orange">VIP</span></div>
+        <div class="tm-member__bar"><i></i></div>
+        <div class="tm-member__pts"><span>还需 <b>36</b> 积分升级</span><span>当前 <b>64</b> / 100 积分</span></div>
+      </div>
+      <div style="font-size:12px;color:#9A8077;margin-top:12px;line-height:1.7">消费 / 签到 / 游记分享 均可累积积分，享折扣与专属活动</div>
+    </div>
+
+    <!-- 数据试板 -->
+    <div class="tm-card" style="grid-column:span 12">
+      <div class="tm-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="12" width="3" height="5"/></svg>数据试板</h3><a class="tm-more" href="tourism-admin.html">经营分析 ›</a></div>
+      <div class="tm-kpi">
+        <div class="tm-kpi__item"><div class="tm-kpi__num">3.2<span class="u">万元</span></div><div class="tm-kpi__lbl">今日销售额</div><div class="tm-kpi__trend">↑ 较昨日 +18%</div></div>
+        <div class="tm-kpi__item"><div class="tm-kpi__num">28<span class="u">人</span></div><div class="tm-kpi__lbl">认养用户新增</div><div class="tm-kpi__trend">↑ +12%</div></div>
+        <div class="tm-kpi__item"><div class="tm-kpi__num">28<span class="u">人</span></div><div class="tm-kpi__lbl">采摘预约</div><div class="tm-kpi__trend">↑ +9%</div></div>
+        <div class="tm-kpi__item"><div class="tm-kpi__num">156<span class="u">人次</span></div><div class="tm-kpi__lbl">活动参与</div><div class="tm-kpi__trend">↑ +24%</div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="tm-foot">黄陂草莓数字农事平台 · 农文旅销平台 · 公众服务门户</div>
+</div>
+</body>
+</html>

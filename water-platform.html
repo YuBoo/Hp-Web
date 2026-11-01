@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>智慧水肥平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>.view{display:none}.view.active{display:block}.sidebar .nav-item{cursor:pointer}.pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}.pl-row:last-child{border:none}.pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}.pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}.pl-row .v{color:var(--fg-2);font-family:var(--font-num)}.pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#22C55E,#16A34A);border-radius:3px}.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}.tbl tr:hover td{background:var(--surface-2)}.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.danger{background:var(--danger-soft);color:var(--danger)}.tag.info{background:#E6F2FF;color:var(--tech)}.valve{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px}.valve .vl{display:flex;align-items:center;gap:8px}.valve .sw{width:36px;height:20px;background:var(--border);border-radius:10px;position:relative;cursor:pointer;transition:.2s}.valve .sw.on{background:var(--ok)}.valve .sw::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}.valve .sw.on::after{left:18px}</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#16A34A">水</span> 智慧水肥平台</div>
+    <nav class="breadcrumb"><span>智慧水肥平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索阀门 / 灌溉"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">智慧水肥</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="gis"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20 3 17V4l6 3M9 20l6-3M9 20V7M15 17l6 3V7l-6 3M15 17V10"/></svg></span><span>GIS 渠网分布</span></a>
+        <a class="nav-item" data-v="ctrl"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span>远程控制 ▲</span></a>
+        <a class="nav-item" href="p21-water.html" style="display:none"></a>
+      </div>
+    </aside>
+    <main class="content"><div class="page">
+      <section class="view active" id="v-home">
+        <div class="page-head"><div><h1 class="page-head__title">智慧水肥平台 <span class="platform-mark platform-mark--iot">水肥一体化</span></h1><p class="page-head__desc">灌溉 56 次 / 施肥 38 次 / 7 阀门在线 · 利用率 92%</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">累计灌溉</div><div class="kpi__val">56<span class="unit">次</span></div><div class="kpi__trend up">↑ 本周 12 次</div></div>
+          <div class="kpi"><div class="kpi__label">累计施肥</div><div class="kpi__val">38<span class="unit">次</span></div><div class="kpi__trend up">↑ 本周 8 次</div></div>
+          <div class="kpi"><div class="kpi__label">在线阀门</div><div class="kpi__val">7<span class="unit">/7</span></div><div class="kpi__trend">全部在线</div></div>
+          <div class="kpi"><div class="kpi__label">水肥利用率</div><div class="kpi__val" style="color:#16A34A">92<span class="unit">%</span></div><div class="kpi__trend up">↑ 5%</div></div>
+        </div>
+        <div class="pl-grid">
+          <div class="card"><div class="card__head"><h3>各棚灌溉</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#22C55E"></i>1#棚</span><span class="v">12 次 · 4.2t</span></div><div class="pl-bar"><i style="width:85%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F59E0B"></i>3#棚</span><span class="v">14 次 · 5.8t</span></div><div class="pl-bar"><i style="width:95%;background:linear-gradient(90deg,#F59E0B,#D97706)"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#22C55E"></i>4#棚</span><span class="v">11 次 · 4.0t</span></div><div class="pl-bar"><i style="width:78%"></i></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>施肥计划</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">红颜·膨果期</span><span class="v">钾肥 8kg/亩</span></div>
+            <div class="pl-row"><span class="nm">章姬·花期</span><span class="v">磷钾 6kg/亩</span></div>
+            <div class="pl-row"><span class="nm">淡雪·营养期</span><span class="v">平衡肥 10kg</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>管网状态</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">F-01~F-06</span><span class="tag ok">在线</span></div>
+            <div class="pl-row"><span class="nm">F-03</span><span class="tag danger">通信中断</span></div>
+            <div class="pl-row"><span class="nm">主管压力</span><span class="v">0.28 MPa</span></div>
+          </div></div>
+        </div>
+      </section>
+      <!-- 标书补：GIS 渠网分布图（项133） -->
+      <section class="view" id="v-gis">
+        <div class="page-head"><div><h1 class="page-head__title">GIS 灌溉渠网分布 <span class="platform-mark platform-mark--iot">项133</span></h1><p class="page-head__desc">水肥一体化设备及渠道灌溉网 GIS 分布 · 点击查看设备简介</p></div></div>
+        <div class="card" style="margin-bottom:var(--sp-4)"><div class="card__body" style="padding:0">
+          <img src="mrrqj1wz-image.png" alt="园区GIS地图" style="width:100%;height:340px;object-fit:cover;border-radius:var(--r-sm) var(--r-sm) 0 0;filter:saturate(.9) brightness(.85)">
+          <div style="position:relative;margin-top:-340px;height:340px">
+            <div style="position:absolute;left:15%;top:30%;width:12%;height:18%;border:1.5px solid #22C55E;border-radius:3px;background:rgba(34,197,94,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.8)">水肥首部</div>
+            <div style="position:absolute;left:30%;top:25%;width:10%;height:15%;border:1.5px solid #1E90FF;border-radius:3px;background:rgba(30,144,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px">A区首部</div>
+            <div style="position:absolute;left:55%;top:30%;width:10%;height:15%;border:1.5px solid #F59E0B;border-radius:3px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px">B区首部</div>
+            <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><path d="M21% 40% L 35% 35% L 60% 38%" stroke="rgba(0,176,255,.4)" stroke-width="2" fill="none" stroke-dasharray="4 4"/></svg>
+          </div>
+        </div></div>
+        <div class="card"><div class="card__head"><h3>设备简介</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>编号</th><th>设备</th><th>位置</th><th>用途</th><th>状态</th></tr></thead><tbody>
+          <tr><td>WF-001</td><td>水肥一体机</td><td>水肥首部</td><td>配肥+灌溉总控</td><td><span class="tag ok">在线</span></td></tr>
+          <tr><td>F-01~F-06</td><td>电磁阀</td><td>A/B区管网</td><td>分区灌溉控制</td><td><span class="tag ok">在线</span></td></tr>
+          <tr><td>F-03</td><td>电磁阀</td><td>3#棚入口</td><td>—</td><td><span class="tag danger">通信中断</span></td></tr>
+          <tr><td>P-01</td><td>压力传感器</td><td>主管</td><td>管网压力监测</td><td><span class="tag ok">在线</span></td></tr>
+          <tr><td>FL-01</td><td>流量计</td><td>主管</td><td>用水量计量</td><td><span class="tag ok">在线</span></td></tr>
+        </tbody></table></div></div>
+      </section>
+      <!-- 标书补：远程控制 ▲（项135） -->
+      <section class="view" id="v-ctrl">
+        <div class="page-head"><div><h1 class="page-head__title">远程控制 ▲ <span class="platform-mark platform-mark--iot">项135</span></h1><p class="page-head__desc">电磁阀 / 智能球阀 / 水肥机 远程自动化控制 · 施肥灌溉计划执行</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 新建灌溉计划</a></div></div>
+        <div class="pl-grid">
+          <div class="card"><div class="card__head"><h3>电磁阀控制</h3></div><div class="card__body">
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> F-01 · 1#棚</div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> F-02 · 2#棚</div><div class="sw" onclick="this.classList.toggle('on')"></div></div>
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--danger);display:inline-block"></span> F-03 · 3#棚</div><div class="sw" style="opacity:.4"></div></div>
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> F-04 · 4#棚</div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> F-05 · 5#棚</div><div class="sw" onclick="this.classList.toggle('on')"></div></div>
+            <div class="valve"><div class="vl"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> F-06 · 6#棚</div><div class="sw" onclick="this.classList.toggle('on')"></div></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>水肥机总控</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">设备状态</span><span class="tag ok">运行中</span></div>
+            <div class="pl-row"><span class="nm">EC 值</span><span class="v">1.6 mS/cm</span></div>
+            <div class="pl-row"><span class="nm">PH 值</span><span class="v">6.4</span></div>
+            <div class="pl-row"><span class="nm">当前配方</span><span class="v">15-10-30 膨果期</span></div>
+            <div class="pl-row"><span class="nm">肥料余量</span><span class="v">68%</span></div>
+            <button class="btn btn--primary" style="width:100%;margin-top:8px">立即灌溉</button>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>灌溉计划</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>时间</th><th>区域</th><th>时长</th><th>状态</th></tr></thead><tbody>
+            <tr><td>06:00</td><td>1~4#棚</td><td>20min</td><td><span class="tag ok">已完成</span></td></tr>
+            <tr><td>16:00</td><td>5~8#棚</td><td>25min</td><td><span class="tag info">待执行</span></td></tr>
+            <tr><td>明 06:00</td><td>1~4#棚</td><td>20min</td><td><span class="tag">已排程</span></td></tr>
+          </tbody></table></div></div>
+        </div>
+      </section>
+    </div></main>
+  </div>
+</div>
+<script>(function(){var items=document.querySelectorAll('.sidebar .nav-item[data-v]'),views=document.querySelectorAll('.view'),crumb=document.getElementById('crumb'),titles={home:'工作台',gis:'GIS 渠网分布',ctrl:'远程控制'};items.forEach(function(it){it.addEventListener('click',function(e){e.preventDefault();var v=this.getAttribute('data-v');items.forEach(function(n){n.classList.remove('active')});this.classList.add('active');views.forEach(function(s){s.classList.remove('active')});var t=document.getElementById('v-'+v);if(t)t.classList.add('active');if(crumb)crumb.textContent=titles[v]||'';document.querySelector('.content')?.scrollTo?.(0,0)})})})();</script>
+</body>
+</html>

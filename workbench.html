@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>运营工作台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .spark{width:100%;height:34px;display:block}
+  .alert-item{display:flex;gap:12px;padding:12px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent;transition:all .15s}
+  .alert-item:hover{background:var(--surface-2);border-color:var(--border)}
+  .alert-item__ico{width:34px;height:34px;border-radius:var(--r-sm);display:grid;place-items:center;flex-shrink:0;font-size:16px}
+  .alert-item__ico.danger{background:var(--danger-soft);color:var(--danger)}
+  .alert-item__ico.warn{background:var(--warn-soft);color:var(--warn)}
+  .alert-item__ico.off{background:#F3F4F6;color:var(--offline)}
+  .alert-item__t{font-size:13px;color:var(--fg);font-weight:500}
+  .alert-item__d{font-size:12px;color:var(--fg-2);margin-top:2px}
+  .alert-item__time{font-size:11px;color:var(--fg-3);font-family:var(--font-num)}
+  .ring-wrap{display:flex;align-items:center;gap:20px}
+  .ring-legend{display:flex;flex-direction:column;gap:8px;font-size:13px}
+  .ring-legend .li{display:flex;align-items:center;gap:6px;color:var(--fg-2)}
+  .ring-legend .li i{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .video-cell{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#1a2b3c,#0e1a26);border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border)}
+  .video-cell::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.015) 0 2px,transparent 2px 4px)}
+  .video-cell .vname{position:absolute;left:10px;top:10px;font-size:12px;color:#E6F0FA;font-weight:500;display:flex;align-items:center;gap:6px}
+  .video-cell .vtime{position:absolute;right:10px;top:10px;font-size:11px;color:#8FA8C2;font-family:var(--font-num)}
+  .video-cell .live{position:absolute;left:10px;bottom:10px;font-size:11px;color:#fff;background:var(--berry);padding:2px 6px;border-radius:3px;font-family:var(--font-num);display:flex;align-items:center;gap:4px}
+  .video-cell .live i{width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1.2s infinite}
+  .video-cell .ctrl{position:absolute;right:10px;bottom:10px;display:flex;gap:4px}
+  .video-cell .ctrl span{width:22px;height:22px;background:rgba(0,0,0,.4);border-radius:4px;display:grid;place-items:center;color:#8FA8C2;font-size:11px}
+  .todo-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .todo-item:last-child{border:none}
+  .todo-item .pri{width:4px;height:24px;border-radius:2px;flex-shrink:0}
+  .todo-item .pri.h{background:var(--danger)} .todo-item .pri.m{background:var(--warn)} .todo-item .pri.l{background:var(--tech)}
+.video-cell{background:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/plant-2.png') center/cover}
+.video-cell:nth-child(2){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/pest-1.png')}
+.video-cell:nth-child(3){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/trace-1.png')}
+.video-cell:nth-child(4){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/park-1.png')}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+
+  <!-- ============ 顶栏 ============ -->
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <div class="topbar__brand">
+      <span class="logo">莓</span> 黄陂草莓数字农事平台
+    </div>
+    <nav class="breadcrumb">
+      <span>种植管理平台</span> <i>/</i> <b>运营工作台</b>
+    </nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input placeholder="搜索设备 / 地块 / 任务 / 溯源码">
+    </div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        返回门户
+      </a>
+      <button class="icon-btn" title="预警中心">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        <span class="badge-dot">6</span>
+      </button>
+      <div class="topbar__avatar">
+        <span class="ava">管</span>
+        <span class="name">管理员 ▾</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin__body">
+
+    <!-- ============ 左菜单 ============ -->
+    <aside class="sidebar">
+      <div class="sidebar__group">
+        <div class="sidebar__title">运营</div>
+        <a class="nav-item active" href="workbench.html">
+          <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
+          <span>运营工作台</span>
+        </a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">种植管理</div>
+        <a class="nav-item" href="p12-device-monitor.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span>设备监控墙</span><span class="sub-count" style="background:var(--danger-soft);color:var(--danger)">1</span></a>
+        <a class="nav-item" href="p15-environment.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span>气象监测</span></a>
+        <a class="nav-item" href="p19-alert.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>智能预警</span><span class="sub-count" style="background:var(--warn-soft);color:var(--warn)">6</span></a>
+        <a class="nav-item" href="p110-task.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>农事任务</span><span class="sub-count">14</span></a>
+        <a class="nav-item" href="p116-video.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">AI 决策</div>
+        <a class="nav-item" href="p21-water.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a>
+        <a class="nav-item" href="p23-pest.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="13" rx="4"/><path d="M19 7l-3 2M5 7l3 2M19 13h-3M8 13H5"/></svg></span><span>病虫害防控</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">物联网 / 孪生</div>
+        <a class="nav-item" href="p32-device-data.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 16.1a10 10 0 0 1 0-14.2M7.8 13.3a6 6 0 0 1 0-8.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 13.3a6 6 0 0 0 0-8.5M19.1 16.1a10 10 0 0 0 0-14.2"/></svg></span><span>设备数据查看</span></a>
+        <a class="nav-item" href="p34-alert-config.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></span><span>预警设置</span></a>
+        <a class="nav-item" href="p41-twin3d.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg></span><span>三维园区总览</span></a>
+        <a class="nav-item" href="p44-emergency.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><span>应急模拟</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">农机 / 溯源</div>
+        <a class="nav-item" href="p62-machine.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>农机实时监控</span></a>
+        <a class="nav-item" href="p64-machine-stat.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计</span></a>
+        <a class="nav-item" href="operation-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/><circle cx="12" cy="12" r="3"/></svg></span><span>作业查询</span><span class="sub-count">NEW</span></a>
+        <a class="nav-item" href="p77-trace-code.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>溯源码生成</span></a>
+        <a class="nav-item" href="p78-trace-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>溯源码查询</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">系统</div>
+        <a class="nav-item" href="p132-led.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></span><span>大屏内容管理</span></a>
+      </div>
+    </aside>
+
+    <!-- ============ 内容区 ============ -->
+    <main class="content">
+      <div class="page">
+
+        <!-- 页头：欢迎 + 基地选择 + 天气 -->
+        <div class="page-head">
+          <div>
+            <h1 class="page-head__title">下午好，管理员
+              <span class="platform-mark platform-mark--plant">种植管理平台</span>
+            </h1>
+            <p class="page-head__desc">2026-07-18 周五 · 今日 6 起预警待处理，3 号棚温度超限，建议立即处置。</p>
+          </div>
+          <div class="page-head__actions">
+            <div class="field">
+              <label>基地</label>
+              <select class="select">
+                <option>木兰金秋草莓基地</option>
+                <option>前川街道示范园</option>
+                <option>王家河家庭农场</option>
+              </select>
+            </div>
+            <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>导出日报</button>
+            <button class="btn btn--primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新建任务</button>
+          </div>
+        </div>
+
+        <!-- 4 KPI 卡（带迷你折线） -->
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--tech"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+            <div class="kpi__label">在线设备</div>
+            <div class="kpi__val">128<span class="unit">/132 台</span></div>
+            <div class="kpi__foot"><span>较昨日</span><span class="kpi__trend up">▲ 2.1%</span></div>
+            <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" style="margin-top:6px"><polyline points="0,24 15,20 30,22 45,14 60,18 75,10 90,12 105,8 120,11" fill="none" stroke="var(--tech)" stroke-width="2"/><polyline points="0,24 15,20 30,22 45,14 60,18 75,10 90,12 105,8 120,11 120,34 0,34" fill="rgba(30,144,255,.12)" stroke="none"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--warn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></div>
+            <div class="kpi__label">今日预警</div>
+            <div class="kpi__val">6<span class="unit">起 · 待处理 2</span></div>
+            <div class="kpi__foot"><span>较昨日</span><span class="kpi__trend up">▲ 50%</span></div>
+            <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" style="margin-top:6px"><polyline points="0,28 15,24 30,26 45,20 60,22 75,16 90,10 105,14 120,8" fill="none" stroke="var(--warn)" stroke-width="2"/><polyline points="0,28 15,24 30,26 45,20 60,22 75,16 90,10 105,14 120,8 120,34 0,34" fill="rgba(245,158,11,.12)" stroke="none"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--berry"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></div>
+            <div class="kpi__label">待办任务</div>
+            <div class="kpi__val">14<span class="unit">项 · 逾期 1</span></div>
+            <div class="kpi__foot"><span>本周新增</span><span class="kpi__trend up">▲ 3</span></div>
+            <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" style="margin-top:6px"><polyline points="0,18 15,14 30,20 45,16 60,12 75,16 90,10 105,14 120,12" fill="none" stroke="var(--berry)" stroke-width="2"/><polyline points="0,18 15,14 30,20 45,16 60,12 75,16 90,10 105,14 120,12 120,34 0,34" fill="rgba(230,57,70,.12)" stroke="none"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--ok"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 5 9l7 13 7-13z"/></svg></div>
+            <div class="kpi__label">本周采收</div>
+            <div class="kpi__val">12.4<span class="unit">吨 · 糖度12.1°</span></div>
+            <div class="kpi__foot"><span>较上周</span><span class="kpi__trend up">▲ 8.3%</span></div>
+            <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" style="margin-top:6px"><polyline points="0,26 15,22 30,18 45,20 60,14 75,12 90,8 105,10 120,6" fill="none" stroke="var(--ok)" stroke-width="2"/><polyline points="0,26 15,22 30,18 45,20 60,14 75,12 90,8 105,10 120,6 120,34 0,34" fill="rgba(34,197,94,.12)" stroke="none"/></svg>
+          </div>
+        </div>
+
+        <!-- 行2：园区GIS(2/3) + 实时预警(1/3) -->
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1.8fr 1fr">
+          <div class="card">
+            <div class="card__head">
+              <h3><span class="bar"></span>园区态势 · 设备分布</h3>
+              <span class="more">查看大屏 ›</span>
+            </div>
+            <div class="card__body" style="padding:0">
+              <div style="position:relative;height:280px;background:
+                radial-gradient(circle at 30% 40%,rgba(30,144,255,.08),transparent 55%),
+                var(--surface-2);border-radius:0 0 var(--r-md) var(--r-md);overflow:hidden">
+                <svg viewBox="0 0 640 280" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+                  <defs><pattern id="g2" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="rgba(30,144,255,.08)"/></pattern></defs>
+                  <rect width="640" height="280" fill="url(#g2)"/>
+                  <path d="M40 140 L 600 140" stroke="rgba(30,144,255,.25)" stroke-width="1.5" stroke-dasharray="5 5"/>
+                  <!-- 大棚点位 -->
+                  <g font-family="var(--font-num)" font-size="9" fill="#6B7280">
+                    <g><rect x="60" y="50" width="90" height="50" rx="4" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.5)"/><text x="68" y="70">1号棚 26.1℃</text><circle cx="138" cy="90" r="3.5" fill="#22C55E"/></g>
+                    <g><rect x="170" y="50" width="90" height="50" rx="4" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.5)"/><text x="178" y="70">2号棚 25.8℃</text><circle cx="248" cy="90" r="3.5" fill="#22C55E"/></g>
+                    <g><rect x="280" y="50" width="90" height="50" rx="4" fill="rgba(230,57,70,.10)" stroke="rgba(230,57,70,.8)"/><text x="288" y="70" fill="#E63946">3号棚 32.0℃</text><circle cx="358" cy="90" r="4" fill="#E63946"><animate attributeName="r" values="4;7;4" dur="1.6s" repeatCount="indefinite"/></circle></g>
+                    <g><rect x="390" y="50" width="90" height="50" rx="4" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.5)"/><text x="398" y="70">4号棚 26.4℃</text><circle cx="468" cy="90" r="3.5" fill="#22C55E"/></g>
+                    <g><rect x="500" y="50" width="90" height="50" rx="4" fill="rgba(245,158,11,.10)" stroke="rgba(245,158,11,.6)"/><text x="508" y="70" fill="#F59E0B">5号棚 CO₂↑</text><circle cx="578" cy="90" r="3.5" fill="#F59E0B"/></g>
+                    <g><rect x="60" y="170" width="90" height="50" rx="4" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.5)"/><text x="68" y="190">6号棚 26.2℃</text><circle cx="138" cy="210" r="3.5" fill="#22C55E"/></g>
+                    <g><rect x="170" y="170" width="90" height="50" rx="4" fill="rgba(30,144,255,.10)" stroke="rgba(30,144,255,.6)"/><text x="178" y="190" fill="#1E90FF">水肥首部</text><circle cx="248" cy="210" r="3.5" fill="#1E90FF"/></g>
+                    <g><rect x="280" y="170" width="90" height="50" rx="4" fill="rgba(239,68,68,.10)" stroke="rgba(239,68,68,.7)"/><text x="288" y="190" fill="#EF4444">阀F-03故障</text><circle cx="358" cy="210" r="3.5" fill="#EF4444"/></g>
+                    <g><rect x="390" y="170" width="90" height="50" rx="4" fill="rgba(123,44,191,.08)" stroke="rgba(123,44,191,.5)"/><text x="398" y="190" fill="#7B2CBF">分拣冷链</text><circle cx="468" cy="210" r="3.5" fill="#7B2CBF"/></g>
+                    <g><rect x="500" y="170" width="90" height="50" rx="4" fill="rgba(156,163,175,.10)" stroke="rgba(156,163,175,.5)"/><text x="508" y="190" fill="#9CA3AF">1号棚离线</text><circle cx="578" cy="210" r="3.5" fill="#9CA3AF"/></g>
+                  </g>
+                </svg>
+                <div class="ds-legend" style="position:absolute;left:14px;bottom:12px;font-size:11px">
+                  <span style="color:var(--fg-2)"><i class="dot dot--ok"></i>正常</span>
+                  <span style="color:var(--fg-2)"><i class="dot dot--warn"></i>预警</span>
+                  <span style="color:var(--fg-2)"><i class="dot dot--danger"></i>故障</span>
+                  <span style="color:var(--fg-2)"><i class="dot dot--offline"></i>离线</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__head">
+              <h3><span class="bar"></span>实时预警 Top 5</h3>
+              <span class="more">预警中心 ›</span>
+            </div>
+            <div class="card__body" style="padding:8px">
+              <div class="alert-item">
+                <div class="alert-item__ico danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg></div>
+                <div class="flex-1"><div class="alert-item__t">3号棚 温度超限 32.0℃</div><div class="alert-item__d">阈值上限 30℃ · 建议：开启风机+卷帘</div></div>
+                <span class="alert-item__time">2分钟前</span>
+              </div>
+              <div class="alert-item">
+                <div class="alert-item__ico warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg></div>
+                <div class="flex-1"><div class="alert-item__t">水肥阀 F-03 通讯故障</div><div class="alert-item__d">电磁阀无响应 · 建议：派单维修</div></div>
+                <span class="alert-item__time">15分钟前</span>
+              </div>
+              <div class="alert-item">
+                <div class="alert-item__ico warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+                <div class="flex-1"><div class="alert-item__t">5号棚 CO₂ 偏高 980ppm</div><div class="alert-item__d">阈值上限 800ppm · 建议：通风换气</div></div>
+                <span class="alert-item__time">1小时前</span>
+              </div>
+              <div class="alert-item">
+                <div class="alert-item__ico warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.7S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.3-7-11.3z"/></svg></div>
+                <div class="flex-1"><div class="alert-item__t">2号棚 土壤湿度偏低 38%</div><div class="alert-item__d">阈值下限 45% · 建议：启动滴灌</div></div>
+                <span class="alert-item__time">2小时前</span>
+              </div>
+              <div class="alert-item">
+                <div class="alert-item__ico off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2v6L4 20a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-12V2"/><path d="M9 2h6"/></svg></div>
+                <div class="flex-1"><div class="alert-item__t">1号棚 摄像头离线</div><div class="alert-item__d">CAM-101 最后在线 3 小时前</div></div>
+                <span class="alert-item__time">3小时前</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行3：环境曲线 + 任务进度/待办 -->
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1.8fr 1fr">
+          <div class="card">
+            <div class="card__head">
+              <h3><span class="bar"></span>环境实时曲线 · 3号棚（近 24h）</h3>
+              <div class="flex gap-2">
+                <span class="tag tag--danger"><i class="dot dot--danger"></i>温度超限段</span>
+                <span class="more">导出 ›</span>
+              </div>
+            </div>
+            <div class="card__body">
+              <svg viewBox="0 0 600 200" style="width:100%;height:200px">
+                <!-- 阈值带 -->
+                <rect x="30" y="40" width="560" height="80" fill="rgba(34,197,94,.06)"/>
+                <line x1="30" y1="40" x2="590" y2="40" stroke="rgba(239,68,68,.5)" stroke-width="1" stroke-dasharray="4 4"/>
+                <line x1="30" y1="120" x2="590" y2="120" stroke="rgba(30,144,255,.4)" stroke-width="1" stroke-dasharray="4 4"/>
+                <text x="595" y="44" font-size="9" fill="#EF4444" font-family="var(--font-num)">上限30℃</text>
+                <text x="595" y="124" font-size="9" fill="#1E90FF" font-family="var(--font-num)">下限18℃</text>
+                <!-- 网格 -->
+                <g stroke="rgba(0,0,0,.05)"><line x1="30" y1="60" x2="590" y2="60"/><line x1="30" y1="100" x2="590" y2="100"/><line x1="30" y1="140" x2="590" y2="140"/><line x1="30" y1="180" x2="590" y2="180"/></g>
+                <!-- 温度曲线（超限段红） -->
+                <path d="M30,110 L80,100 L130,92 L180,85 L230,70 L280,55 L300,48 L320,45 L340,50 L380,70 L430,90 L480,105 L530,112 L590,108" fill="none" stroke="#E63946" stroke-width="2.5"/>
+                <path d="M30,110 L80,100 L130,92 L180,85 L230,70 L280,55 L300,48 L320,45 L340,50 L380,70 L430,90 L480,105 L530,112 L590,108 L590,200 L30,200 Z" fill="rgba(230,57,70,.08)"/>
+                <!-- 超限红点 -->
+                <circle cx="300" cy="48" r="4" fill="#EF4444"/><circle cx="320" cy="45" r="4" fill="#EF4444"/>
+                <!-- 湿度曲线 -->
+                <path d="M30,150 L80,145 L130,148 L180,140 L230,135 L280,142 L340,150 L400,158 L460,152 L520,148 L590,145" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-dasharray="0"/>
+                <!-- X 轴 -->
+                <g font-size="9" fill="#9CA3AF" font-family="var(--font-num)"><text x="30" y="196">00:00</text><text x="170" y="196">06:00</text><text x="310" y="196">12:00</text><text x="450" y="196">18:00</text><text x="565" y="196">24:00</text></g>
+                <!-- 图例 -->
+                <g font-size="10" fill="#6B7280"><rect x="30" y="8" width="10" height="2" fill="#E63946"/><text x="44" y="13">温度℃</text><rect x="90" y="8" width="10" height="2" fill="#0EA5E9"/><text x="104" y="13">湿度%</text></g>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__head">
+              <h3><span class="bar"></span>今日任务进度</h3>
+              <span class="more">任务管理 ›</span>
+            </div>
+            <div class="card__body">
+              <div class="ring-wrap">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="var(--border)" stroke-width="12"/>
+                  <!-- 待开始 4/14 -->
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="#9CA3AF" stroke-width="12" stroke-dasharray="39 276" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+                  <!-- 进行中 6/14 -->
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="var(--tech)" stroke-width="12" stroke-dasharray="59 276" stroke-dashoffset="-39" transform="rotate(-90 55 55)"/>
+                  <!-- 待验收 2/14 -->
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="var(--warn)" stroke-width="12" stroke-dasharray="20 276" stroke-dashoffset="-98" transform="rotate(-90 55 55)"/>
+                  <!-- 已完成 2/14 -->
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="var(--ok)" stroke-width="12" stroke-dasharray="20 276" stroke-dashoffset="-118" transform="rotate(-90 55 55)"/>
+                  <text x="55" y="52" text-anchor="middle" font-size="22" font-family="var(--font-num)" font-weight="700" fill="var(--fg)">14</text>
+                  <text x="55" y="68" text-anchor="middle" font-size="10" fill="var(--fg-2)">总任务</text>
+                </svg>
+                <div class="ring-legend">
+                  <span class="li"><i style="background:#9CA3AF"></i>待开始 4</span>
+                  <span class="li"><i style="background:var(--tech)"></i>进行中 6</span>
+                  <span class="li"><i style="background:var(--warn)"></i>待验收 2</span>
+                  <span class="li"><i style="background:var(--ok)"></i>已完成 2</span>
+                </div>
+              </div>
+              <div style="margin-top:16px">
+                <div class="todo-item"><span class="pri h"></span><span class="flex-1">3号棚 温度超限处置</span><span class="tag tag--danger">紧急</span></div>
+                <div class="todo-item"><span class="pri m"></span><span class="flex-1">5号棚 疏花疏果</span><span class="text-fg3" style="font-size:12px">16:00</span></div>
+                <div class="todo-item"><span class="pri m"></span><span class="flex-1">2号棚 滴灌补水</span><span class="text-fg3" style="font-size:12px">17:30</span></div>
+                <div class="todo-item"><span class="pri l"></span><span class="flex-1">4号棚 巡查记录</span><span class="text-fg3" style="font-size:12px">明日</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行4：视频4宫格 -->
+        <div class="card">
+          <div class="card__head">
+            <h3><span class="bar"></span>视频监控 · 实时画面</h3>
+            <div class="flex gap-2">
+              <span class="tag tag--tech">1 / 4 / 9 切换</span>
+              <span class="more">视频监控 ›</span>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="grid-4">
+              <div class="video-cell">
+                <span class="vname"><i class="dot dot--danger"></i>3号棚 · 全景</span><span class="vtime">CAM-103</span>
+                <span class="live"><i></i>LIVE</span>
+                <div class="ctrl"><span>▶</span><span>⊞</span></div>
+              </div>
+              <div class="video-cell">
+                <span class="vname"><i class="dot dot--ok"></i>1号棚 · 入口</span><span class="vtime">CAM-101</span>
+                <span class="live"><i></i>LIVE</span>
+                <div class="ctrl"><span>▶</span><span>⊞</span></div>
+              </div>
+              <div class="video-cell">
+                <span class="vname"><i class="dot dot--ok"></i>水肥首部</span><span class="vtime">CAM-201</span>
+                <span class="live"><i></i>LIVE</span>
+                <div class="ctrl"><span>▶</span><span>⊞</span></div>
+              </div>
+              <div class="video-cell">
+                <span class="vname"><i class="dot dot--ok"></i>分拣车间</span><span class="vtime">CAM-301</span>
+                <span class="live"><i></i>LIVE</span>
+                <div class="ctrl"><span>▶</span><span>⊞</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  // 顶栏折叠状态持久化
+  const admin=document.getElementById('admin');
+  if(localStorage.getItem('hp_sidebar')==='1') admin.classList.add('collapsed');
+  admin.querySelector('.topbar__collapse').addEventListener('click',()=>{
+    localStorage.setItem('hp_sidebar',admin.classList.contains('collapsed')?'1':'0');
+  });
+</script>
+</body>
+</html>

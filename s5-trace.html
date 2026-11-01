@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>草莓溯源一张图 · 数据专题</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  body{--berry:#7B2CBF;--berry-deep:#5B1A8F;--berry-soft:rgba(123,44,191,.16)}
+  .city-rank{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--dark-line)}
+  .city-rank .rk{width:20px;height:20px;border-radius:var(--r-xs);display:grid;place-items:center;font-family:var(--font-num);font-size:12px;font-weight:700;background:var(--dark-panel-2);color:var(--dark-fg-2)}
+  .city-rank .rk.t1{background:var(--berry);color:#fff}.city-rank .rk.t2{background:rgba(123,44,191,.5);color:#fff}.city-rank .rk.t3{background:rgba(123,44,191,.3);color:#fff}
+  .flow-line{stroke-dasharray:4 4;animation:flow 1.5s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-16}}
+</style>
+</head>
+<body class="screen">
+<div class="screen-app">
+  <header class="ds-top">
+    <div class="ds-top__side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--berry)" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>数据专题 · 05</span></div>
+    <div class="ds-top__title">草莓溯源<span class="accent">一张图</span></div>
+    <div class="ds-top__actions"><a class="ds-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a><span class="ds-top__side" style="min-width:auto"><span class="ds-dot" style="background:var(--berry)"></span>区块链存证</span></div>
+  </header>
+
+  <section class="ds-kpi-band">
+    <div class="ds-kpi"><div class="ds-kpi__label">累计溯源次数</div><div class="ds-kpi__val breath" style="text-shadow:0 0 14px rgba(123,44,191,.5)">52,318<span class="ds-kpi__unit">次</span></div><div class="ds-kpi__trend up">▲ 本月 18.2%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">消费城市</div><div class="ds-kpi__val breath">28<span class="ds-kpi__unit">个</span></div><div class="ds-kpi__trend">覆盖全国</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">溯源批次</div><div class="ds-kpi__val breath">36<span class="ds-kpi__unit">批</span></div><div class="ds-kpi__trend up">▲ 6 批</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">上链存证</div><div class="ds-kpi__val breath">100<span class="ds-kpi__unit">%</span></div><div class="ds-kpi__trend">码证合一</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">消费者扫码</div><div class="ds-kpi__val breath">3,206<span class="ds-kpi__unit">/周</span></div><div class="ds-kpi__trend up">▲ 12.4%</div></div>
+  </section>
+
+  <section class="ds-main">
+    <div class="ds-col ds-col--left">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>溯源渠道分布</h3></div><div class="ds-panel__body">
+        <svg viewBox="0 0 200 200" style="width:140px;height:140px;margin:0 auto;display:block">
+          <circle cx="100" cy="100" r="70" fill="none" stroke="var(--dark-panel-2)" stroke-width="24"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#7B2CBF" stroke-width="24" stroke-dasharray="180 440" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#1E90FF" stroke-width="24" stroke-dasharray="110 440" stroke-dashoffset="-180" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#22C55E" stroke-width="24" stroke-dasharray="80 440" stroke-dashoffset="-290" transform="rotate(-90 100 100)"/>
+          <text x="100" y="96" text-anchor="middle" font-size="22" font-family="var(--font-num)" font-weight="700" fill="var(--dark-fg)">52k</text><text x="100" y="112" text-anchor="middle" font-size="9" fill="var(--dark-fg-2)">总扫码</text>
+        </svg>
+        <div class="ds-legend mt-3" style="font-size:12px"><span><i class="ds-dot" style="background:#7B2CBF"></i>盒马/商超 41%</span><span><i class="ds-dot" style="background:#1E90FF"></i>电商直发 25%</span><span><i class="ds-dot" style="background:#22C55E"></i>采摘园 18%</span></div>
+      </div></div>
+      <div class="ds-panel"><div class="ds-panel__head"><h3>溯源节点</h3></div><div class="ds-panel__body">
+        <div class="ds-metric"><span class="ds-metric__label">种植环节数据</span><span class="ds-metric__val" style="font-size:18px">12<span class="unit">类</span></span></div>
+        <div class="ds-metric"><span class="ds-metric__label">质检报告</span><span class="ds-metric__val" style="font-size:18px;color:var(--ok)">100%</span></div>
+        <div class="ds-metric"><span class="ds-metric__label">冷链覆盖率</span><span class="ds-metric__val" style="font-size:18px">96%</span></div>
+      </div></div>
+    </div>
+
+    <div class="ds-col ds-col--center">
+      <div class="ds-panel" style="flex:1"><div class="ds-panel__head"><h3>全国溯源流向 · 黄陂草莓流向分布</h3><span class="ds-top__side" style="min-width:auto;font-size:12px"><span class="ds-dot" style="background:var(--berry)"></span>武汉出发</span></div>
+        <div class="ds-panel__body ds-panel--flush" style="position:relative">
+          <svg viewBox="0 0 880 420" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+            <defs><pattern id="tg" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="rgba(30,144,255,.06)"/></pattern></defs>
+            <rect width="880" height="420" fill="url(#tg)"/>
+            <!-- 中国轮廓示意 -->
+            <path d="M120 160 C 200 120, 320 110, 460 130 C 600 150, 720 140, 800 180 C 820 240, 780 300, 700 320 C 560 340, 400 330, 280 310 C 180 290, 120 240, 120 160 Z" fill="rgba(30,144,255,.04)" stroke="rgba(30,144,255,.25)" stroke-width="1.5"/>
+            <!-- 流向线（武汉->各城） -->
+            <g stroke="#7B2CBF" stroke-width="2" fill="none" opacity=".7">
+              <path class="flow-line" d="M440 250 Q 480 180 520 150"/>
+              <path class="flow-line" d="M440 250 Q 500 230 580 220"/>
+              <path class="flow-line" d="M440 250 Q 380 200 320 170"/>
+              <path class="flow-line" d="M440 250 Q 420 320 380 360"/>
+              <path class="flow-line" d="M440 250 Q 560 280 640 270"/>
+              <path class="flow-line" d="M440 250 Q 300 260 200 250"/>
+            </g>
+            <!-- 城市 -->
+            <g font-size="10">
+              <!-- 武汉 产地 -->
+              <circle cx="440" cy="250" r="10" fill="rgba(123,44,191,.3)"/><circle cx="440" cy="250" r="6" fill="#7B2CBF"><animate attributeName="r" values="6;9;6" dur="1.8s" repeatCount="indefinite"/></circle>
+              <text x="440" y="276" text-anchor="middle" fill="#7B2CBF" font-weight="700">武汉·黄陂(产地)</text>
+              <!-- 目的城市 -->
+              <circle cx="520" cy="150" r="5" fill="#1E90FF"/><text x="530" y="146" fill="#8FA8C2">郑州 8.2k</text>
+              <circle cx="580" cy="220" r="6" fill="#1E90FF"/><text x="590" y="216" fill="#8FA8C2">长沙 9.6k</text>
+              <circle cx="320" cy="170" r="5" fill="#1E90FF"/><text x="240" y="166" fill="#8FA8C2">西安 4.1k</text>
+              <circle cx="380" cy="360" r="5" fill="#22C55E"/><text x="320" y="378" fill="#8FA8C2">广州 6.8k</text>
+              <circle cx="640" cy="270" r="7" fill="#1E90FF"/><text x="650" y="266" fill="#8FA8C2">上海 12.4k</text>
+              <circle cx="200" cy="250" r="5" fill="#1E90FF"/><text x="150" y="270" fill="#8FA8C2">成都 3.6k</text>
+              <circle cx="700" cy="180" r="4" fill="#22C55E"/><text x="710" y="176" fill="#8FA8C2">北京 5.2k</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-col ds-col--right">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>消费城市 Top 榜</h3></div><div class="ds-panel__body">
+        <div class="city-rank"><span class="rk t1">1</span><div class="flex-1"><div style="font-size:13px;color:var(--dark-fg)">上海</div><div class="progress" style="background:var(--dark-panel-2);height:5px;margin-top:4px"><div class="progress__bar" style="width:100%;background:var(--berry)"></div></div></div><span class="text-num" style="font-size:14px;color:var(--berry)">12.4k</span></div>
+        <div class="city-rank"><span class="rk t2">2</span><div class="flex-1"><div style="font-size:13px;color:var(--dark-fg)">长沙</div><div class="progress" style="background:var(--dark-panel-2);height:5px;margin-top:4px"><div class="progress__bar" style="width:77%;background:var(--berry)"></div></div></div><span class="text-num" style="font-size:14px;color:var(--dark-fg)">9.6k</span></div>
+        <div class="city-rank"><span class="rk t3">3</span><div class="flex-1"><div style="font-size:13px;color:var(--dark-fg)">郑州</div><div class="progress" style="background:var(--dark-panel-2);height:5px;margin-top:4px"><div class="progress__bar" style="width:66%;background:var(--berry)"></div></div></div><span class="text-num" style="font-size:14px;color:var(--dark-fg)">8.2k</span></div>
+        <div class="city-rank"><span class="rk">4</span><div class="flex-1"><div style="font-size:13px;color:var(--dark-fg)">广州</div><div class="progress" style="background:var(--dark-panel-2);height:5px;margin-top:4px"><div class="progress__bar" style="width:55%;background:var(--berry)"></div></div></div><span class="text-num" style="font-size:14px;color:var(--dark-fg-2)">6.8k</span></div>
+        <div class="city-rank" style="border:none"><span class="rk">5</span><div class="flex-1"><div style="font-size:13px;color:var(--dark-fg)">北京</div><div class="progress" style="background:var(--dark-panel-2);height:5px;margin-top:4px"><div class="progress__bar" style="width:42%;background:var(--berry)"></div></div></div><span class="text-num" style="font-size:14px;color:var(--dark-fg-2)">5.2k</span></div>
+      </div></div>
+    </div>
+  </section>
+
+  <footer class="ds-marquee"><span class="ds-marquee__tag">溯源动态</span><div class="ds-marquee__track"><div class="ds-marquee__items">
+    <span class="mk"><i class="ds-dot" style="background:var(--berry)"></i>批次 <b>SB20260718001</b> 上链完成</span>
+    <span class="mk"><i class="ds-dot" style="background:var(--ok)"></i>本周扫码 <b>3,206</b> 次 · 覆盖 28 城</span>
+    <span class="mk"><i class="ds-dot" style="background:var(--berry)"></i>批次 <b>SB20260718001</b> 上链完成</span>
+    <span class="mk"><i class="ds-dot" style="background:var(--ok)"></i>本周扫码 <b>3,206</b> 次 · 覆盖 28 城</span>
+  </div></div></footer>
+</div>
+</body>
+</html>

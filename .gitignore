@@ -1,0 +1,5 @@
+.od-skills/
+*.artifact.json
+tmp_req.docx
+Thumbs.db
+.DS_Store

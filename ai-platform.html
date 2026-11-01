@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>AI 决策平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .view{display:none}.view.active{display:block}
+  .sidebar .nav-item{cursor:pointer}
+  .pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}
+  .pl-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-4)}
+  .pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .pl-row:last-child{border:none}
+  .pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}
+  .pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+  .pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}
+  .pl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--tech),var(--tech-deep));border-radius:3px}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}
+  .tbl tr:hover td{background:var(--surface-2)}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.danger{background:var(--danger-soft);color:var(--danger)}.tag.info{background:#E6F2FF;color:var(--tech)}
+  .conf{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-num)}
+  .conf i{width:36px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;display:inline-block}
+  .conf i b{display:block;height:100%;background:var(--tech)}
+  .model-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
+  .model-card .mh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .model-card .dot{width:30px;height:30px;border-radius:var(--r-sm);background:#E6F2FF;color:var(--tech);display:grid;place-items:center}
+  .model-card h4{font-size:15px;font-weight:700;color:var(--fg)}
+  .chat{display:flex;flex-direction:column;gap:10px}
+  .chat .bubble{padding:10px 14px;border-radius:var(--r-md);font-size:13px;line-height:1.6;max-width:80%}
+  .chat .bubble.q{background:var(--surface-2);border:1px solid var(--border);align-self:flex-start;border-radius:var(--r-md) var(--r-md) var(--r-md) 2px}
+  .chat .bubble.a{background:#E6F2FF;border:1px solid #BFD9F5;color:var(--fg);align-self:flex-end;border-radius:var(--r-md) var(--r-md) 2px var(--r-md)}
+  .chat .bubble .who{font-size:11px;color:var(--fg-3);margin-bottom:4px;font-family:var(--font-num)}
+  .shot{position:relative;aspect-ratio:4/3;background:linear-gradient(rgba(8,19,31,.4),rgba(8,19,31,.7)),url('assets/ref/pest-1.png') center/cover;border-radius:var(--r-sm);border:1px solid var(--border);overflow:hidden}
+  .shot:nth-child(2){background-image:linear-gradient(rgba(8,19,31,.4),rgba(8,19,31,.7)),url('assets/ref/plant-2.png')}
+  .shot:nth-child(3){background-image:linear-gradient(rgba(8,19,31,.4),rgba(8,19,31,.7)),url('assets/ref/trace-1.png')}
+  .shot:nth-child(4){background-image:linear-gradient(rgba(8,19,31,.4),rgba(8,19,31,.7)),url('assets/ref/park-1.png')}
+  .shot .lab{position:absolute;left:8px;bottom:8px;font-size:11px;color:#fff;background:rgba(230,57,70,.85);padding:2px 7px;border-radius:3px;font-weight:600}
+  .shot .lab.b{background:rgba(30,144,255,.85)}
+  .shot .lab.g{background:rgba(34,197,94,.85)}
+  .shot .lab.o{background:rgba(245,158,11,.85)}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:var(--tech)">A</span> AI 决策平台</div>
+    <nav class="breadcrumb"><span>AI 决策平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="查询害虫 / 模型 / 诊断"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <button class="icon-btn" title="模型训练"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group">
+        <div class="sidebar__title">AI 决策</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="pest"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/><path d="M12 6V3M12 21v-3M6 12H3M21 12h-3"/></svg></span><span>AI 病虫害识别</span><span class="sub-count">1280</span></a>
+        <a class="nav-item" data-v="diagnose"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>AI 诊断问答</span><span class="sub-count">86</span></a>
+        <a class="nav-item" data-v="model"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></span><span>决策模型</span><span class="sub-count">5</span></a>
+        <a class="nav-item" data-v="forecast"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span><span>生长预测</span></a>
+        <a class="nav-item" data-v="wm"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a>
+        <a class="nav-item" data-v="tm"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg></span><span>温光调控模型</span></a>
+        <a class="nav-item" data-v="pheno"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8M12 8c0-3 2-5 5-5M12 12c0-3-2-5-5-5"/></svg></span><span>表型监测模型</span></a>
+        <a class="nav-item" href="soil-monitoring.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M5 10c0 4 3 8 7 12 4-4 7-8 7-12a7 7 0 0 0-14 0z"/><circle cx="12" cy="10" r="2"/></svg></span><span>土壤与气象监测</span></a>
+        <a class="nav-item" data-v="atlas"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span><span>病虫害知识图谱 ▲</span></a>
+        <a class="nav-item" data-v="ctrl"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>防控推荐与效果</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">监测与规则</div>
+        <a class="nav-item" data-v="monitor"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></span><span>病虫害监测</span></a>
+        <a class="nav-item" data-v="rule"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>预警规则</span></a>
+        <a class="nav-item" data-v="kb"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>知识库</span></a>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page">
+
+        <!-- 工作台 -->
+        <section class="view active" id="v-home">
+          <div class="page-head"><div><h1 class="page-head__title">AI 决策平台 <span class="platform-mark platform-mark--ai">草莓智能引擎</span></h1><p class="page-head__desc">2026-07-18 · 今日识别 1280 次 · 在线模型 5 个 · 累计诊断 12840 条</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">重新训练</a></div></div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">今日识别</div><div class="kpi__val">1,280<span class="unit">次</span></div><div class="kpi__trend up">↑ 12% 较昨日</div></div>
+            <div class="kpi"><div class="kpi__label">AI 诊断</div><div class="kpi__val">86<span class="unit">条</span></div><div class="kpi__trend">本周累计 540</div></div>
+            <div class="kpi"><div class="kpi__label">决策模型</div><div class="kpi__val">5<span class="unit">个</span></div><div class="kpi__trend up">平均准确率 94.6%</div></div>
+            <div class="kpi"><div class="kpi__label">待处理预警</div><div class="kpi__val" style="color:var(--warn)">6<span class="unit">起</span></div><div class="kpi__trend warn">2 起紧急</div></div>
+          </div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>识别 TOP 害虫</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm"><i style="background:#E63946"></i>红蜘蛛</span><span class="v">386 次</span></div><div class="pl-bar"><i style="width:88%"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#F59E0B"></i>蚜虫</span><span class="v">274 次</span></div><div class="pl-bar"><i style="width:62%;background:linear-gradient(90deg,#F59E0B,#D97706)"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#8FA8C2"></i>白粉虱</span><span class="v">198 次</span></div><div class="pl-bar"><i style="width:45%;background:linear-gradient(90deg,#8FA8C2,#5A7A99)"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#22C55E"></i>斜纹夜蛾</span><span class="v">120 次</span></div><div class="pl-bar"><i style="width:27%;background:linear-gradient(90deg,#22C55E,#16A34A)"></i></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>模型运行</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">水肥决策模型</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">病虫害识别</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">产量预测</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">品质分级</span><span class="tag info">训练中</span></div>
+              <div class="pl-row"><span class="nm">温控优化</span><span class="tag ok">运行中</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>近期诊断</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">3#棚 叶片发黄</span><span class="v">缺钾 · 86%</span></div>
+              <div class="pl-row"><span class="nm">5#棚 果实软腐</span><span class="v">灰霉病 · 92%</span></div>
+              <div class="pl-row"><span class="nm">7#棚 蚜虫爆发</span><span class="v">建议植保</span></div>
+              <div class="pl-row"><span class="nm">1#棚 长势偏弱</span><span class="v">补肥 · 78%</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- AI 病虫害识别 -->
+        <section class="view" id="v-pest">
+          <div class="page-head"><div><h1 class="page-head__title">AI 病虫害识别 <span class="platform-mark platform-mark--ai">今日 1280 次</span></h1><p class="page-head__desc">抓拍图像智能识别 + 害虫计数 + 置信度</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">上传识别</a></div></div>
+          <div class="pl-grid-2" style="margin-bottom:var(--sp-4)">
+            <div class="shot"><span class="lab">红蜘蛛 · 12</span></div>
+            <div class="shot"><span class="lab b">蚜虫 · 8</span></div>
+            <div class="shot"><span class="lab g">正常 · 0</span></div>
+            <div class="shot"><span class="lab o">白粉虱 · 5</span></div>
+          </div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>时间</th><th>位置</th><th>识别结果</th><th>数量</th><th>置信度</th><th>处置</th></tr></thead>
+              <tbody>
+                <tr><td>14:32</td><td>3#棚</td><td>红蜘蛛</td><td>12</td><td><span class="conf"><i><b style="width:96%"></b></i>96%</span></td><td><span class="tag warn">建议植保</span></td></tr>
+                <tr><td>14:02</td><td>5#棚</td><td>蚜虫</td><td>8</td><td><span class="conf"><i><b style="width:91%"></b></i>91%</span></td><td><span class="tag warn">建议植保</span></td></tr>
+                <tr><td>13:40</td><td>7#棚</td><td>白粉虱</td><td>5</td><td><span class="conf"><i><b style="width:88%"></b></i>88%</span></td><td><span class="tag info">观察</span></td></tr>
+                <tr><td>13:15</td><td>1#棚</td><td>未检出</td><td>0</td><td><span class="conf"><i><b style="width:99%"></b></i>99%</span></td><td><span class="tag ok">正常</span></td></tr>
+                <tr><td>12:50</td><td>2#棚</td><td>斜纹夜蛾</td><td>3</td><td><span class="conf"><i><b style="width:84%"></b></i>84%</span></td><td><span class="tag info">观察</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- AI 诊断问答 -->
+        <section class="view" id="v-diagnose">
+          <div class="page-head"><div><h1 class="page-head__title">AI 诊断问答 <span class="platform-mark platform-mark--ai">本周 540 条</span></h1><p class="page-head__desc">农户提问 + AI 智能诊断 + 处置建议</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">新建提问</a></div></div>
+          <div class="card"><div class="card__body">
+            <div class="chat">
+              <div class="bubble q"><div class="who">农户 · 赵师傅 · 5#棚</div>我家草莓果实发软、长灰毛，是什么病？怎么治？</div>
+              <div class="bubble a"><div class="who">AI 诊断 · 置信度 92%</div>根据描述判断为<b>灰霉病</b>（Botrytis）。高温高湿环境易发。建议：① 摘除病果减少传染源；② 降低棚内湿度至 65% 以下；③ 喷施嘧霉胺 1000 倍液，7 天一次连用 2 次；④ 加强通风。预计处置成本约 0.3 元/株。</div>
+              <div class="bubble q"><div class="who">农户 · 王师傅 · 3#棚</div>草莓叶子边缘发黄卷曲，是不是缺肥？</div>
+              <div class="bubble a"><div class="who">AI 诊断 · 置信度 86%</div>判断为<b>缺钾</b>症状。叶缘黄化卷曲是典型缺钾表现。建议追施硫酸钾 8 kg/亩，叶面喷施磷酸二氢钾 0.3% 溶液，5~7 天见效。同时检查土壤 pH 是否偏低。</div>
+            </div>
+          </div></div>
+        </section>
+
+        <!-- 决策模型 -->
+        <section class="view" id="v-model">
+          <div class="page-head"><div><h1 class="page-head__title">决策模型 <span class="platform-mark platform-mark--ai">5 个在线</span></h1><p class="page-head__desc">各 AI 模型运行状态与准确率</p></div></div>
+          <div class="pl-grid">
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><h4>水肥决策模型</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">准确率</span><span class="v" style="color:var(--tech)">96.2%</span></div>
+              <div class="pl-row"><span class="nm">今日调用</span><span class="v">428 次</span></div></div>
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/><path d="M12 6V3M12 21v-3"/></svg></span><h4>病虫害识别</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">准确率</span><span class="v" style="color:var(--tech)">94.8%</span></div>
+              <div class="pl-row"><span class="nm">识别类别</span><span class="v">12 种</span></div></div>
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span><h4>产量预测</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">准确率</span><span class="v" style="color:var(--tech)">93.1%</span></div>
+              <div class="pl-row"><span class="nm">预测周期</span><span class="v">7 / 30 天</span></div></div>
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg></span><h4>品质分级</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag info">训练中</span></div>
+              <div class="pl-row"><span class="nm">准确率</span><span class="v">88.4%</span></div>
+              <div class="pl-row"><span class="nm">进度</span><span class="v">epoch 42/100</span></div></div>
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2"/></svg></span><h4>温控优化</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">准确率</span><span class="v" style="color:var(--tech)">95.5%</span></div>
+              <div class="pl-row"><span class="nm">节能率</span><span class="v" style="color:var(--ok)">14.2%</span></div></div>
+            <div class="model-card"><div class="mh"><span class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><h4>农技问答</h4></div>
+              <div class="pl-row"><span class="nm">状态</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">满意度</span><span class="v" style="color:var(--ok)">4.7 / 5</span></div>
+              <div class="pl-row"><span class="nm">累计问答</span><span class="v">12,840</span></div></div>
+          </div>
+        </section>
+
+        <!-- 生长预测 -->
+        <section class="view" id="v-forecast">
+          <div class="page-head"><div><h1 class="page-head__title">生长预测 <span class="platform-mark platform-mark--ai">7 / 30 天</span></h1><p class="page-head__desc">基于环境 + 长势数据的产量与品质预测</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>品种</th><th>在田面积</th><th>7 天预测产量</th><th>30 天预测产量</th><th>糖度预测</th><th>趋势</th></tr></thead>
+              <tbody>
+                <tr><td>红颜</td><td>120 亩</td><td>4.2 吨</td><td>16.8 吨</td><td>12.5 °Bx</td><td><span class="tag ok">↗ 良好</span></td></tr>
+                <tr><td>章姬</td><td>80 亩</td><td>2.0 吨</td><td>7.6 吨</td><td>11.9 °Bx</td><td><span class="tag ok">↗ 良好</span></td></tr>
+                <tr><td>淡雪</td><td>60 亩</td><td>1.0 吨</td><td>3.8 吨</td><td>12.1 °Bx</td><td><span class="tag info">→ 平稳</span></td></tr>
+                <tr><td>越心</td><td>40 亩</td><td>0.5 吨</td><td>1.9 吨</td><td>11.6 °Bx</td><td><span class="tag warn">↘ 关注</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 病虫害监测 -->
+        <section class="view" id="v-monitor">
+          <div class="page-head"><div><h1 class="page-head__title">病虫害监测 <span class="platform-mark platform-mark--ai">3 个虫情灯</span></h1><p class="page-head__desc">虫情灯诱虫数据 + 害虫密度趋势</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>设备</th><th>位置</th><th>主要害虫</th><th>近 7 日诱虫</th><th>密度等级</th><th>趋势</th></tr></thead>
+              <tbody>
+                <tr><td>虫情灯 D1</td><td>1~4#棚区</td><td>蚜虫 / 白粉虱</td><td>486</td><td><span class="tag ok">偏低</span></td><td>↘ 下降</td></tr>
+                <tr><td>虫情灯 D2</td><td>5~8#棚区</td><td>斜纹夜蛾</td><td>312</td><td><span class="tag info">中等</span></td><td>→ 平稳</td></tr>
+                <tr><td>虫情灯 D3</td><td>育苗区</td><td>红蜘蛛</td><td>728</td><td><span class="tag warn">偏高</span></td><td>↗ 上升</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 预警规则 -->
+        <section class="view" id="v-rule">
+          <div class="page-head"><div><h1 class="page-head__title">预警规则 <span class="platform-mark platform-mark--ai">阈值配置</span></h1><p class="page-head__desc">AI 自动触发的预警阈值与处置动作</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 新建规则</a></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>指标</th><th>阈值</th><th>等级</th><th>触发动作</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td>棚温</td><td>&gt; 30 ℃</td><td><span class="tag danger">紧急</span></td><td>开窗 + 水帘 + 通知</td><td><span class="tag ok">启用</span></td></tr>
+                <tr><td>棚温</td><td>&lt; 5 ℃</td><td><span class="tag danger">紧急</span></td><td>卷帘 + 补温</td><td><span class="tag ok">启用</span></td></tr>
+                <tr><td>土壤湿度</td><td>&lt; 50%</td><td><span class="tag warn">警告</span></td><td>自动灌溉</td><td><span class="tag ok">启用</span></td></tr>
+                <tr><td>红蜘蛛密度</td><td>&gt; 10/叶</td><td><span class="tag warn">警告</span></td><td>无人机植保</td><td><span class="tag ok">启用</span></td></tr>
+                <tr><td>设备离线</td><td>&gt; 5 min</td><td><span class="tag warn">警告</span></td><td>通知运维</td><td><span class="tag ok">启用</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 知识库 -->
+        <section class="view" id="v-kb">
+          <div class="page-head"><div><h1 class="page-head__title">知识库 <span class="platform-mark platform-mark--ai">2,680 条</span></h1><p class="page-head__desc">草莓种植 + 病虫害 + 农技知识</p></div></div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>种植技术</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">红颜高产栽培要点</span><span class="v">820 阅读</span></div>
+              <div class="pl-row"><span class="nm">水肥一体化方案</span><span class="v">640 阅读</span></div>
+              <div class="pl-row"><span class="nm">大棚温控管理</span><span class="v">512 阅读</span></div>
+              <div class="pl-row"><span class="nm">疏花疏果技术</span><span class="v">386 阅读</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>病虫害防治</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">灰霉病识别与防治</span><span class="v">910 阅读</span></div>
+              <div class="pl-row"><span class="nm">红蜘蛛综合防控</span><span class="v">728 阅读</span></div>
+              <div class="pl-row"><span class="nm">白粉病早期识别</span><span class="v">504 阅读</span></div>
+              <div class="pl-row"><span class="nm">蚜虫绿色防控</span><span class="v">420 阅读</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>农技问答精选</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">果实畸形怎么办</span><span class="v">312 赞</span></div>
+              <div class="pl-row"><span class="nm">如何提高糖度</span><span class="v">286 赞</span></div>
+              <div class="pl-row"><span class="nm">连阴天管理</span><span class="v">204 赞</span></div>
+              <div class="pl-row"><span class="nm">育苗期要点</span><span class="v">168 赞</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- ===== 标书补：水肥调控模型（项12-15） ===== -->
+        <section class="view" id="v-wm">
+          <div class="page-head"><div><h1 class="page-head__title">水肥调控模型 <span class="platform-mark platform-mark--ai">项12-15</span></h1><p class="page-head__desc">生长阶段需求 / 环境-土壤联动 ▲ / 产量反推 / 迭代优化</p></div></div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>① 生长阶段配方</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>品种·阶段</th><th>NPK</th><th>灌溉</th><th>EC阈值</th></tr></thead><tbody>
+              <tr><td>红颜·膨果期</td><td>15-10-30</td><td>6L/㎡</td><td>1.2-2.0</td></tr><tr><td>红颜·花期</td><td>10-30-20</td><td>4L/㎡</td><td>1.0-1.8</td></tr><tr><td>章姬·膨果</td><td>15-10-30</td><td>5.5L/㎡</td><td>1.2-2.0</td></tr><tr><td>淡雪·育苗</td><td>20-10-20</td><td>3L/㎡</td><td>0.8-1.5</td></tr></tbody></table></div></div>
+            <div class="card"><div class="card__head"><h3>② 环境-土壤联动 ▲</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">土壤 PH</span><span class="v">6.4（正常6.0-7.0）</span></div>
+              <div class="pl-row"><span class="nm">土壤 EC</span><span class="v" style="color:var(--warn)">2.8 ↑超阈2.0</span></div>
+              <div class="pl-row"><span class="nm">土壤温度</span><span class="v">22.8℃</span></div>
+              <div class="pl-row"><span class="nm">土壤湿度</span><span class="v">58%</span></div>
+              <div class="pl-row"><span class="nm">联动建议</span><span class="tag warn">EC超阈·减施20%</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>③ 产量-品质反推</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">目标产量</span><span class="v">16.8 t/季</span></div>
+              <div class="pl-row"><span class="nm">目标糖度</span><span class="v">12.5°Bx</span></div>
+              <div class="pl-row"><span class="nm">反推钾肥</span><span class="v">12 kg/亩/季</span></div>
+              <div class="pl-row"><span class="nm">反推灌溉</span><span class="v">580 m³/季</span></div>
+              <div class="pl-row"><span class="nm">关键节点</span><span class="v">膨果期追钾</span></div>
+            </div></div>
+          </div>
+          <div class="card" style="margin-top:var(--sp-4)"><div class="card__head"><h3>④ 历史数据迭代优化</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>年份·地块</th><th>用量</th><th>产量</th><th>糖度</th><th>AI优化建议</th></tr></thead><tbody>
+            <tr><td>2025·1#棚</td><td>标准配方</td><td>14.2t</td><td>11.8°Bx</td><td>膨果期增钾15%</td></tr><tr><td>2026·1#棚</td><td>优化后</td><td>16.8t ↑18%</td><td>12.5°Bx ↑6%</td><td>持续优化</td></tr><tr><td>2025·3#棚</td><td>标准</td><td>12.8t</td><td>11.5°Bx</td><td>花期减氮10%</td></tr></tbody></table></div></div>
+        </section>
+
+        <!-- ===== 标书补：温光调控模型（项16-18） ===== -->
+        <section class="view" id="v-tm">
+          <div class="page-head"><div><h1 class="page-head__title">温光调控模型 <span class="platform-mark platform-mark--ai">项16-18</span></h1><p class="page-head__desc">生育期阈值设定 / 动态调控 / 气象融合</p></div></div>
+          <div class="card" style="margin-bottom:var(--sp-4)"><div class="card__head"><h3>① 生育期温光阈值与偏差</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>生长阶段</th><th>昼温区间</th><th>夜温区间</th><th>光照</th><th>当前偏差</th></tr></thead><tbody>
+            <tr><td>花芽分化期</td><td>20-25℃</td><td>8-12℃</td><td>10-12h</td><td><span class="tag ok">正常</span></td></tr><tr><td>膨果期（当前）</td><td>22-28℃</td><td>10-15℃</td><td>10-14h</td><td><span class="tag danger">3# 32℃ ↑超阈</span></td></tr><tr><td>采收期</td><td>20-25℃</td><td>8-12℃</td><td>10-12h</td><td><span class="tag ok">正常</span></td></tr></tbody></table></div></div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>② 实时动态调控</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">3#棚 温度 32℃</span><span class="tag danger">触发风机+水帘</span></div>
+              <div class="pl-row"><span class="nm">5#棚 光照 32klx</span><span class="tag warn">推送补光灯</span></div>
+              <div class="pl-row"><span class="nm">1#棚 CO₂ 412ppm</span><span class="tag ok">正常</span></div>
+              <div class="pl-row"><span class="nm">遮阳网 3#棚</span><span class="tag warn">展开60%</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>③ 气象融合（72h）</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">明日 35℃ 高温</span><span class="tag warn">提前开遮阳</span></div>
+              <div class="pl-row"><span class="nm">后天 雷阵雨</span><span class="tag warn">提前关窗</span></div>
+              <div class="pl-row"><span class="nm">72h 均温</span><span class="v">28.5℃</span></div>
+              <div class="pl-row"><span class="nm">预案状态</span><span class="tag info">已生成3条</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- ===== 标书补：表型监测模型（项13-15） ===== -->
+        <section class="view" id="v-pheno">
+          <div class="page-head"><div><h1 class="page-head__title">表型监测模型 <span class="platform-mark platform-mark--ai">项113-115</span></h1><p class="page-head__desc">组培 / 育苗 / 生长期 全周期表型数据 · 深度学习关联</p></div></div>
+          <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>阶段</th><th>株高/冠径</th><th>叶片数</th><th>叶面积</th><th>花数/果数</th><th>模型关联</th><th>评估</th></tr></thead><tbody>
+            <tr><td>组培期（项113）</td><td>4.2/2.8cm</td><td>5.1</td><td>8.6cm²</td><td>—</td><td>组培参数→长势</td><td><span class="tag ok">优</span></td></tr>
+            <tr><td>育苗期（项114）</td><td>12.5/8.4cm</td><td>8.3</td><td>22.4cm²</td><td>—</td><td>水肥→长势</td><td><span class="tag ok">优</span></td></tr>
+            <tr><td>生长期（项115）</td><td>—</td><td>14.2</td><td>38.6cm²</td><td>花6.8/果4.2</td><td>温光湿→产量</td><td><span class="tag warn">关注</span></td></tr></tbody></table></div></div>
+          <div class="card" style="margin-top:var(--sp-4)"><div class="card__head"><h3>良果率与产量评估</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">红颜 良果率</span><span class="v" style="color:var(--ok)">92.6%</span></div>
+            <div class="pl-row"><span class="nm">章姬 良果率</span><span class="v" style="color:var(--ok)">88.4%</span></div>
+            <div class="pl-row"><span class="nm">淡雪 良果率</span><span class="v" style="color:var(--warn)">76.2% ↓关注</span></div>
+            <div class="pl-row"><span class="nm">AI建议</span><span class="v">淡雪补光+增钾</span></div>
+          </div></div>
+        </section>
+
+        <!-- ===== 标书补：病虫害知识图谱 ▲（项19） ===== -->
+        <section class="view" id="v-atlas">
+            <div class="page-head"><div><h1 class="page-head__title">病虫害知识图谱 ▲ <span class="platform-mark platform-mark--ai">项19</span></h1></div><div class="page-head__actions"><span class="tag info">病害 6</span><span class="tag info">虫害 6</span><span class="tag ok">禁限用农药自动校验</span></div></div>
+          <div class="pl-grid" style="grid-template-columns:repeat(4,1fr);align-items:start">
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/grey-mold.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(230,57,70,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">高发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">灰霉病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌 · 花果期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 果实花器软腐，覆灰褐霉层，高湿蔓延快</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 摘病果+通风降湿+地膜覆盖</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 嘧霉胺/腐霉利/异菌脲（轮换）</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/powdery-mildew.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(230,57,70,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">高发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">白粉病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌 · 全生育期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 叶面/果实白粉状斑，叶片向上卷缩</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 通风降湿+清病叶+抗病品种</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 醚菌酯/苯醚甲环唑（轮换）</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/anthracnose.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(245,158,11,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">中发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">炭疽病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌 · 苗期/果期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 叶片果实习黑褐凹陷斑，匍匐茎枯死</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 健康脱毒苗+排水+清病残体</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 苯醚甲环唑/咪鲜胺</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/root-rot.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(245,158,11,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">中发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">根腐病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌/卵菌 · 根期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 根系褐变腐烂，植株青枯萎蔫死亡</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 控水+土壤消毒+起垄栽培+轮作</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 恶霉灵/咯菌腈灌根</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('https://loremflickr.com/400/240/leaf,spots,disease,plant?lock=5') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(34,197,94,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">低发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">叶斑病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌 · 叶期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 叶面紫褐/黑褐斑点，连片枯黄</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 清病叶+通风+合理密植</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 代森锰锌/百菌清</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/wilt.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(34,197,94,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">低发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">枯萎病</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">病害 · 真菌 · 成株期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 植株半侧萎蔫，维管束褐变</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 轮作+抗病品种+控水控氮</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 噁霉灵/多菌灵灌根</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/spider-mite.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(230,57,70,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">高发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">红蜘蛛</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 叶螨 · 干燥季节</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 叶面黄白点失绿，叶背有螨网</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 增湿+释放捕食螨(天敌)</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 阿维菌素/螺螨酯</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('https://loremflickr.com/400/240/aphid,insect,leaf,green?lock=8') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(230,57,70,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">高发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">蚜虫</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 同翅 · 嫩梢期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 嫩叶卷曲皱缩，有蜜露，群体密集</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 挂黄板+释放瓢虫(天敌)</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 吡虫啉/啶虫脒</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/whitefly.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(245,158,11,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">中发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">白粉虱</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 同翅 · 全生育期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 叶背白色小虫群集，叶片黄化褪绿</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 挂黄板+释放丽蚜小蜂(天敌)</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 啶虫脒/噻虫嗪</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('https://loremflickr.com/400/240/caterpillar,worm,leaf,insect?lock=10') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(245,158,11,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">中发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">斜纹夜蛾</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 鳞翅 · 幼虫期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 幼虫暴食叶片成孔洞缺刻</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 灯诱+性诱+清杂草</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 甲维盐/氯虫苯甲酰胺</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('assets/pest/thrips.png') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(245,158,11,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">中发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">蓟马</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 缨翅 · 花期</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 花器/果实银白斑，花畸形坐果差</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 挂蓝板+清残花+天敌</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 乙基多杀菌素/虫螨腈</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="height:120px;background:#eef0f3 url('https://loremflickr.com/400/240/snail,leaf,garden,mollusk?lock=12') center/cover;position:relative"><span style="position:absolute;left:8px;top:8px;background:rgba(34,197,94,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600">低发</span><span style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 8px;border-radius:4px;font-weight:700">蜗牛</span></div>
+              <div style="padding:10px 12px"><div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">虫害 · 软体 · 雨季</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">症状</b> 啃食叶片果实，留银白黏液轨迹</div>
+                <div style="font-size:11px;color:var(--fg-2);line-height:1.55;margin-bottom:5px"><b style="color:var(--fg)">防治</b> 清洁田园+撒石灰+人工诱杀</div>
+                <div style="font-size:11px;color:var(--tech);line-height:1.55"><b>药剂</b> 四聚乙醛/杀螺胺</div></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:22px 0 4px;flex-wrap:wrap">
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-3);font-size:12px;cursor:not-allowed">‹ 上一页</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--tech);color:#fff;font-size:12px;font-weight:600;cursor:pointer">1</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">2</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">3</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">4</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">5</span>
+            <span style="color:var(--fg-3);font-size:13px;padding:0 2px">…</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">12</span>
+            <span style="padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--fg-2);font-size:12px;cursor:pointer">下一页 ›</span>
+            <span style="margin-left:14px;font-size:12px;color:var(--fg-3)">共 12 页 · 144 种病虫害 · 第 1 页 / 每页 12 条</span>
+          </div>
+        </section>
+
+        <!-- ===== 标书补：防控推荐与效果追踪（项111-112） ===== -->
+        <section class="view" id="v-ctrl">
+          <div class="page-head"><div><h1 class="page-head__title">防控推荐与效果追踪 <span class="platform-mark platform-mark--ai">项111-112</span></h1><p class="page-head__desc">智能推荐防控方案（规避禁限用） · 效果评估与调整</p></div></div>
+          <div class="card" style="margin-bottom:var(--sp-4)"><div class="card__head"><h3>防控方案推荐</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>病虫害</th><th>严重度</th><th>推荐措施</th><th>药剂</th><th>禁限用校验</th></tr></thead><tbody>
+            <tr><td>红蜘蛛</td><td><span class="tag danger">重度</span></td><td>化学+生物联防</td><td>阿维菌素1000x+捕食螨</td><td><span class="tag ok">✓ 安全</span></td></tr>
+            <tr><td>灰霉病</td><td><span class="tag warn">中度</span></td><td>摘病果+降湿+喷药</td><td>嘧霉胺1000x</td><td><span class="tag ok">✓ 安全</span></td></tr>
+            <tr><td>蚜虫</td><td><span class="tag warn">中度</span></td><td>黄板+药剂</td><td>吡虫啉2000x</td><td><span class="tag ok">✓ 安全</span></td></tr></tbody></table></div></div>
+          <div class="card"><div class="card__head"><h3>防控效果追踪评估</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>防控对象</th><th>实施前</th><th>实施后</th><th>效果</th><th>调整建议</th></tr></thead><tbody>
+            <tr><td>3#棚 红蜘蛛</td><td>12头/叶</td><td>3头/叶</td><td><span class="tag ok">↓75% 良好</span></td><td>维持</td></tr>
+            <tr><td>5#棚 灰霉病</td><td>病果率8%</td><td>病果率2%</td><td><span class="tag ok">↓75% 良好</span></td><td>维持</td></tr>
+            <tr><td>7#棚 蚜虫</td><td>8头/株</td><td>5头/株</td><td><span class="tag warn">↓38% 一般</span></td><td>加量+补施</td></tr></tbody></table></div></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  (function(){
+    var items=document.querySelectorAll('.sidebar .nav-item[data-v]');
+    var views=document.querySelectorAll('.view');
+    var crumb=document.getElementById('crumb');
+    var titles={home:'工作台',pest:'AI 病虫害识别',diagnose:'AI 诊断问答',model:'决策模型',forecast:'生长预测',wm:'水肥调控模型',tm:'温光调控模型',pheno:'表型监测模型',atlas:'病虫害知识图谱',ctrl:'防控推荐与效果',monitor:'病虫害监测',rule:'预警规则',kb:'知识库'};
+    items.forEach(function(it){
+      it.addEventListener('click',function(e){
+        e.preventDefault();
+        var v=this.getAttribute('data-v');
+        items.forEach(function(n){n.classList.remove('active')});
+        this.classList.add('active');
+        views.forEach(function(s){s.classList.remove('active')});
+        var tgt=document.getElementById('v-'+v);
+        if(tgt)tgt.classList.add('active');
+        if(crumb)crumb.textContent=titles[v]||'';
+        document.querySelector('.content')?.scrollTo?.(0,0);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

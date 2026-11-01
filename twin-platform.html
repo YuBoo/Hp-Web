@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>数字孪生平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>.view{display:none}.view.active{display:block}.sidebar .nav-item{cursor:pointer}.pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}.pl-row:last-child{border:none}.pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}.pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}.pl-row .v{color:var(--fg-2);font-family:var(--font-num)}.pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#4F46E5,#6366F1);border-radius:3px}.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}.tbl tr:hover td{background:var(--surface-2)}.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.danger{background:var(--danger-soft);color:var(--danger)}.tag.info{background:#EEF2FF;color:#4F46E5}.video-cell{position:relative;aspect-ratio:16/9;background:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/park-1.png') center/cover;border-radius:var(--r-sm);border:1px solid var(--border);overflow:hidden}.video-cell:nth-child(2){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/plant-2.png')}.video-cell:nth-child(3){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/pest-1.png')}.video-cell:nth-child(4){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/trace-1.png')}.video-cell .vname{position:absolute;left:10px;top:10px;font-size:12px;color:#E6F0FA;font-weight:500}.video-cell .pin{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:rgba(79,70,229,.8);border:2px solid #fff;display:grid;place-items:center;color:#fff;font-size:12px;box-shadow:0 0 12px rgba(79,70,229,.6);cursor:pointer}.video-cell .live{position:absolute;left:10px;bottom:10px;font-size:11px;color:#fff;background:#4F46E5;padding:2px 6px;border-radius:3px;display:flex;align-items:center;gap:4px}.video-cell .live i{width:6px;height:6px;background:#fff;border-radius:50%;animation:bk 1.2s infinite}@keyframes bk{0%,100%{opacity:1}50%{opacity:.3}}
+/* ===== 视频监控（复刻 HS-WEB video-monitoring · 靛蓝主题）===== */
+.vm-layout{display:grid;grid-template-columns:320px 1fr;gap:var(--sp-5);align-items:start}
+.vm-side{display:flex;flex-direction:column;gap:var(--sp-4)}
+.vm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.vm-card__head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.vm-card__head h3{font-size:14px;font-weight:600;color:var(--fg);display:flex;align-items:center;gap:8px}
+.vm-card__head h3::before{content:"";width:3px;height:13px;background:#4F46E5;border-radius:2px}
+.vm-count{font-size:11px;color:var(--fg-2);background:var(--bg);padding:1px 8px;border-radius:999px}
+.vm-search{padding:11px 16px;border-bottom:1px solid var(--border)}
+.vm-search input{width:100%;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;outline:none;background:var(--bg);transition:border-color .15s}
+.vm-search input:focus{border-color:#4F46E5}
+.vm-list{max-height:330px;overflow-y:auto;scrollbar-width:thin}
+.vm-list::-webkit-scrollbar{width:4px}.vm-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.vm-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.vm-item:last-child{border:none}
+.vm-item:hover{background:#EEF2FF}
+.vm-item.active{background:#EEF2FF;box-shadow:inset 3px 0 0 #4F46E5}
+.vm-thumb{width:56px;height:38px;border-radius:4px;background:#1a1a2e center/cover;flex-shrink:0;position:relative;border:1px solid var(--border)}
+.vm-thumb.off{background:#222238}
+.vm-info{flex:1;min-width:0}
+.vm-name{font-size:13px;font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vm-detail{font-size:11px;color:var(--fg-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vm-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.vm-dot.online{background:var(--ok);box-shadow:0 0 5px var(--ok)}
+.vm-dot.offline{background:var(--danger)}
+.vm-dot.signal-weak{background:var(--warn);box-shadow:0 0 5px var(--warn)}
+/* 云台 PTZ */
+.vm-ptz__cam{font-size:11px;color:var(--fg-2);margin-left:auto;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vm-ptz__body{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vm-dpad{display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:4px;justify-content:center}
+.vm-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--fg-2);transition:all .15s}
+.vm-btn:hover{border-color:#4F46E5;color:#4F46E5;background:#EEF2FF}
+.vm-btn:active{background:#E0E7FF}
+.vm-btn svg{width:16px;height:16px}
+.vm-btn.hide{visibility:hidden}
+.vm-btn.mid{background:var(--bg);cursor:default;color:var(--fg-3)}
+.vm-btn.mid:hover{background:var(--bg);border-color:var(--border);color:var(--fg-3)}
+.vm-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-content:start}
+.vm-act{display:flex;align-items:center;gap:5px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--fg-2);font-size:12px;transition:all .15s;white-space:nowrap}
+.vm-act:hover{border-color:#4F46E5;color:#4F46E5;background:#EEF2FF}
+.vm-act svg{width:13px;height:13px;flex-shrink:0}
+.vm-act.full{grid-column:1/-1;justify-content:center}
+.vm-ptz__foot{padding:0 16px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px dashed var(--border);padding-top:12px;margin:0 16px 14px;padding-left:0;padding-right:0}
+.vm-spd{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-2)}
+.vm-spd input[type=range]{width:70px;height:4px;-webkit-appearance:none;appearance:none;background:var(--border);border-radius:2px;outline:none}
+.vm-spd input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#4F46E5;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.vm-pres{display:flex;align-items:center;gap:4px}
+.vm-pres__lbl{font-size:11px;color:var(--fg-2);margin-right:2px}
+.vm-pre{padding:3px 9px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;font-size:11px;color:var(--fg-2);transition:all .15s}
+.vm-pre:hover{border-color:#4F46E5;color:#4F46E5}
+/* 主画面 */
+.vm-main{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.vm-main__head{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border)}
+.vm-main__head h3{font-size:14px;font-weight:600;color:var(--fg);display:flex;align-items:center;gap:8px}
+.vm-main__head h3::before{content:"";width:3px;height:13px;background:#4F46E5;border-radius:2px}
+.vm-lyts{display:flex;gap:4px}
+.vm-lyt{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--fg-2);transition:all .15s}
+.vm-lyt:hover{border-color:#4F46E5;color:#4F46E5}
+.vm-lyt.active{background:#4F46E5;border-color:#4F46E5;color:#fff}
+.vm-lyt svg{width:14px;height:14px}
+.vm-grid{display:grid;gap:3px;background:#0e1b2a;padding:8px;aspect-ratio:16/9}
+.vm-grid.l-1{grid-template-columns:1fr;grid-template-rows:1fr}
+.vm-grid.l-2{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.vm-grid.l-1p3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}
+.vm-grid.l-1p3 .vm-cell:first-child{grid-row:1/3}
+.vm-grid.l-3{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr}
+.vm-grid.l-4{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr)}
+.vm-cell{position:relative;background:#1a1a2e;border-radius:3px;overflow:hidden;cursor:pointer;min-height:70px;transition:box-shadow .15s}
+.vm-cell:hover{box-shadow:inset 0 0 0 2px #4F46E5}
+.vm-cell.active{box-shadow:inset 0 0 0 2px #4F46E5}
+.vm-cell__feed{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(1.05) brightness(.92)}
+.vm-cell__ph{position:absolute;inset:0;display:grid;place-items:center;background:#222238;color:rgba(255,255,255,.3);font-size:11px}
+.vm-cell__scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px);pointer-events:none}
+.vm-cell__vig{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 50%,transparent 58%,rgba(0,0,0,.5));pointer-events:none}
+.vm-cell__osd{position:absolute;inset:0;pointer-events:none;color:#E6F0FA;font-family:var(--font-num);font-size:10px;letter-spacing:.03em}
+.vm-cell__osd .tl{position:absolute;top:6px;left:8px;color:#FF6B6B;font-weight:700}
+.vm-cell__osd .tr{position:absolute;top:6px;right:8px;opacity:.9}
+.vm-cell__lbl{position:absolute;left:0;right:0;bottom:0;padding:5px 8px;background:linear-gradient(transparent,rgba(0,0,0,.82));color:#fff;font-size:11px;display:flex;align-items:center;gap:5px}
+.vm-cell__lbl i{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.vm-cell__lbl i.on{background:var(--ok);box-shadow:0 0 5px var(--ok)}
+.vm-cell__lbl i.off{background:var(--danger)}
+.vm-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(30,27,43,.92);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;z-index:9999;transition:opacity .3s}
+/* ===== 应急模拟（数字孪生）===== */
+.esim-scens{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3);margin-bottom:var(--sp-4)}
+.esim-scen{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.esim-scen:hover{border-color:#4F46E5;box-shadow:0 4px 14px rgba(79,70,229,.1)}
+.esim-scen.active{border-color:#4F46E5;background:#EEF2FF;box-shadow:0 0 0 2px rgba(79,70,229,.25)}
+.esim-ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;margin-bottom:10px}
+.esim-ico svg{width:20px;height:20px}
+.esim-name{font-size:14px;font-weight:600;color:var(--fg)}
+.esim-sub{font-size:11px;color:var(--fg-2);margin-top:3px}
+.esim-map{position:relative;background:#0e1b2a;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border);aspect-ratio:16/8}
+.esim-map svg{width:100%;height:100%;display:block}
+.esim-cell{fill:rgba(34,197,94,.18);stroke:rgba(34,197,94,.6);stroke-width:1.5;transition:all .3s}
+.esim-cell.hit{fill:rgba(239,68,68,.5);stroke:#EF4444;animation:esimPulse 1.4s ease-in-out infinite}
+.esim-cell.risk{fill:rgba(245,158,11,.28);stroke:#F59E0B;stroke-dasharray:4 3}
+@keyframes esimPulse{0%,100%{opacity:.75}50%{opacity:1}}
+.esim-lbl{font-size:10px;fill:#C3D5E8;font-family:var(--font-zh);text-anchor:middle}
+.esim-lbl.hit{fill:#FFC4CA;font-weight:700}
+.esim-ring{fill:none;stroke:#EF4444;stroke-width:2.5;opacity:0}
+.esim-map.run .esim-ring{animation:esimRing 1.5s ease-out}
+@keyframes esimRing{0%{opacity:.85}100%{opacity:0}}
+.esim-legend{display:flex;gap:14px;font-size:11px;color:var(--fg-2);margin-top:8px}
+.esim-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px}
+.esim-sev{display:flex;gap:6px;margin-top:8px}
+.esim-sev button{flex:1;padding:9px 0;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;font-size:12.5px;color:var(--fg-2);transition:all .15s}
+.esim-sev button:hover{border-color:#4F46E5;color:#4F46E5}
+.esim-sev button.active{background:#4F46E5;border-color:#4F46E5;color:#fff;font-weight:600}
+.esim-metric{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.esim-metric:last-child{border:none}
+.esim-metric .ml{color:var(--fg-2)}.esim-metric .mv{font-family:var(--font-num);font-weight:700;color:var(--fg)}
+.esim-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3);margin-top:12px}
+.esim-kpi{text-align:center;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 6px}
+.esim-kpi__v{font-family:var(--font-num);font-size:22px;font-weight:800;color:#4F46E5;line-height:1}
+.esim-kpi__v.danger{color:var(--danger)}
+.esim-kpi__u{font-size:11px;color:var(--fg-2);font-weight:400}
+.esim-kpi__l{font-size:11px;color:var(--fg-2);margin-top:5px}
+.esim-loss{background:linear-gradient(135deg,#FDECEC,#FFF5F0);border:1px solid var(--danger-soft);border-radius:var(--r-sm);padding:11px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+.esim-loss .ll{font-size:12px;color:var(--fg-2)}.esim-loss .lv{font-family:var(--font-num);font-size:22px;font-weight:800;color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#4F46E5">孪</span> 数字孪生平台</div>
+    <nav class="breadcrumb"><span>数字孪生平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索建筑 / 区域"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">数字孪生</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="vfuse"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>三维视频融合</span></a>
+        <a class="nav-item" data-v="ticket"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>工单管理</span></a>
+        <a class="nav-item" data-v="video"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a>
+        <a class="nav-item" data-v="esim"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><span>应急模拟</span></a>
+        <a class="nav-item" href="p41-twin3d.html" style="display:none"></a>
+        <a class="nav-item" href="p44-emergency.html" style="display:none"></a>
+      </div>
+    </aside>
+    <main class="content"><div class="page">
+      <section class="view active" id="v-home">
+        <div class="page-head"><div><h1 class="page-head__title">数字孪生平台 <span class="platform-mark platform-mark--twin">园区镜像</span></h1><p class="page-head__desc">孪生 1:1 · 6 棚区 · 16 摄像头 · 客流 128 人</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">孪生模型</div><div class="kpi__val">1<span class="unit">:1</span></div><div class="kpi__trend">全要素</div></div>
+          <div class="kpi"><div class="kpi__label">数字棚区</div><div class="kpi__val">6<span class="unit">区</span></div><div class="kpi__trend">42棚映射</div></div>
+          <div class="kpi"><div class="kpi__label">今日客流</div><div class="kpi__val">128<span class="unit">人</span></div><div class="kpi__trend up">↑ 农旅旺季</div></div>
+          <div class="kpi"><div class="kpi__label">视频接入</div><div class="kpi__val">16<span class="unit">路</span></div><div class="kpi__trend">全在线</div></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:var(--sp-4)">
+          <div class="video-cell"><span class="vname">园区全景·三维</span><span class="live"><i></i>3D</span></div>
+          <div class="video-cell"><span class="vname">大棚区俯视</span><span class="live"><i></i>LIVE</span></div>
+        </div>
+        <div class="pl-grid">
+          <div class="card"><div class="card__head"><h3>客流热力</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#4F46E5"></i>采摘体验区</span><span class="v">68 人</span></div><div class="pl-bar"><i style="width:85%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#6366F1"></i>展示中心</span><span class="v">42 人</span></div><div class="pl-bar"><i style="width:55%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#818CF8"></i>餐饮区</span><span class="v">18 人</span></div><div class="pl-bar"><i style="width:24%"></i></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>应急状态</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">消防系统</span><span class="tag ok">就绪</span></div>
+            <div class="pl-row"><span class="nm">疏散通道</span><span class="tag ok">畅通</span></div>
+            <div class="pl-row"><span class="nm">孪生同步延迟</span><span class="v" style="color:var(--ok)">0.8s</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>设备映射</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">设备映射</span><span class="v">132/132</span></div>
+            <div class="pl-row"><span class="nm">建筑模型</span><span class="v">8 栋</span></div>
+            <div class="pl-row"><span class="nm">数据钻取</span><span class="tag ok">支持</span></div>
+          </div></div>
+        </div>
+      </section>
+      <!-- 标书补：三维视频融合（项175） -->
+      <section class="view" id="v-vfuse">
+        <div class="page-head"><div><h1 class="page-head__title">三维视频融合 <span class="platform-mark platform-mark--twin">项175</span></h1><p class="page-head__desc">场景嵌入高清摄像头 · 场景定位 + 实时视频联动</p></div></div>
+        <div class="grid-2" style="margin-bottom:var(--sp-4)">
+          <div class="video-cell"><span class="vname">1#棚·三维场景</span><div class="pin">▶</div><span class="live"><i></i>视频融合</span></div>
+          <div class="video-cell"><span class="vname">3#棚·三维场景</span><div class="pin">▶</div><span class="live"><i></i>视频融合</span></div>
+          <div class="video-cell"><span class="vname">分拣车间</span><div class="pin">▶</div><span class="live"><i></i>视频融合</span></div>
+          <div class="video-cell"><span class="vname">冷链仓储</span><div class="pin">▶</div><span class="live"><i></i>视频融合</span></div>
+        </div>
+        <div class="card"><div class="card__head"><h3>视频融合点位</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>区域</th><th>嵌入摄像头</th><th>分辨率</th><th>状态</th><th>操作</th></tr></thead><tbody>
+          <tr><td>1#棚</td><td>CAM-101</td><td>1080p</td><td><span class="tag ok">融合中</span></td><td><a href="javascript:;">调取视频</a></td></tr>
+          <tr><td>3#棚</td><td>CAM-103</td><td>1080p</td><td><span class="tag ok">融合中</span></td><td><a href="javascript:;">调取视频</a></td></tr>
+          <tr><td>分拣车间</td><td>CAM-110</td><td>4K</td><td><span class="tag ok">融合中</span></td><td><a href="javascript:;">调取视频</a></td></tr>
+          <tr><td>冷链仓储</td><td>CAM-114</td><td>1080p</td><td><span class="tag warn">离线</span></td><td><a href="javascript:;">重连</a></td></tr>
+        </tbody></table></div></div>
+      </section>
+      <!-- 标书补：工单管理（项179） -->
+      <section class="view" id="v-ticket">
+        <div class="page-head"><div><h1 class="page-head__title">工单管理 <span class="platform-mark platform-mark--twin">项179</span></h1><p class="page-head__desc">场景标记问题点位 · 自动生成维修工单 · 分配跟踪至闭环</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 新建工单</a></div></div>
+        <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>工单号</th><th>问题点位</th><th>类型</th><th>优先级</th><th>负责人</th><th>状态</th><th>创建时间</th></tr></thead><tbody>
+          <tr><td>WO-2026-001</td><td>3#棚 温度传感器异常</td><td>设备维修</td><td><span class="tag danger">紧急</span></td><td>李运维</td><td><span class="tag warn">处理中</span></td><td>07-18 14:20</td></tr>
+          <tr><td>WO-2026-002</td><td>F-03 电磁阀通信中断</td><td>设备维修</td><td><span class="tag warn">高</span></td><td>王技术</td><td><span class="tag warn">处理中</span></td><td>07-18 13:40</td></tr>
+          <tr><td>WO-2026-003</td><td>冷链 CAM-114 离线</td><td>视频故障</td><td><span class="tag warn">高</span></td><td>赵安保</td><td><span class="tag info">待分配</span></td><td>07-18 12:00</td></tr>
+          <tr><td>WO-2026-004</td><td>5#棚 卷帘电机异响</td><td>设备保养</td><td><span class="tag">普通</span></td><td>李运维</td><td><span class="tag ok">已完成</span></td><td>07-17 15:00</td></tr>
+          <tr><td>WO-2026-005</td><td>园区路灯不亮</td><td>设施维修</td><td><span class="tag">普通</span></td><td>陈后勤</td><td><span class="tag ok">已完成</span></td><td>07-16 09:00</td></tr>
+        </tbody></table></div></div>
+      </section>
+      <!-- 视频监控（复刻 HS-WEB video-monitoring） -->
+      <section class="view" id="v-video">
+        <div class="page-head"><div><h1 class="page-head__title">视频监控</h1></div></div>
+        <div class="vm-layout">
+          <!-- 左：摄像头列表 + 云台控制 -->
+          <div class="vm-side">
+            <div class="vm-card">
+              <div class="vm-card__head"><h3>摄像头列表</h3><span class="vm-count">共 <b id="vmCount">12</b> 个</span></div>
+              <div class="vm-search"><input type="text" id="vmSearch" placeholder="搜索设备名称或编号..." oninput="vmFilter(this.value)"></div>
+              <div class="vm-list" id="vmList"></div>
+            </div>
+            <div class="vm-card vm-ptz">
+              <div class="vm-card__head"><h3>云台控制</h3><span class="vm-ptz__cam" id="vmPtzCam">未选中设备</span></div>
+              <div class="vm-ptz__body">
+                <div class="vm-dpad">
+                  <div class="vm-btn hide"></div>
+                  <button class="vm-btn" title="上" onclick="vmPtz('up')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <div class="vm-btn hide"></div>
+                  <button class="vm-btn" title="左" onclick="vmPtz('left')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+                  <button class="vm-btn mid" title="居中"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+                  <button class="vm-btn" title="右" onclick="vmPtz('right')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+                  <div class="vm-btn hide"></div>
+                  <button class="vm-btn" title="下" onclick="vmPtz('down')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                  <div class="vm-btn hide"></div>
+                </div>
+                <div class="vm-acts">
+                  <button class="vm-act" onclick="vmPtz('zoomIn')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>放大</button>
+                  <button class="vm-act" onclick="vmPtz('zoomOut')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/></svg>缩小</button>
+                  <button class="vm-act" onclick="vmPtz('focusIn')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>聚焦+</button>
+                  <button class="vm-act" onclick="vmPtz('focusOut')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke-dasharray="2 2"/></svg>聚焦−</button>
+                  <button class="vm-act full" onclick="vmPtz('snapshot')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"/><circle cx="12" cy="13" r="4"/></svg>抓拍截图</button>
+                </div>
+              </div>
+              <div class="vm-ptz__foot">
+                <div class="vm-spd"><span>速度</span><input type="range" min="1" max="10" value="5" id="vmSpeed"><span id="vmSpeedLbl">5</span></div>
+                <div class="vm-pres"><span class="vm-pres__lbl">预置位</span><button class="vm-pre" onclick="vmPreset(1)">P1</button><button class="vm-pre" onclick="vmPreset(2)">P2</button><button class="vm-pre" onclick="vmPreset(3)">P3</button><button class="vm-pre" onclick="vmPreset(4)">P4</button></div>
+              </div>
+            </div>
+          </div>
+          <!-- 右：实时预览 + 多画面 -->
+          <div class="vm-main">
+            <div class="vm-main__head">
+              <h3>实时预览</h3>
+              <div class="vm-lyts" id="vmLyts">
+                <button class="vm-lyt active" data-l="1" title="单画面" onclick="vmLayout('1')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+                <button class="vm-lyt" data-l="2" title="四画面" onclick="vmLayout('2')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="9" width="6" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="6" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button>
+                <button class="vm-lyt" data-l="1p3" title="1主+2辅" onclick="vmLayout('1p3')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="9" height="14" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="11" y="1" width="4" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="11" y="9" width="4" height="6" rx=".5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button>
+                <button class="vm-lyt" data-l="3" title="九画面" onclick="vmLayout('3')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="6" y="1" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="11" y="1" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="1" y="6" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="6" y="6" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="11" y="6" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="1" y="11" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="6" y="11" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="11" y="11" width="4" height="4" rx=".4" fill="none" stroke="currentColor" stroke-width="1"/></svg></button>
+                <button class="vm-lyt" data-l="4" title="十六画面" onclick="vmLayout('4')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="5" y="1" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="9" y="1" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="13" y="1" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="1" y="5" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="5" y="5" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="9" y="5" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="13" y="5" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="1" y="9" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="5" y="9" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="9" y="9" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="13" y="9" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="1" y="13" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="5" y="13" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="9" y="13" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/><rect x="13" y="13" width="3" height="3" rx=".3" fill="none" stroke="currentColor" stroke-width=".8"/></svg></button>
+              </div>
+            </div>
+            <div class="vm-grid l-1" id="vmGrid"></div>
+          </div>
+        </div>
+      </section>
+      <!-- 应急模拟（数字孪生推演） -->
+      <section class="view" id="v-esim">
+        <div class="page-head"><div><h1 class="page-head__title">应急模拟</h1></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm" onclick="esimRun()">▶ 开始模拟推演</button></div></div>
+
+        <div class="esim-scens" id="esimScens">
+          <div class="esim-scen active" data-s="pest" onclick="esimSelect('pest')">
+            <div class="esim-ico" style="background:#E63946"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.5 3.5 0 0 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0 1 12 0v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg></div>
+            <div class="esim-name">病虫害扩散</div><div class="esim-sub">红蜘蛛 · 白粉病蔓延</div></div>
+          <div class="esim-scen" data-s="weather" onclick="esimSelect('weather')">
+            <div class="esim-ico" style="background:#0EA5E9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M8 19v2M8 15v1M12 20v2M12 16v1M16 19v2M16 15v1"/></svg></div>
+            <div class="esim-name">极端天气</div><div class="esim-sub">暴雨 · 冰冻 · 大风</div></div>
+          <div class="esim-scen" data-s="crowd" onclick="esimSelect('crowd')">
+            <div class="esim-ico" style="background:#F59E0B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg></div>
+            <div class="esim-name">游客拥堵</div><div class="esim-sub">采摘园客流超载</div></div>
+          <div class="esim-scen" data-s="equip" onclick="esimSelect('equip')">
+            <div class="esim-ico" style="background:#7B2CBF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></div>
+            <div class="esim-name">设备故障</div><div class="esim-sub">停电 · 水肥中断</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card"><div class="card__head"><h3>影响范围模拟</h3><span id="esimSceneTag" class="tag danger">病虫害扩散</span></div><div class="card__body">
+            <div class="esim-map" id="esimMap">
+              <svg viewBox="0 0 600 300">
+                <defs><pattern id="egrid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="rgba(30,144,255,.08)"/></pattern></defs>
+                <rect width="600" height="300" fill="url(#egrid)"/>
+                <text x="300" y="18" text-anchor="middle" class="zh" fill="#5A7A99" font-size="11">木兰金秋基地 · 园区影响范围推演</text>
+                <!-- 第一排 -->
+                <rect id="g1" class="esim-cell" x="30" y="32" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g1" x="85" y="72">1#棚</text>
+                <rect id="g2" class="esim-cell" x="150" y="32" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g2" x="205" y="72">2#棚</text>
+                <rect id="g3" class="esim-cell" x="270" y="32" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g3" x="325" y="72">3#棚</text>
+                <rect id="park" class="esim-cell" x="390" y="32" width="180" height="70" rx="6"/><text class="esim-lbl" data-for="park" x="480" y="72">采摘体验园</text>
+                <!-- 第二排 -->
+                <rect id="g4" class="esim-cell" x="30" y="132" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g4" x="85" y="172">4#棚</text>
+                <rect id="g5" class="esim-cell" x="150" y="132" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g5" x="205" y="172">5#棚</text>
+                <rect id="g6" class="esim-cell" x="270" y="132" width="110" height="70" rx="6"/><text class="esim-lbl" data-for="g6" x="325" y="172">6#棚</text>
+                <rect id="sort" class="esim-cell" x="390" y="132" width="85" height="70" rx="6"/><text class="esim-lbl" data-for="sort" x="432" y="172">分拣冷链</text>
+                <rect id="wf" class="esim-cell" x="485" y="132" width="85" height="70" rx="6"/><text class="esim-lbl" data-for="wf" x="527" y="172">水肥首部</text>
+                <!-- 扩散环 -->
+                <circle class="esim-ring" cx="205" cy="167" r="14"/>
+                <circle class="esim-ring" cx="480" cy="67" r="14"/>
+                <text x="20" y="288" class="zh" fill="#5A7A99" font-size="9.5" opacity=".7">基于实时数据推演 · 红色为受影响区，琥珀为风险扩散区</text>
+              </svg>
+            </div>
+            <div class="esim-legend"><span><i style="background:rgba(34,197,94,.55)"></i>正常</span><span><i style="background:#EF4444"></i>受影响</span><span><i style="background:#F59E0B"></i>风险扩散</span></div>
+            <div class="esim-kpis">
+              <div class="esim-kpi"><div class="esim-kpi__v" id="em-gh">3</div><div class="esim-kpi__l" id="em-gh-lbl">受影响大棚</div></div>
+              <div class="esim-kpi"><div class="esim-kpi__v"><span id="em-area">450</span><span class="esim-kpi__u"> 亩</span></div><div class="esim-kpi__l">受影响面积</div></div>
+              <div class="esim-kpi"><div class="esim-kpi__v" id="em-subj" style="font-size:14px">红颜·章姬</div><div class="esim-kpi__l">涉及对象</div></div>
+              <div class="esim-kpi"><div class="esim-kpi__v danger"><span id="em-loss">12</span><span class="esim-kpi__u"> 万</span></div><div class="esim-kpi__l">预计损失</div></div>
+            </div>
+          </div></div>
+
+          <div class="card"><div class="card__head"><h3>模拟参数 · 实时数据</h3></div><div class="card__body">
+            <div style="font-size:12px;color:var(--fg-2)">严重程度</div>
+            <div class="esim-sev" id="esimSev">
+              <button data-v="low" onclick="esimSevSet('low')">轻度</button>
+              <button class="active" data-v="mid" onclick="esimSevSet('mid')">中度</button>
+              <button data-v="high" onclick="esimSevSet('high')">重度</button>
+            </div>
+            <div style="font-size:12px;color:var(--fg-2);margin-top:14px;padding-top:10px;border-top:1px dashed var(--border)">实时数据接入</div>
+            <div class="esim-metric"><span class="ml">棚内均温</span><span class="mv">26.8 ℃</span></div>
+            <div class="esim-metric"><span class="ml">空气湿度</span><span class="mv">67 %</span></div>
+            <div class="esim-metric"><span class="ml">在园客流</span><span class="mv">312 人</span></div>
+            <div class="esim-metric"><span class="ml">设备在线率</span><span class="mv" style="color:var(--ok)">98 %</span></div>
+            <div class="esim-loss"><span class="ll">预计经济损失</span><span class="lv"><span id="em-loss2">12</span> 万元</span></div>
+          </div></div>
+        </div>
+
+        <div class="card" style="margin-top:var(--sp-4)"><div class="card__head"><h3>自动生成应急方案</h3><span class="tag info" id="esimPlanCnt">4 步</span></div><div class="card__body">
+          <table class="tbl"><thead><tr><th style="width:46px">步骤</th><th>应急处置措施</th><th>责任部门</th><th>优先级</th><th>时限</th><th>状态</th></tr></thead><tbody id="esimPlan"></tbody></table>
+        </div></div>
+      </section>
+    </div></main>
+  </div>
+</div>
+<script>(function(){var items=document.querySelectorAll('.sidebar .nav-item[data-v]'),views=document.querySelectorAll('.view'),crumb=document.getElementById('crumb'),titles={home:'工作台',vfuse:'三维视频融合',ticket:'工单管理',video:'视频监控','esim':'应急模拟'};items.forEach(function(it){it.addEventListener('click',function(e){e.preventDefault();var v=this.getAttribute('data-v');items.forEach(function(n){n.classList.remove('active')});this.classList.add('active');views.forEach(function(s){s.classList.remove('active')});var t=document.getElementById('v-'+v);if(t)t.classList.add('active');if(crumb)crumb.textContent=titles[v]||'';document.querySelector('.content')?.scrollTo?.(0,0)})})})();</script>
+<script>
+/* ===== 视频监控（复刻 HS-WEB video-monitoring · 园区摄像头数据）===== */
+var VM_CAMERAS=[
+  {id:'CAM-101',name:'1#棚·球机',area:'1号棚',type:'球型云台',status:'online',resolution:'1080P',online:true,img:'assets/ref/plant-2.png'},
+  {id:'CAM-102',name:'2#棚·球机',area:'2号棚',type:'球型云台',status:'online',resolution:'4MP',online:true,img:'mrtfh2ww-image.png'},
+  {id:'CAM-103',name:'3#棚·球机',area:'3号棚',type:'球型云台',status:'online',resolution:'4K',online:true,img:'mrtfh2ww-image.png'},
+  {id:'CAM-104',name:'4#棚·枪机',area:'4号棚',type:'枪型固定',status:'online',resolution:'1080P',online:true,img:'assets/ref/plant-2.png'},
+  {id:'CAM-105',name:'5#棚·球机',area:'5号棚',type:'球型云台',status:'online',resolution:'4MP',online:true,img:'assets/ref/plant-2.png'},
+  {id:'CAM-106',name:'6#棚·枪机',area:'6号棚',type:'枪型固定',status:'online',resolution:'1080P',online:true,img:'mrtfh2ww-image.png'},
+  {id:'CAM-107',name:'育苗棚·球机',area:'育苗棚',type:'球型云台',status:'online',resolution:'4K',online:true,img:'assets/ref/trace-1.png'},
+  {id:'CAM-108',name:'采摘园·全景',area:'采摘园',type:'全景球机',status:'online',resolution:'4K',online:true,img:'assets/ref/park-1.png'},
+  {id:'CAM-109',name:'主入口·枪机',area:'主入口',type:'枪型固定',status:'online',resolution:'1080P',online:true,img:'assets/ref/park-1.png'},
+  {id:'CAM-110',name:'分拣车间·球机',area:'分拣车间',type:'球型云台',status:'online',resolution:'4MP',online:true,img:'assets/ref/trace-1.png'},
+  {id:'CAM-114',name:'冷链仓储·球机',area:'冷链仓储',type:'球型云台',status:'offline',resolution:'1080P',online:false,img:''},
+  {id:'CAM-112',name:'停车场·枪机',area:'停车场',type:'枪型固定',status:'signal-weak',resolution:'1080P',online:true,img:'assets/ref/park-1.png'}
+];
+var vmCurLayout='1',vmSel='CAM-101',vmFiltered=VM_CAMERAS.slice();
+var VM_THUMB_SVG='<svg viewBox="0 0 24 24" fill="rgba(255,255,255,.35)" width="16" height="16"><path d="M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7zm3 1a1 1 0 00-1 1v6a1 1 0 001 1h14a1 1 0 001-1V9a1 1 0 00-1-1H5z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+function vmRenderList(list){
+  var h='';
+  for(var i=0;i<list.length;i++){
+    var c=list[i],act=c.id===vmSel?' active':'';
+    var thumb;
+    if(c.online&&c.img){thumb='<div class="vm-thumb" style="background-image:url(\''+c.img+'\')"></div>';}
+    else if(c.online){thumb='<div class="vm-thumb">'+VM_THUMB_SVG+'</div>';}
+    else{thumb='<div class="vm-thumb off">'+VM_THUMB_SVG+'</div>';}
+    h+='<div class="vm-item'+act+'" data-cam="'+c.id+'" onclick="vmSelect(\''+c.id+'\')">'+thumb+
+       '<div class="vm-info"><div class="vm-name">'+c.name+'</div><div class="vm-detail">'+c.area+' · '+c.type+' · '+c.resolution+'</div></div>'+
+       '<div class="vm-dot '+c.status+'"></div></div>';
+  }
+  document.getElementById('vmList').innerHTML=h;
+  document.getElementById('vmCount').textContent=list.length;
+}
+function vmRenderCell(cam,act){
+  if(!cam){return '<div class="vm-cell"><div class="vm-cell__ph">空闲通道</div></div>';}
+  if(!cam.online){return '<div class="vm-cell'+(act?' active':'')+'" data-cam="'+cam.id+'" onclick="vmSelect(\''+cam.id+'\')"><div class="vm-cell__ph">信号中断</div><div class="vm-cell__lbl"><i class="off"></i>'+cam.name+'</div></div>';}
+  return '<div class="vm-cell'+(act?' active':'')+'" data-cam="'+cam.id+'" onclick="vmSelect(\''+cam.id+'\')">'+
+    '<div class="vm-cell__feed" style="background-image:url(\''+cam.img+'\')"></div>'+
+    '<div class="vm-cell__vig"></div><div class="vm-cell__scan"></div>'+
+    '<div class="vm-cell__osd"><div class="tl">● LIVE</div><div class="tr">'+cam.resolution+'</div></div>'+
+    '<div class="vm-cell__lbl"><i class="on"></i>'+cam.name+'</div></div>';
+}
+function vmRenderGrid(layout){
+  var grid=document.getElementById('vmGrid');grid.className='vm-grid l-'+layout;
+  var n=1;if(layout==='2')n=4;else if(layout==='3')n=9;else if(layout==='4')n=16;else if(layout==='1p3')n=3;
+  var avail=VM_CAMERAS.filter(function(c){return c.online;});
+  var h='';for(var i=0;i<n;i++){var cam=i<avail.length?avail[i]:null;h+=vmRenderCell(cam,cam&&cam.id===vmSel);}
+  grid.innerHTML=h;
+}
+function vmLayout(layout){
+  vmCurLayout=layout;
+  var b=document.querySelectorAll('#vmLyts .vm-lyt');
+  for(var i=0;i<b.length;i++){b[i].classList.toggle('active',b[i].getAttribute('data-l')===layout);}
+  vmRenderGrid(layout);
+}
+function vmSelect(id){
+  vmSel=id;
+  var it=document.querySelectorAll('#vmList .vm-item');
+  for(var i=0;i<it.length;i++){it[i].classList.toggle('active',it[i].getAttribute('data-cam')===id);}
+  vmRenderGrid(vmCurLayout);vmPtzLabel(id);
+}
+function vmPtzLabel(id){
+  var cam=null;for(var i=0;i<VM_CAMERAS.length;i++){if(VM_CAMERAS[i].id===id){cam=VM_CAMERAS[i];break;}}
+  document.getElementById('vmPtzCam').textContent=cam?cam.name:'未选中设备';
+}
+function vmFilter(kw){
+  var list;if(!kw.trim()){list=VM_CAMERAS.slice();}else{var k=kw.toLowerCase();list=VM_CAMERAS.filter(function(c){return c.name.toLowerCase().indexOf(k)>=0||c.id.toLowerCase().indexOf(k)>=0||c.area.toLowerCase().indexOf(k)>=0;});}
+  vmFiltered=list;vmRenderList(list);
+}
+function vmPtz(action){
+  if(!vmSel){vmToast('请先选择摄像头');return;}
+  var cam=null;for(var i=0;i<VM_CAMERAS.length;i++){if(VM_CAMERAS[i].id===vmSel){cam=VM_CAMERAS[i];break;}}
+  if(!cam)return;
+  if(!cam.online){vmToast('该设备离线，无法控制');return;}
+  var labels={up:'上',down:'下',left:'左',right:'右',zoomIn:'放大',zoomOut:'缩小',focusIn:'聚焦+',focusOut:'聚焦−',snapshot:'抓拍'};
+  var spd=document.getElementById('vmSpeed').value;
+  if(action==='snapshot'){vmToast('已抓拍 '+cam.name+'（'+cam.resolution+'）');return;}
+  vmToast((labels[action]||action)+' — 已发送指令（速度 '+spd+'）');
+}
+function vmPreset(n){if(!vmSel){vmToast('请先选择摄像头');return;}vmToast('预置位 P'+n+' — 已调用');}
+function vmToast(msg){
+  var old=document.querySelector('.vm-toast');if(old)old.remove();
+  var el=document.createElement('div');el.className='vm-toast';el.textContent=msg;document.body.appendChild(el);
+  setTimeout(function(){el.style.opacity='0';setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},300);},1800);
+}
+document.addEventListener('DOMContentLoaded',function(){
+  vmRenderList(vmFiltered);vmRenderGrid('1');vmPtzLabel(vmSel);
+  var sp=document.getElementById('vmSpeed');if(sp)sp.addEventListener('input',function(){document.getElementById('vmSpeedLbl').textContent=this.value;});
+});
+</script>
+<script>
+/* ===== 应急模拟（数字孪生推演 · 基于实时数据）===== */
+var ESIM={
+ pest:{name:'病虫害扩散',cls:'danger',cells:['g1','g2','g3'],risk:['g4'],gh:3,ghLbl:'受影响大棚',area:450,subj:'红颜·章姬',loss:12,
+   plan:[['隔离病棚 1#/2#/3#，暂停采摘','植保组','紧急','即刻'],['无人机精准施药（生物农药）','飞防队','紧急','2h'],['邻近棚预防性喷药','植保组','高','6h'],['病株无害化处理 + 溯源记录','质控组','中','24h']]},
+ weather:{name:'极端天气',cls:'danger',cells:['g1','g2','g3','g4','g5','g6','park'],risk:['sort'],gh:6,ghLbl:'受灾大棚',area:900,subj:'全棚草莓',loss:28,
+   plan:[['加固棚体 / 收拢卷帘外遮阳','设施组','紧急','即刻'],['疏通排水沟 + 启泵排涝','水利组','紧急','1h'],['保温防冻 + 启用增温设备','环控组','高','2h'],['抢收近成熟果实','生产组','高','4h']]},
+ crowd:{name:'游客拥堵',cls:'warn',cells:['park'],risk:['g4'],gh:1,ghLbl:'超载区域',area:60,subj:'600+ 游客',loss:3,
+   plan:[['启动客流分流预案','运营组','紧急','即刻'],['采摘园限流（暂停入园）','安保组','紧急','即刻'],['增派引导员 + 开通线上预约','客服组','高','30min'],['启用备用停车场 + 接驳车','后勤组','中','1h']]},
+ equip:{name:'设备故障',cls:'warn',cells:['wf','g3','g5'],risk:['g1'],gh:2,ghLbl:'受影响大棚',area:300,subj:'灌溉中断',loss:8,
+   plan:[['切换备用电源 / 启动发电机','电工组','紧急','即刻'],['水肥系统切换手动模式','灌溉组','紧急','15min'],['抢修故障设备','维修组','高','2h'],['受影响棚应急补灌','生产组','中','3h']]}
+};
+var SEV={low:0.5,mid:1,high:1.8};
+var esimCur='pest',esimSev='mid';
+function esimCells(){var s=ESIM[esimCur],c=s.cells.slice();if(esimSev==='low'){c=c.slice(0,Math.max(1,Math.ceil(c.length/2)));}else if(esimSev==='high'){c=c.concat(s.risk);}return c;}
+function esimSetText(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+function esimRender(){
+ var s=ESIM[esimCur],m=SEV[esimSev],hit=esimCells();
+ document.querySelectorAll('#esimScens .esim-scen').forEach(function(e){e.classList.toggle('active',e.getAttribute('data-s')===esimCur);});
+ document.querySelectorAll('#esimSev button').forEach(function(e){e.classList.toggle('active',e.getAttribute('data-v')===esimSev);});
+ var tag=document.getElementById('esimSceneTag');if(tag){tag.textContent=s.name;tag.className='tag '+s.cls;}
+ document.querySelectorAll('#esimMap .esim-cell').forEach(function(c){var h=hit.indexOf(c.id)>=0,r=s.risk.indexOf(c.id)>=0&&esimSev==='high'&&!h;c.classList.toggle('hit',h);c.classList.toggle('risk',r);});
+ document.querySelectorAll('#esimMap .esim-lbl').forEach(function(l){l.classList.toggle('hit',hit.indexOf(l.getAttribute('data-for'))>=0);});
+ var gh=s.gh?Math.round(s.gh*m):1;
+ esimSetText('em-gh',gh);esimSetText('em-gh-lbl',s.ghLbl);esimSetText('em-area',Math.round(s.area*m));esimSetText('em-subj',s.subj);
+ esimSetText('em-loss',Math.round(s.loss*m));esimSetText('em-loss2',Math.round(s.loss*m));
+ var h='';s.plan.forEach(function(p,i){var pc=p[2]==='紧急'?'danger':(p[2]==='高'?'warn':'info');h+='<tr><td><b class="text-num">'+(i+1)+'</b></td><td>'+p[0]+'</td><td>'+p[1]+'</td><td><span class="tag '+pc+'">'+p[2]+'</span></td><td class="text-num">'+p[3]+'</td><td><span class="tag info">待执行</span></td></tr>';});
+ var pl=document.getElementById('esimPlan');if(pl)pl.innerHTML=h;
+ var pc2=document.getElementById('esimPlanCnt');if(pc2)pc2.textContent=s.plan.length+' 步';
+}
+function esimSelect(id){esimCur=id;esimRender();}
+function esimSevSet(v){esimSev=v;esimRender();}
+function esimRun(){var map=document.getElementById('esimMap');if(!map)return;map.classList.remove('run');void map.offsetWidth;map.classList.add('run');esimToast('推演完成 · 已基于实时数据生成「'+ESIM[esimCur].name+'」应急方案（'+ESIM[esimCur].plan.length+' 步）');}
+function esimToast(msg){var old=document.querySelector('.esim-toast');if(old)old.remove();var el=document.createElement('div');el.className='esim-toast';el.textContent=msg;Object.assign(el.style,{position:'fixed',bottom:'30px',left:'50%',transform:'translateX(-50%)',background:'rgba(30,27,43,.92)',color:'#fff',padding:'10px 22px',borderRadius:'8px',fontSize:'13px',zIndex:'9999',transition:'opacity .3s'});document.body.appendChild(el);setTimeout(function(){el.style.opacity='0';setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},300);},2200);}
+document.addEventListener('DOMContentLoaded',function(){if(document.getElementById('esimPlan'))esimRender();});
+</script>
+</body>
+</html>

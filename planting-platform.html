@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>种植管理平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .view{display:none}
+  .view.active{display:block}
+  .sidebar .nav-item{cursor:pointer}
+  .pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}
+  .pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .pl-row:last-child{border:none}
+  .pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}
+  .pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+  .pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}
+  .pl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--berry),var(--berry-deep));border-radius:3px}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}
+  .tbl tr:hover td{background:var(--surface-2)}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}
+  .tag.warn{background:var(--warn-soft);color:var(--warn)}
+  .tag.danger{background:var(--danger-soft);color:var(--danger)}
+  .tag.info{background:#E6F2FF;color:var(--tech)}
+  .variety-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .variety-card .vh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .variety-card .dot{width:14px;height:14px;border-radius:3px}
+  .variety-card h4{font-size:15px;font-weight:700;color:var(--fg)}
+  .video-cell{position:relative;aspect-ratio:16/9;background:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/plant-2.png') center/cover;border-radius:var(--r-sm);border:1px solid var(--border);overflow:hidden}
+  .video-cell:nth-child(2){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/pest-1.png')}
+  .video-cell:nth-child(3){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/trace-1.png')}
+  .video-cell:nth-child(4){background-image:linear-gradient(rgba(8,19,31,.55),rgba(8,19,31,.82)),url('assets/ref/park-1.png')}
+  .video-cell .vname{position:absolute;left:10px;top:10px;font-size:12px;color:#E6F0FA;font-weight:500}
+  .video-cell .live{position:absolute;left:10px;bottom:10px;font-size:11px;color:#fff;background:var(--berry);padding:2px 6px;border-radius:3px;display:flex;align-items:center;gap:4px}
+  .video-cell .live i{width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1.2s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+  /* 生长周期 */
+  .gc-tabs{display:flex;gap:8px;margin-bottom:var(--sp-4);flex-wrap:wrap}
+  .gc-tab{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--fg-2);transition:all .15s}
+  .gc-tab:hover{border-color:var(--berry);color:var(--fg)}
+  .gc-tab.active{background:var(--berry-soft);border-color:var(--berry);color:var(--berry);font-weight:600}
+  .gc-tab .dt{width:10px;height:10px;border-radius:3px}
+  .gc-timeline{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:14px 10px 6px;margin-bottom:var(--sp-2);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md)}
+  .gc-timeline::before{content:"";position:absolute;top:23px;left:8%;right:8%;height:2px;background:var(--border);border-radius:2px}
+  .gc-tl-node{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;z-index:1;flex:1;text-align:center}
+  .gc-tl-dot{width:18px;height:18px;border-radius:50%;background:var(--surface);border:3px solid var(--fg-3);transition:all .2s}
+  .gc-tl-node.done .gc-tl-dot{background:var(--ok);border-color:var(--ok)}
+  .gc-tl-node.current .gc-tl-dot{background:var(--berry);border-color:var(--berry);animation:gcPulse 2s ease-in-out infinite}
+  @keyframes gcPulse{0%,100%{box-shadow:0 0 0 4px var(--berry-soft)}50%{box-shadow:0 0 0 8px rgba(230,57,70,.12)}}
+  .gc-tl-lbl{font-size:11px;color:var(--fg-2);white-space:nowrap}
+  .gc-tl-node.done .gc-tl-lbl{color:var(--ok)}
+  .gc-tl-node.current .gc-tl-lbl{color:var(--berry);font-weight:700}
+  .gc-tl-dt{font-size:9px;color:var(--fg-3);font-family:var(--font-num)}
+  .gc-ops{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}
+  .gc-op{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface-2);border-radius:var(--r-sm);font-size:12px;color:var(--fg);min-height:34px}
+  .gc-op i{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:9px;font-style:normal;color:#fff;background:var(--warn)}
+  .gc-op.done{color:var(--fg-2);text-decoration:line-through;text-decoration-color:var(--fg-3)}
+  .gc-op.done i{background:var(--ok)}
+  .gc-remind{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);margin-bottom:8px;background:var(--warn-soft);border:1px solid var(--warn)}
+  .gc-remind .ri{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;color:#fff}
+  .gc-remind .rt{font-size:12px;font-weight:600;color:var(--fg)}
+  .gc-remind .rd{font-size:11px;color:var(--fg-2);margin-top:2px}
+  /* 防控任务管理 */
+  .pt-task{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;transition:all .15s}
+  .pt-task:hover{border-color:var(--berry);box-shadow:0 2px 10px rgba(230,57,70,.06)}
+  .pt-task__head{flex:1;min-width:0}
+  .pt-task__title{font-size:13px;font-weight:600;color:var(--fg)}
+  .pt-task__meta{font-size:11px;color:var(--fg-2);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+  .pt-task__meta b{font-family:var(--font-num);color:var(--fg)}
+  .pt-st{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;flex-shrink:0}
+  .pt-st.todo{background:#EEF2FF;color:#4F46E5} .pt-st.doing{background:var(--warn-soft);color:var(--warn)} .pt-st.done{background:var(--ok-soft);color:var(--ok)} .pt-st.over{background:var(--danger-soft);color:var(--danger)}
+  .pt-btn{padding:4px 10px;border-radius:var(--r-xs);font-size:11px;border:none;cursor:pointer;font-weight:600}
+  .pt-btn.gen{background:var(--berry);color:#fff} .pt-btn.gen:hover{background:var(--berry-deep)}
+  .pt-btn.up{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)} .pt-btn.up:hover{background:var(--ok);color:#fff}
+  .pt-btn.det{background:var(--bg);color:var(--fg-2);border:1px solid var(--border)} .pt-btn.det:hover{color:var(--berry)}
+  .pt-photos{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+  .pt-ph{aspect-ratio:1;border-radius:var(--r-xs);background:var(--bg);border:1px solid var(--border);display:grid;place-items:center;color:var(--fg-3);font-size:18px;cursor:pointer}
+  .pt-ph:hover{border-color:var(--berry)}
+  .pt-ph img{width:100%;height:100%;object-fit:cover}
+  .pt-modal{position:fixed;inset:0;z-index:100;background:rgba(31,41,55,.5);display:none;align-items:center;justify-content:center}
+  .pt-modal.open{display:flex}
+  .pt-modal__box{background:#fff;border-radius:var(--r-md);width:520px;max-height:80vh;overflow:auto;padding:24px}
+  .pt-modal__title{font-size:16px;font-weight:700;color:var(--fg);margin-bottom:16px}
+  .pt-timeline{position:relative;padding-left:20px;margin:12px 0}
+  .pt-timeline::before{content:"";position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--border)}
+  .pt-tl-item{position:relative;padding-bottom:14px;font-size:12px;color:var(--fg-2)}
+  .pt-tl-item::before{content:"";position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--border)}
+  .pt-tl-item.done::before{background:var(--ok)} .pt-tl-item.active::before{background:var(--berry);box-shadow:0 0 0 3px var(--berry-soft)}
+  .pt-tl-item b{color:var(--fg);font-weight:600}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <div class="topbar__brand"><span class="logo" style="background:var(--berry)">种</span> 种植管理平台</div>
+    <nav class="breadcrumb"><span>种植管理平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input placeholder="搜索地块 / 品种 / 任务">
+    </div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        返回门户
+      </a>
+      <button class="icon-btn" title="预警中心">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        <span class="badge-dot">6</span>
+      </button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+
+  <div class="admin__body">
+
+    <!-- 种植管理专属侧栏：点击在本页内切换视图，不跳统一后台 -->
+    <aside class="sidebar">
+      <div class="sidebar__group">
+        <div class="sidebar__title">种植管理</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="plots"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></span><span>地块档案</span><span class="sub-count">42</span></a>
+        <a class="nav-item" data-v="variety"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8"/><path d="M12 8c0-3 2-5 5-5 0 3-2 5-5 5z"/><path d="M12 12c0-3-2-5-5-5 0 3 2 5 5 5z"/></svg></span><span>品种管理</span><span class="sub-count">4</span></a>
+        <a class="nav-item" data-v="harvest"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span><span>采收管理</span></a>
+        <a class="nav-item" data-v="input"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16M9 7h6M9 11h6M9 15h4"/></svg></span><span>投入品管理</span></a>
+        <a class="nav-item" data-v="cycle"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4l8 4-8 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2"/></svg></span><span>生长周期 ▲</span></a>
+        <a class="nav-item" data-v="ptask"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>防控任务</span><span class="sub-count" style="background:var(--warn-soft);color:var(--warn)">3</span></a>
+        <a class="nav-item" data-v="stats"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></span><span>大数据统计</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">环境与设备</div>
+        <a class="nav-item" data-v="env"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span>气象监测</span></a>
+        <a class="nav-item" data-v="device"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span>设备监控墙</span></a>
+        <a class="nav-item" data-v="alert"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>智能预警</span><span class="sub-count" style="background:var(--warn-soft);color:var(--warn)">6</span></a>
+        <a class="nav-item" data-v="video"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page">
+
+        <!-- 视图：工作台 -->
+        <section class="view active" id="v-home">
+          <div class="page-head">
+            <div><h1 class="page-head__title">种植管理平台 <span class="platform-mark platform-mark--plant">木兰金秋基地</span></h1>
+            <p class="page-head__desc">2026-07-18 周五 · 42 大棚 / 300 亩 / 4 品种 · 今日 6 起预警待处理，3 号棚温度超限</p></div>
+            <div class="page-head__actions"><div class="field"><label>基地</label><select class="select"><option>木兰金秋草莓基地</option><option>前川示范园</option></select></div></div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">种植大棚</div><div class="kpi__val">42<span class="unit">栋</span></div><div class="kpi__trend up">覆盖 300 亩</div></div>
+            <div class="kpi"><div class="kpi__label">在田品种</div><div class="kpi__val">4<span class="unit">个</span></div><div class="kpi__trend">红颜 · 章姬 · 淡雪 · 越心</div></div>
+            <div class="kpi"><div class="kpi__label">本月农事任务</div><div class="kpi__val">14<span class="unit">项</span></div><div class="kpi__trend up">↑ 已完成 9</div></div>
+            <div class="kpi"><div class="kpi__label">本周采收</div><div class="kpi__val">12.4<span class="unit">吨</span></div><div class="kpi__trend up">↑ 8.3%</div></div>
+          </div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>品种分布</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm"><i style="background:#E63946"></i>红颜</span><span class="v">120 亩</span></div><div class="pl-bar"><i style="width:40%"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#4A90E2"></i>章姬</span><span class="v">80 亩</span></div><div class="pl-bar"><i style="width:27%;background:linear-gradient(90deg,#4A90E2,#2E6FB8)"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#00E6C3"></i>淡雪</span><span class="v">60 亩</span></div><div class="pl-bar"><i style="width:20%;background:linear-gradient(90deg,#00E6C3,#00B0A0)"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#F59E0B"></i>越心</span><span class="v">40 亩</span></div><div class="pl-bar"><i style="width:13%;background:linear-gradient(90deg,#F59E0B,#D97706)"></i></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>本周采收</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">红颜</span><span class="v">6.8 吨</span></div>
+              <div class="pl-row"><span class="nm">章姬</span><span class="v">3.2 吨</span></div>
+              <div class="pl-row"><span class="nm">淡雪</span><span class="v">1.6 吨</span></div>
+              <div class="pl-row"><span class="nm">越心</span><span class="v">0.8 吨</span></div>
+              <div class="pl-row"><span class="nm">糖度均值</span><span class="v" style="color:var(--berry)">12.1 °Bx</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>今日待办</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">无人机植保 · 5#棚</span><span class="tag info">进行中</span></div>
+              <div class="pl-row"><span class="nm">水肥灌溉 · 1~4#棚</span><span class="tag ok">已完成</span></div>
+              <div class="pl-row"><span class="nm">草莓采收 · 1~3#棚</span><span class="tag ok">已完成</span></div>
+              <div class="pl-row"><span class="nm">虫情巡检 · 全棚</span><span class="tag warn">待执行</span></div>
+              <div class="pl-row"><span class="nm">F-03 阀检修</span><span class="tag warn">待派单</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 视图：地块档案 -->
+        <section class="view" id="v-plots">
+          <div class="page-head"><div><h1 class="page-head__title">地块档案 <span class="platform-mark platform-mark--plant">42 大棚</span></h1><p class="page-head__desc">木兰金秋基地全部地块档案，含棚号、品种、面积、当前状态</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 新增地块</a></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>棚号</th><th>品种</th><th>面积</th><th>定植日期</th><th>当前状态</th><th>温度 / 湿度</th></tr></thead>
+              <tbody>
+                <tr><td>1#</td><td>红颜</td><td>3.2 亩</td><td>2026-09-15</td><td><span class="tag ok">正常</span></td><td>26.1℃ / 68%</td></tr>
+                <tr><td>2#</td><td>章姬</td><td>3.0 亩</td><td>2026-09-18</td><td><span class="tag ok">正常</span></td><td>25.8℃ / 66%</td></tr>
+                <tr><td>3#</td><td>红颜</td><td>3.2 亩</td><td>2026-09-15</td><td><span class="tag danger">超限</span></td><td style="color:var(--danger)">32.0℃ / 68%</td></tr>
+                <tr><td>4#</td><td>淡雪</td><td>2.8 亩</td><td>2026-09-22</td><td><span class="tag ok">正常</span></td><td>26.4℃ / 70%</td></tr>
+                <tr><td>5#</td><td>越心</td><td>2.6 亩</td><td>2026-09-25</td><td><span class="tag warn">偏低</span></td><td>25.5℃ / 67%</td></tr>
+                <tr><td>6#</td><td>红颜</td><td>3.2 亩</td><td>2026-09-15</td><td><span class="tag ok">正常</span></td><td>26.2℃ / 69%</td></tr>
+                <tr><td>7#</td><td>章姬</td><td>3.0 亩</td><td>2026-09-18</td><td><span class="tag ok">正常</span></td><td>26.0℃ / 67%</td></tr>
+                <tr><td>8#</td><td>淡雪</td><td>2.8 亩</td><td>2026-09-22</td><td><span class="tag ok">正常</span></td><td>25.9℃ / 68%</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 视图：品种管理 -->
+        <section class="view" id="v-variety">
+          <div class="page-head"><div><h1 class="page-head__title">品种管理 <span class="platform-mark platform-mark--plant">4 个在田品种</span></h1><p class="page-head__desc">主栽品种档案：面积、产量、糖度、特性</p></div></div>
+          <div class="pl-grid">
+            <div class="variety-card"><div class="vh"><span class="dot" style="background:#E63946"></span><h4>红颜</h4><span class="tag info">主栽</span></div>
+              <div class="pl-row"><span class="nm">种植面积</span><span class="v">120 亩 · 18 棚</span></div>
+              <div class="pl-row"><span class="nm">本季产量</span><span class="v">6.8 吨</span></div>
+              <div class="pl-row"><span class="nm">糖度均值</span><span class="v" style="color:var(--berry)">12.4 °Bx</span></div>
+              <div class="pl-row"><span class="nm">特性</span><span class="v">果大 · 风味浓</span></div>
+            </div>
+            <div class="variety-card"><div class="vh"><span class="dot" style="background:#4A90E2"></span><h4>章姬</h4></div>
+              <div class="pl-row"><span class="nm">种植面积</span><span class="v">80 亩 · 12 棚</span></div>
+              <div class="pl-row"><span class="nm">本季产量</span><span class="v">3.2 吨</span></div>
+              <div class="pl-row"><span class="nm">糖度均值</span><span class="v">11.8 °Bx</span></div>
+              <div class="pl-row"><span class="nm">特性</span><span class="v">细长 · 甜软</span></div>
+            </div>
+            <div class="variety-card"><div class="vh"><span class="dot" style="background:#00E6C3"></span><h4>淡雪</h4></div>
+              <div class="pl-row"><span class="nm">种植面积</span><span class="v">60 亩 · 8 棚</span></div>
+              <div class="pl-row"><span class="nm">本季产量</span><span class="v">1.6 吨</span></div>
+              <div class="pl-row"><span class="nm">糖度均值</span><span class="v">12.1 °Bx</span></div>
+              <div class="pl-row"><span class="nm">特性</span><span class="v">粉白 · 稀有</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 视图：农事任务 -->
+        <section class="view" id="v-task">
+          <div class="page-head"><div><h1 class="page-head__title">农事任务 <span class="platform-mark platform-mark--plant">14 项</span></h1><p class="page-head__desc">本月农事任务排程，含灌溉、植保、采收、巡检</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 派发任务</a></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>任务</th><th>范围</th><th>负责人</th><th>计划时间</th><th>状态</th><th>进度</th></tr></thead>
+              <tbody>
+                <tr><td>无人机植保</td><td>5#棚</td><td>李农机</td><td>07-18 14:00</td><td><span class="tag info">进行中</span></td><td>65%</td></tr>
+                <tr><td>水肥灌溉</td><td>1~4#棚</td><td>王水肥</td><td>07-18 06:00</td><td><span class="tag ok">已完成</span></td><td>100%</td></tr>
+                <tr><td>草莓采收</td><td>1~3#棚</td><td>赵采组</td><td>07-18 08:00</td><td><span class="tag ok">已完成</span></td><td>100%</td></tr>
+                <tr><td>虫情巡检</td><td>全棚</td><td>未指派</td><td>07-18 16:00</td><td><span class="tag warn">待执行</span></td><td>0%</td></tr>
+                <tr><td>F-03 阀检修</td><td>水肥首部</td><td>待派单</td><td>—</td><td><span class="tag warn">待派单</span></td><td>0%</td></tr>
+                <tr><td>植株整理</td><td>6~8#棚</td><td>孙农技</td><td>07-19 09:00</td><td><span class="tag">待执行</span></td><td>0%</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 视图：采收管理 -->
+        <section class="view" id="v-harvest">
+          <div class="page-head"><div><h1 class="page-head__title">采收管理 <span class="platform-mark platform-mark--plant">本周 12.4 吨</span></h1><p class="page-head__desc">各批次采收记录，含数量、糖度、去向</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>批次号</th><th>棚号</th><th>品种</th><th>数量</th><th>糖度</th><th>采收时间</th><th>去向</th></tr></thead>
+              <tbody>
+                <tr><td>SB20260718001</td><td>1#</td><td>红颜</td><td>420 kg</td><td>12.5 °Bx</td><td>07-18 08:30</td><td>电商直发</td></tr>
+                <tr><td>SB20260718002</td><td>2#</td><td>章姬</td><td>260 kg</td><td>11.9 °Bx</td><td>07-18 09:10</td><td>批发市场</td></tr>
+                <tr><td>SB20260718003</td><td>3#</td><td>红颜</td><td>180 kg</td><td>12.3 °Bx</td><td>07-18 09:40</td><td>冷链仓</td></tr>
+                <tr><td>SB20260717008</td><td>4#</td><td>淡雪</td><td>140 kg</td><td>12.0 °Bx</td><td>07-17 16:20</td><td>电商直发</td></tr>
+                <tr><td>SB20260717007</td><td>6#</td><td>红颜</td><td>390 kg</td><td>12.6 °Bx</td><td>07-17 15:50</td><td>商超配送</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- ===== 标书补：投入品管理（项119） ===== -->
+        <section class="view" id="v-input">
+          <div class="page-head"><div><h1 class="page-head__title">投入品管理 <span class="platform-mark platform-mark--plant">项1119</span></h1><p class="page-head__desc">农药/肥料/诱虫板 采购·库存·使用 全流程追溯</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 采购登记</a></div></div>
+          <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>投入品</th><th>类型</th><th>采购量</th><th>库存</th><th>本期使用</th><th>供应商</th><th>安全间隔</th></tr></thead><tbody>
+            <tr><td>嘧霉胺 100ml</td><td>杀菌剂</td><td>200瓶</td><td>86瓶</td><td>114瓶</td><td>绿云农资</td><td><span class="tag ok">7天 ✓</span></td></tr>
+            <tr><td>阿维菌素 100ml</td><td>杀虫剂</td><td>150瓶</td><td>62瓶</td><td>88瓶</td><td>中农立华</td><td><span class="tag ok">14天 ✓</span></td></tr>
+            <tr><td>硫酸钾 25kg</td><td>肥料</td><td>480袋</td><td>120袋</td><td>360袋</td><td>金正大</td><td><span class="tag">—</span></td></tr>
+            <tr><td>黄板 20×25</td><td>诱虫</td><td>2000张</td><td>680张</td><td>1320张</td><td>本地产</td><td><span class="tag">—</span></td></tr>
+            <tr><td>磷酸二氢钾</td><td>叶面肥</td><td>100kg</td><td>42kg</td><td>58kg</td><td>史丹利</td><td><span class="tag">—</span></td></tr>
+          </tbody></table></div></div>
+          <div class="card" style="margin-top:var(--sp-4)"><div class="card__head"><h3>近期使用记录</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>日期</th><th>投入品</th><th>地块</th><th>用量</th><th>人员</th></tr></thead><tbody>
+            <tr><td>07-18</td><td>阿维菌素</td><td>3#棚</td><td>50ml/亩</td><td>张伟</td></tr><tr><td>07-17</td><td>硫酸钾</td><td>1~4#棚</td><td>8kg/亩</td><td>李建国</td></tr><tr><td>07-16</td><td>嘧霉胺</td><td>5#棚</td><td>30ml/亩</td><td>王芳</td></tr></tbody></table></div></div>
+        </section>
+
+        <!-- ===== 生长周期管理（增强：品种+时间轴+提醒） ===== -->
+        <section class="view" id="v-cycle">
+          <div class="page-head"><div><h1 class="page-head__title">生长周期管理</h1></div></div>
+          <div class="gc-tabs" id="gcTabs">
+            <div class="gc-tab active" data-v="红颜" onclick="gcSelect('红颜')"><span class="dt" style="background:#E63946"></span>红颜</div>
+            <div class="gc-tab" data-v="章姬" onclick="gcSelect('章姬')"><span class="dt" style="background:#4A90E2"></span>章姬</div>
+            <div class="gc-tab" data-v="淡雪" onclick="gcSelect('淡雪')"><span class="dt" style="background:#00E6C3"></span>淡雪</div>
+            <div class="gc-tab" data-v="越心" onclick="gcSelect('越心')"><span class="dt" style="background:#F59E0B"></span>越心</div>
+          </div>
+          <div id="gcBody"></div>
+          <div class="card" style="margin-top:var(--sp-4)"><div class="card__head"><h3>阶段提醒 · 自动推送</h3><span class="tag warn" id="gcRemindCnt">4 条</span></div><div class="card__body" id="gcRemind"></div></div>
+        </section>
+
+        <!-- ===== 标书补：大数据统计分析（项131-134） ===== -->
+        <section class="view" id="v-stats">
+          <div class="page-head"><div><h1 class="page-head__title">大数据统计分析 <span class="platform-mark platform-mark--plant">项1131-1134</span></h1><p class="page-head__desc">核心指标 · 趋势分析 · 区域对比 · 自动报表</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">导出 Excel</a> <a class="btn btn--sm" href="javascript:;">导出 PDF</a></div></div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">种植面积</div><div class="kpi__val">300<span class="unit">亩</span></div><div class="kpi__trend">42 大棚</div></div>
+            <div class="kpi"><div class="kpi__label">坐果率</div><div class="kpi__val" style="color:var(--ok)">88.6<span class="unit">%</span></div><div class="kpi__trend up">↑ 2.1%</div></div>
+            <div class="kpi"><div class="kpi__label">病虫害发生率</div><div class="kpi__val" style="color:var(--warn)">3.2<span class="unit">%</span></div><div class="kpi__trend down">↓ 0.8%</div></div>
+            <div class="kpi"><div class="kpi__label">水肥消耗</div><div class="kpi__val">580<span class="unit">m³</span></div><div class="kpi__trend down">↓ 节水12%</div></div>
+          </div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>核心指标趋势</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">周产量</span><span class="v">12.4t ↑8.3%</span></div>
+              <div class="pl-row"><span class="nm">均糖度</span><span class="v">12.1°Bx ↑2.5%</span></div>
+              <div class="pl-row"><span class="nm">良果率</span><span class="v">89.2% ↑1.8%</span></div>
+              <div class="pl-row"><span class="nm">设备在线率</span><span class="v">97% →</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>区域对比分析</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>地块</th><th>产量</th><th>糖度</th><th>病虫率</th><th>评价</th></tr></thead><tbody>
+              <tr><td>A区(1~8#)</td><td>6.8t</td><td>12.4</td><td>2.1%</td><td><span class="tag ok">优</span></td></tr>
+              <tr><td>B区(9~20#)</td><td>4.2t</td><td>11.8</td><td>4.6%</td><td><span class="tag warn">中</span></td></tr>
+              <tr><td>C区(21~42#)</td><td>1.4t</td><td>11.5</td><td>3.8%</td><td><span class="tag warn">关注</span></td></tr>
+            </tbody></table></div></div>
+            <div class="card"><div class="card__head"><h3>自动报表</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">日报 · 07-18</span><a class="btn btn--sm" href="javascript:;">查看</a></div>
+              <div class="pl-row"><span class="nm">周报 · 第29周</span><a class="btn btn--sm" href="javascript:;">查看</a></div>
+              <div class="pl-row"><span class="nm">月报 · 7月</span><a class="btn btn--sm" href="javascript:;">查看</a></div>
+              <div class="pl-row"><span class="nm">年报 · 2026</span><a class="btn btn--sm" href="javascript:;">生成</a></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 视图：气象监测 -->
+        <section class="view" id="v-env">
+          <div class="page-head"><div><h1 class="page-head__title">气象监测 <span class="platform-mark platform-mark--plant">大棚微气候</span></h1><p class="page-head__desc">实时温湿光气 + 土壤数据，联动控制</p></div></div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">平均温度</div><div class="kpi__val" style="color:var(--berry)">26.1<span class="unit">℃</span></div><div class="kpi__trend warn">3# 超限 32℃</div></div>
+            <div class="kpi"><div class="kpi__label">平均湿度</div><div class="kpi__val">68<span class="unit">%</span></div><div class="kpi__trend">适宜区间</div></div>
+            <div class="kpi"><div class="kpi__label">光照强度</div><div class="kpi__val">42<span class="unit">klx</span></div><div class="kpi__trend up">↑ 晴好</div></div>
+            <div class="kpi"><div class="kpi__label">CO₂ 浓度</div><div class="kpi__val">412<span class="unit">ppm</span></div><div class="kpi__trend">正常</div></div>
+          </div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>土壤数据</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">土壤温度</span><span class="v">22.8 ℃</span></div>
+              <div class="pl-row"><span class="nm">土壤湿度</span><span class="v">58 %</span></div>
+              <div class="pl-row"><span class="nm">土壤 EC</span><span class="v">2.8 mS/cm</span></div>
+              <div class="pl-row"><span class="nm">pH 值</span><span class="v">6.4</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>24h 温度曲线</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">最高</span><span class="v" style="color:var(--danger)">32.0 ℃ · 14:00</span></div>
+              <div class="pl-row"><span class="nm">最低</span><span class="v">18.2 ℃ · 04:00</span></div>
+              <div class="pl-row"><span class="nm">日均</span><span class="v">25.1 ℃</span></div>
+              <div class="pl-row"><span class="nm">温差</span><span class="v">13.8 ℃</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>联动控制</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">通风窗</span><span class="tag ok">已开启</span></div>
+              <div class="pl-row"><span class="nm">遮阳网</span><span class="tag info">展开 60%</span></div>
+              <div class="pl-row"><span class="nm">水帘风机</span><span class="tag ok">运行中</span></div>
+              <div class="pl-row"><span class="nm">补光灯</span><span class="tag">待机</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 视图：设备监控 -->
+        <section class="view" id="v-device">
+          <div class="page-head"><div><h1 class="page-head__title">设备监控墙 <span class="platform-mark platform-mark--plant">128/132 在线</span></h1><p class="page-head__desc">全部物联设备实时在线状态</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>设备类型</th><th>在线</th><th>离线</th><th>在线率</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td>传感器</td><td>48</td><td>0</td><td>100%</td><td><span class="tag ok">正常</span></td></tr>
+                <tr><td>摄像头</td><td>16</td><td>0</td><td>100%</td><td><span class="tag ok">正常</span></td></tr>
+                <tr><td>水肥一体机</td><td>4</td><td>0</td><td>100%</td><td><span class="tag ok">正常</span></td></tr>
+                <tr><td>智能卷帘</td><td>18</td><td>2</td><td>90%</td><td><span class="tag warn">2 台超时</span></td></tr>
+                <tr><td>气象站</td><td>1</td><td>0</td><td>100%</td><td><span class="tag ok">正常</span></td></tr>
+                <tr><td>虫情灯</td><td>3</td><td>0</td><td>100%</td><td><span class="tag ok">正常</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 视图：智能预警 -->
+        <section class="view" id="v-alert">
+          <div class="page-head"><div><h1 class="page-head__title">智能预警 <span class="platform-mark platform-mark--plant">6 起</span></h1><p class="page-head__desc">实时预警与处置跟踪，2 起待处理</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>等级</th><th>内容</th><th>设备/位置</th><th>时间</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag danger">紧急</span></td><td>温度 32.0℃ 超限</td><td>3#棚</td><td>14:02</td><td><span class="tag warn">待处理</span></td></tr>
+                <tr><td><span class="tag warn">警告</span></td><td>通信中断</td><td>水肥阀 F-03</td><td>13:40</td><td><span class="tag warn">待处理</span></td></tr>
+                <tr><td><span class="tag warn">警告</span></td><td>湿度 55% 偏低</td><td>5#棚</td><td>12:30</td><td><span class="tag ok">已处置</span></td></tr>
+                <tr><td><span class="tag warn">警告</span></td><td>响应超时</td><td>智能卷帘 2 台</td><td>11:15</td><td><span class="tag ok">已处置</span></td></tr>
+                <tr><td><span class="tag ok">提示</span></td><td>诱虫量偏高</td><td>虫情灯 D3</td><td>10:00</td><td><span class="tag ok">已查看</span></td></tr>
+                <tr><td><span class="tag">普通</span></td><td>土壤 EC 2.8</td><td>3#棚</td><td>09:20</td><td><span class="tag ok">已查看</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 视图：视频监控 -->
+        <section class="view" id="v-video">
+          <div class="page-head"><div><h1 class="page-head__title">视频监控 <span class="platform-mark platform-mark--plant">16 路在线</span></h1><p class="page-head__desc">大棚实时画面，2×2 视频墙</p></div></div>
+          <div class="pl-grid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="video-cell"><span class="vname">1#棚 · 红颜</span><span class="live"><i></i>LIVE</span></div>
+            <div class="video-cell"><span class="vname">3#棚 · 红颜(超限)</span><span class="live"><i></i>LIVE</span></div>
+            <div class="video-cell"><span class="vname">5#棚 · 越心</span><span class="live"><i></i>LIVE</span></div>
+            <div class="video-cell"><span class="vname">分拣车间</span><span class="live"><i></i>LIVE</span></div>
+          </div>
+        </section>
+
+        <!-- 防控任务管理 -->
+        <section class="view" id="v-ptask">
+          <div class="page-head"><div><h1 class="page-head__title">防控任务管理</h1></div>
+            <div class="page-head__actions"><button class="btn btn--sm btn--primary" onclick="ptGenTask()">从推荐方案生成任务</button></div></div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">待执行</div><div class="kpi__val" style="color:#4F46E5">3<span class="unit">项</span></div><div class="kpi__trend">含 1 项逾期</div></div>
+            <div class="kpi"><div class="kpi__label">进行中</div><div class="kpi__val" style="color:var(--warn)">2<span class="unit">项</span></div><div class="kpi__trend">今日到期</div></div>
+            <div class="kpi"><div class="kpi__label">本月已完成</div><div class="kpi__val" style="color:var(--ok)">8<span class="unit">项</span></div><div class="kpi__trend up">↑ 达标率 96%</div></div>
+            <div class="kpi"><div class="kpi__label">超期未完成</div><div class="kpi__val" style="color:var(--danger)">1<span class="unit">项</span></div><div class="kpi__trend danger">3号棚·炭疽病</div></div>
+          </div>
+          <div class="card"><div class="card__head"><h3>防控任务列表</h3><span style="font-size:12px;color:var(--fg-2)">共 6 项任务</span></div><div class="card__body">
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">3号棚·炭疽病防控 — 嘧霉胺叶面喷施</div><div class="pt-task__meta">编号 <b>FT-2026-0186</b> · 负责人 <b>王植保</b> · 截止 <b style="color:var(--danger)">07-19 18:00（已逾期）</b> · 关联预警 <span class="tag danger">炭疽病</span></div></div><span class="pt-st over">已逾期</span><button class="pt-btn up" onclick="ptOpen('3号棚·炭疽病防控')">上传佐证</button><button class="pt-btn det" onclick="ptDetail('FT-2026-0186')">详情</button></div>
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">5号棚·白粉病预防 — 硫磺熏蒸器启动</div><div class="pt-task__meta">编号 <b>FT-2026-0187</b> · 负责人 <b>李农技</b> · 截止 <b>07-21 12:00</b> · 关联预警 <span class="tag warn">白粉病</span></div></div><span class="pt-st doing">进行中</span><button class="pt-btn up" onclick="ptOpen('5号棚·白粉病预防')">上传佐证</button><button class="pt-btn det" onclick="ptDetail('FT-2026-0187')">详情</button></div>
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">1~4号棚·红蜘蛛统一防治 — 阿维菌素无人机飞防</div><div class="pt-task__meta">编号 <b>FT-2026-0188</b> · 负责人 <b>赵飞手</b> · 截止 <b>07-22 18:00</b> · 来源 推荐方案</div></div><span class="pt-st todo">待执行</span><button class="pt-btn up" onclick="ptOpen('1~4号棚·红蜘蛛防治')">上传佐证</button><button class="pt-btn det" onclick="ptDetail('FT-2026-0188')">详情</button></div>
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">育苗棚·灰霉病预防 — 通风降湿+枯草芽孢杆菌</div><div class="pt-task__meta">编号 <b>FT-2026-0189</b> · 负责人 <b>孙育苗</b> · 截止 <b>07-23 12:00</b> · 来源 推荐方案</div></div><span class="pt-st todo">待执行</span><button class="pt-btn up" onclick="ptOpen('育苗棚·灰霉病预防')">上传佐证</button><button class="pt-btn det" onclick="ptDetail('FT-2026-0189')">详情</button></div>
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">6号棚·根腐病处理 — 恶霉灵灌根</div><div class="pt-task__meta">编号 <b>FT-2026-0185</b> · 负责人 <b>王植保</b> · 完成 <b>07-17 15:30</b> · 达标率 97%</div></div><span class="pt-st done">已完成</span><button class="pt-btn det" onclick="ptDetail('FT-2026-0185')">查看佐证</button></div>
+            <div class="pt-task"><div class="pt-task__head"><div class="pt-task__title">2号棚·蚜虫防治 — 吡虫啉叶面喷施</div><div class="pt-task__meta">编号 <b>FT-2026-0184</b> · 负责人 <b>李农技</b> · 完成 <b>07-16 11:20</b> · 达标率 94%</div></div><span class="pt-st done">已完成</span><button class="pt-btn det" onclick="ptDetail('FT-2026-0184')">查看佐证</button></div>
+          </div></div>
+        </section>
+
+        <!-- 任务详情/上传弹窗 -->
+        <div class="pt-modal" id="ptModal">
+          <div class="pt-modal__box">
+            <div class="pt-modal__title" id="ptModalTitle">任务详情</div>
+            <div class="pt-task__meta" id="ptModalInfo" style="margin-bottom:14px"></div>
+            <div class="pt-timeline" id="ptTimeline"></div>
+            <div style="margin-top:14px">
+              <div style="font-size:13px;font-weight:600;color:var(--fg);margin-bottom:8px">防控佐证照片</div>
+              <div class="pt-photos" id="ptPhotos"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+              <button class="btn btn--sm" onclick="ptClose()">关闭</button>
+              <button class="btn btn--sm btn--primary" id="ptUploadBtn" onclick="ptUpload()">上传照片</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  (function(){
+    var items=document.querySelectorAll('.sidebar .nav-item[data-v]');
+    var views=document.querySelectorAll('.view');
+    var crumb=document.getElementById('crumb');
+    var titles={home:'工作台',plots:'地块档案',variety:'品种管理',harvest:'采收管理',input:'投入品管理',cycle:'生长周期管理',stats:'大数据统计分析',env:'气象监测',device:'设备监控墙',alert:'智能预警',video:'视频监控',ptask:'防控任务管理'};
+    items.forEach(function(it){
+      it.addEventListener('click',function(e){
+        e.preventDefault();
+        var v=this.getAttribute('data-v');
+        items.forEach(function(n){n.classList.remove('active')});
+        this.classList.add('active');
+        views.forEach(function(s){s.classList.remove('active')});
+        var tgt=document.getElementById('v-'+v);
+        if(tgt)tgt.classList.add('active');
+        if(crumb)crumb.textContent=titles[v]||'';
+        document.querySelector('.content')?.scrollTo?.(0,0);
+      });
+    });
+  })();
+</script>
+<script>
+/* ===== 生长周期：品种预设六阶段 + 时间轴 + 自动提醒 ===== */
+var GROW={
+ '红颜':{color:'#E63946',stages:[
+  {n:'育苗期',d:'09-01~09-15',ops:['播种','控温25℃','保湿'],st:'done'},
+  {n:'定植期',d:'09-15~09-30',ops:['移栽','浇定根水','遮阳缓苗'],st:'done'},
+  {n:'花芽分化',d:'10-01~10-20',ops:['控氮','降温15℃','短日照处理'],st:'done'},
+  {n:'坐果期',d:'10-20~11-10',ops:['放蜂授粉','疏花','补磷钾肥'],st:'done'},
+  {n:'膨果期',d:'11-10~02-28',ops:['追钾肥','控温20-25℃','增光补光','疏果'],st:'current'},
+  {n:'采收期',d:'12-01~04-30',ops:['分批采收','分级包装','冷链入库'],st:'pending'}
+ ]},
+ '章姬':{color:'#4A90E2',stages:[
+  {n:'育苗期',d:'09-05~09-20',ops:['播种','控温','保湿'],st:'done'},
+  {n:'定植期',d:'09-20~10-05',ops:['移栽','浇定根水','遮阳'],st:'done'},
+  {n:'花芽分化',d:'10-05~10-25',ops:['控氮','降温','短日照'],st:'done'},
+  {n:'坐果期',d:'10-25~11-15',ops:['授粉','疏花','补肥'],st:'done'},
+  {n:'膨果期',d:'11-15~03-01',ops:['追钾','控温','疏果','增光'],st:'current'},
+  {n:'采收期',d:'12-20~05-01',ops:['采收','分级','冷链'],st:'pending'}
+ ]},
+ '淡雪':{color:'#00E6C3',stages:[
+  {n:'育苗期',d:'09-22~10-05',ops:['播种','控温','保湿'],st:'done'},
+  {n:'定植期',d:'10-05~10-20',ops:['移栽','定根水','遮阳'],st:'done'},
+  {n:'花芽分化',d:'10-20~11-05',ops:['控氮','降温','短日照'],st:'done'},
+  {n:'坐果期',d:'11-05~11-25',ops:['授粉','疏花','补磷钾'],st:'current'},
+  {n:'膨果期',d:'11-25~03-10',ops:['追钾','控温','疏果'],st:'pending'},
+  {n:'采收期',d:'01-01~05-15',ops:['采收','分级','冷链'],st:'pending'}
+ ]},
+ '越心':{color:'#F59E0B',stages:[
+  {n:'育苗期',d:'09-25~10-10',ops:['播种','控温','保湿'],st:'done'},
+  {n:'定植期',d:'10-10~10-25',ops:['移栽','定根水','遮阳'],st:'done'},
+  {n:'花芽分化',d:'10-25~11-15',ops:['控氮','降温','短日照'],st:'current'},
+  {n:'坐果期',d:'11-15~12-05',ops:['授粉','疏花','补肥'],st:'pending'},
+  {n:'膨果期',d:'12-05~03-15',ops:['追钾','控温','疏果'],st:'pending'},
+  {n:'采收期',d:'01-15~05-20',ops:['采收','分级','冷链'],st:'pending'}
+ ]}
+};
+var gcCur='红颜';
+function gcSelect(v){gcCur=v;document.querySelectorAll('#gcTabs .gc-tab').forEach(function(t){t.classList.toggle('active',t.getAttribute('data-v')===v);});gcRender();}
+function gcRender(){
+ var g=GROW[gcCur];if(!g)return;
+ var cur=g.stages.filter(function(s){return s.st==='current';})[0]||g.stages[g.stages.length-1];
+ /* 时间轴 */
+ var h='<div class="gc-timeline">';
+ g.stages.forEach(function(s){h+='<div class="gc-tl-node '+s.st+'"><div class="gc-tl-dot"></div><div class="gc-tl-lbl">'+s.n+(s.st==='current'?' ·当前':'')+'</div><div class="gc-tl-dt">'+s.d+'</div></div>';});
+ h+='</div>';
+ /* 当前阶段详情 */
+ var opsHtml=cur.ops.map(function(o){return '<div class="gc-op todo"><i>!</i>'+o+'</div>';}).join('');
+ h+='<div class="gc-stage-card" style="border-left:4px solid '+g.color+';padding:14px 18px;margin-bottom:var(--sp-3)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div><div style="font-size:16px;font-weight:700;color:'+g.color+'">'+gcCur+' · '+cur.n+'</div><div style="font-size:12px;color:var(--fg-2);margin-top:2px">时间节点 '+cur.d+' · '+cur.ops.length+' 项农事操作</div></div><span class="tag warn">进行中</span></div><div class="gc-ops">'+opsHtml+'</div></div>';
+ /* 全周期表 */
+ h+='<div class="card"><div class="card__head"><h3>'+gcCur+' 全周期阶段</h3></div><div class="card__body"><table class="tbl"><thead><tr><th>阶段</th><th>时间节点</th><th>关键农事操作</th><th>提醒状态</th></tr></thead><tbody>';
+ g.stages.forEach(function(s){
+  var tag=s.st==='done'?'<span class="tag ok">已完成</span>':s.st==='current'?'<span class="tag warn">推送中</span>':'<span class="tag">待执行</span>';
+  h+='<tr'+(s.st==='current'?' style="background:'+g.color+'15"':'')+'><td><b>'+s.n+(s.st==='current'?' (当前)':'')+'</b></td><td class="text-num">'+s.d+'</td><td>'+s.ops.join(' · ')+'</td><td>'+tag+'</td></tr>';
+ });
+ h+='</tbody></table></div></div>';
+ document.getElementById('gcBody').innerHTML=h;
+ /* 阶段提醒（全品种当前阶段） */
+ var rm='';var cnt=0;
+ Object.keys(GROW).forEach(function(v){
+  var vg=GROW[v];var cs=vg.stages.filter(function(s){return s.st==='current';})[0];
+  if(cs){cnt++;rm+='<div class="gc-remind"><div class="ri" style="background:'+vg.color+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></div><div><div class="rt">'+v+' · '+cs.n+'</div><div class="rd">农事操作：'+cs.ops.join(' / ')+'</div><div class="rd" style="color:var(--warn);margin-top:2px">⚡ 已推送 · 时间节点 '+cs.d+'</div></div></div>';}
+ });
+ document.getElementById('gcRemind').innerHTML=rm;
+ var rc=document.getElementById('gcRemindCnt');if(rc)rc.textContent=cnt+' 条';
+}
+document.addEventListener('DOMContentLoaded',function(){if(document.getElementById('gcBody'))gcRender();});
+/* ===== 防控任务管理 ===== */
+var PT_TASKS={
+ 'FT-2026-0186':{t:'3号棚·炭疽病防控',m:'嘧霉胺叶面喷施',who:'王植保',dl:'07-19 18:00',st:'over',photo:[]},
+ 'FT-2026-0187':{t:'5号棚·白粉病预防',m:'硫磺熏蒸器启动',who:'李农技',dl:'07-21 12:00',st:'doing',photo:[]},
+ 'FT-2026-0188':{t:'1~4号棚·红蜘蛛防治',m:'阿维菌素无人机飞防',who:'赵飞手',dl:'07-22 18:00',st:'todo',photo:[]},
+ 'FT-2026-0189':{t:'育苗棚·灰霉病预防',m:'通风降湿+枯草芽孢杆菌',who:'孙育苗',dl:'07-23 12:00',st:'todo',photo:[]},
+ 'FT-2026-0185':{t:'6号棚·根腐病处理',m:'恶霉灵灌根',who:'王植保',dl:'07-17',st:'done',photo:['anthracnose','grey-mold']},
+ 'FT-2026-0184':{t:'2号棚·蚜虫防治',m:'吡虫啉叶面喷施',who:'李农技',dl:'07-16',st:'done',photo:['anthracnose']}
+};
+function ptDetail(id){var d=PT_TASKS[id];if(!d)return;var m=document.getElementById('ptModal');document.getElementById('ptModalTitle').textContent=d.t;
+ document.getElementById('ptModalInfo').innerHTML='编号 <b>'+id+'</b> · 防控措施 <b>'+d.m+'</b> · 负责人 <b>'+d.who+'</b> · 截止 <b>'+d.dl+'</b>';
+ var tl='<div class="pt-tl-item done"><b>任务创建</b> — 系统从推荐方案自动生成</div>';
+ tl+='<div class="pt-l-item '+(d.st==='todo'?'':'done')+'"><b>分配负责人</b> — '+d.who+'</div>';
+ if(d.st==='doing'||d.st==='done'||d.st==='over')tl+='<div class="pt-tl-item '+(d.st==='done'?'done':'active')+'"><b>'+(d.st==='over'?'已逾期':'开始执行')+'</b> — '+d.who+' 到场作业</div>';
+ if(d.st==='done')tl+='<div class="pt-tl-item done"><b>上传佐证</b> — 已上传 '+d.photo.length+' 张照片</div>';
+ document.getElementById('ptTimeline').innerHTML=tl;
+ var ph=document.getElementById('ptPhotos');ph.innerHTML='';
+ if(d.photo.length===0){ph.innerHTML='<div class="pt-ph" onclick="ptSimUpload()">+</div><div class="pt-ph">+</div><div class="pt-ph">+</div><div class="pt-ph">+</div>';}
+ else{d.photo.forEach(function(p){ph.innerHTML+='<div class="pt-ph"><img src="assets/pest/'+p+'.png" alt="防控佐证"></div>'});while(ph.children.length<4){ph.innerHTML+='<div class="pt-ph">+</div>'}}
+ var ub=document.getElementById('ptUploadBtn');ub.style.display=d.st==='done'?'none':'block';ub.dataset.id=id;
+ document.getElementById('ptModalTitle').textContent=d.t;
+ m.classList.add('open');
+}
+function ptOpen(name){ptDetail(Object.keys(PT_TASKS).find(function(k){return PT_TASKS[k].t.indexOf(name)>=0})||'FT-2026-0186');}
+function ptClose(){document.getElementById('ptModal').classList.remove('open');}
+function ptUpload(){var id=document.getElementById('ptUploadBtn').dataset.id;var d=PT_TASKS[id];if(!d)return;d.photo.push('thrips');d.st='done';ptDetail(id);
+ alert('佐证照片已上传\n任务「'+d.t+'」标记为已完成');}
+function ptSimUpload(){ptUpload();}
+function ptGenTask(){
+ var list=['育苗棚·灰霉病预防','7号棚·斜纹夜蛾防治','8号棚·蓟马防治'];
+ var pick=list[Math.floor(Math.random()*list.length)];
+ alert('已从推荐防控方案生成新任务：\n\n「'+pick+'」\n\n已分配负责人 · 截止时间 3 天后\n可在任务列表中查看');
+}
+</script>
+</body>
+</html>

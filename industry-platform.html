@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>产业服务平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .view{display:none}.view.active{display:block}
+  .sidebar .nav-item{cursor:pointer}
+  .pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}
+  .pl-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-4)}
+  .pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .pl-row:last-child{border:none}
+  .pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}
+  .pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+  .pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}
+  .pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#E65100,#F59E0B);border-radius:3px}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}
+  .tbl tr:hover td{background:var(--surface-2)}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.info{background:#FFF3E0;color:#E65100}.tag.tech{background:#E6F2FF;color:var(--tech)}.tag.trace{background:var(--trace-soft);color:var(--trace)}
+  .brand-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .brand-card .bh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .brand-card .logo-sq{width:40px;height:40px;border-radius:var(--r-sm);display:grid;place-items:center;color:#fff;font-weight:700;font-size:16px}
+  .brand-card h4{font-size:15px;font-weight:700;color:var(--fg)}
+  .goods{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3)}
+  .goods .g{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow)}
+  .goods .g .ph{aspect-ratio:1;background:linear-gradient(135deg,var(--berry-soft),var(--trace-soft));display:grid;place-items:center;color:var(--berry);font-size:28px}
+  .goods .g .info{padding:10px 12px}
+  .goods .g .info .gn{font-size:13px;font-weight:600;color:var(--fg)}
+  .goods .g .info .gp{font-family:var(--font-num);color:var(--berry);font-weight:700;margin-top:2px}
+  .goods .g .info .gs{font-size:11px;color:var(--fg-3);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#E65100">产</span> 产业服务平台</div>
+    <nav class="breadcrumb"><span>产业服务平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索主体 / 品牌 / 订单"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <button class="icon-btn" title="消息"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.2L4 17.2z"/></svg><span class="badge-dot">3</span></button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group">
+        <div class="sidebar__title">产业服务</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="subject"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span>经营主体</span><span class="sub-count">48</span></a>
+        <a class="nav-item" data-v="brand"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/></svg></span><span>品牌管理</span><span class="sub-count">12</span></a>
+        <a class="nav-item" data-v="supply"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></span><span>供需对接</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">电商与物流</div>
+        <a class="nav-item" data-v="mall"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14h18V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></span><span>电商商城</span></a>
+        <a class="nav-item" data-v="order"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>订单管理</span><span class="sub-count">36</span></a>
+        <a class="nav-item" data-v="logistics"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7M5.5 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM18.5 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg></span><span>物流配送</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">行情资讯</div>
+        <a class="nav-item" data-v="market"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16M6 18V8M11 18V4M16 18v-7M21 18V10"/></svg></span><span>价格行情</span></a>
+        <a class="nav-item" data-v="news"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>农业资讯</span></a>
+        <a class="nav-item" data-v="expert"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span><span>专家远程服务</span></a>
+        <a class="nav-item" data-v="pricemap"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20 3 17V4l6 3M9 20l6-3M9 20V7M15 17l6 3V7l-6 3M15 17V10"/></svg></span><span>价格地图</span></a>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page">
+
+        <!-- 工作台 -->
+        <section class="view active" id="v-home">
+          <div class="page-head"><div><h1 class="page-head__title">产业服务平台 <span class="platform-mark platform-mark--service">黄陂草莓产业链</span></h1><p class="page-head__desc">2026-07-18 周五 · 48 经营主体 / 12 品牌 · 年产值 6.2 亿 · 覆盖 28 个消费城市</p></div>
+          <div class="page-head__actions"><div class="field"><label>周期</label><select class="select"><option>2026 年度</option><option>本季度</option><option>本月</option></select></div></div></div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi__label">经营主体</div><div class="kpi__val">48<span class="unit">家</span></div><div class="kpi__trend up">↑ 新增 3</div></div>
+            <div class="kpi"><div class="kpi__label">注册品牌</div><div class="kpi__val">12<span class="unit">个</span></div><div class="kpi__trend">含 4 个绿色认证</div></div>
+            <div class="kpi"><div class="kpi__label">本季订单</div><div class="kpi__val">1,286<span class="unit">单</span></div><div class="kpi__trend up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="kpi__label">年产值</div><div class="kpi__val">6.2<span class="unit">亿</span></div><div class="kpi__trend up">↑ 9.1%</div></div>
+          </div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>经营主体 TOP</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm"><i style="background:#E65100"></i>木兰金秋果蔬合作社</span><span class="v">1200 亩</span></div><div class="pl-bar"><i style="width:92%"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#F59E0B"></i>黄陂红种植家庭农场</span><span class="v">680 亩</span></div><div class="pl-bar"><i style="width:58%"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#FB923C"></i>前川草莓产业联盟</span><span class="v">520 亩</span></div><div class="pl-bar"><i style="width:44%"></i></div>
+              <div class="pl-row"><span class="nm"><i style="background:#FCD34D"></i>六指生态农业公司</span><span class="v">400 亩</span></div><div class="pl-bar"><i style="width:34%"></i></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>品牌矩阵</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">木兰红</span><span class="tag info">地理标志</span></div>
+              <div class="pl-row"><span class="nm">黄陂金秋</span><span class="tag ok">绿色认证</span></div>
+              <div class="pl-row"><span class="nm">草莓姐姐</span><span class="tag tech">电商品牌</span></div>
+              <div class="pl-row"><span class="nm">前川甜心</span><span class="tag warn">区域公用</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>供需行情</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">红颜 地头价</span><span class="v" style="color:var(--ok)">28 元/kg ↑3.7%</span></div>
+              <div class="pl-row"><span class="nm">章姬 批发价</span><span class="v" style="color:var(--ok)">24 元/kg ↑2.1%</span></div>
+              <div class="pl-row"><span class="nm">淡雪 电商价</span><span class="v">42 元/kg →</span></div>
+              <div class="pl-row"><span class="nm">待响应需求</span><span class="v" style="color:var(--warn)">7 条</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 经营主体 -->
+        <section class="view" id="v-subject">
+          <div class="page-head"><div><h1 class="page-head__title">经营主体 <span class="platform-mark platform-mark--service">48 家</span></h1><p class="page-head__desc">合作社 / 家庭农场 / 企业 / 联盟，含规模、产值、认证</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 新增主体</a></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>主体名称</th><th>类型</th><th>规模</th><th>年产值</th><th>认证</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td>木兰金秋果蔬合作社</td><td>合作社</td><td>1200 亩</td><td>1.8 亿</td><td><span class="tag info">地理标志</span></td><td><span class="tag ok">运营中</span></td></tr>
+                <tr><td>黄陂红种植家庭农场</td><td>家庭农场</td><td>680 亩</td><td>9200 万</td><td><span class="tag ok">绿色认证</span></td><td><span class="tag ok">运营中</span></td></tr>
+                <tr><td>前川草莓产业联盟</td><td>联盟</td><td>520 亩</td><td>6800 万</td><td><span class="tag warn">区域公用</span></td><td><span class="tag ok">运营中</span></td></tr>
+                <tr><td>六指生态农业公司</td><td>企业</td><td>400 亩</td><td>5200 万</td><td><span class="tag ok">绿色认证</span></td><td><span class="tag ok">运营中</span></td></tr>
+                <tr><td>滠口鲜莓合作社</td><td>合作社</td><td>320 亩</td><td>4100 万</td><td>—</td><td><span class="tag ok">运营中</span></td></tr>
+                <tr><td>王家河红颜农场</td><td>家庭农场</td><td>260 亩</td><td>3300 万</td><td>—</td><td><span class="tag warn">待审</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 品牌管理 -->
+        <section class="view" id="v-brand">
+          <div class="page-head"><div><h1 class="page-head__title">品牌管理 <span class="platform-mark platform-mark--service">12 个</span></h1><p class="page-head__desc">注册品牌档案，含认证、归属主体、主打品类</p></div></div>
+          <div class="pl-grid">
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:var(--berry)">木</span><h4>木兰红</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag info">地理标志</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">木兰金秋合作社</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">红颜 · 章姬</span></div></div>
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:#E65100">金</span><h4>黄陂金秋</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag ok">绿色认证</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">前川产业联盟</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">红颜 · 淡雪</span></div></div>
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:#C2185B">姐</span><h4>草莓姐姐</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag tech">电商品牌</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">六指生态农业</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">电商礼盒</span></div></div>
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:#F59E0B">甜</span><h4>前川甜心</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag warn">区域公用</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">黄陂红农场</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">社区直供</span></div></div>
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:#7B2CBF">六</span><h4>六指红颜</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag ok">绿色认证</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">六指生态农业</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">红颜精品</span></div></div>
+            <div class="brand-card"><div class="bh"><span class="logo-sq" style="background:#16A34A">滠</span><h4>滠口鲜莓</h4></div><div class="pl-row"><span class="nm">认证</span><span class="tag tech">电商品牌</span></div><div class="pl-row"><span class="nm">归属</span><span class="v">滠口鲜莓合作社</span></div><div class="pl-row"><span class="nm">主打</span><span class="v">鲜食直发</span></div></div>
+          </div>
+        </section>
+
+        <!-- 供需对接 -->
+        <section class="view" id="v-supply">
+          <div class="page-head"><div><h1 class="page-head__title">供需对接 <span class="platform-mark platform-mark--service">7 条待响应</span></h1><p class="page-head__desc">农产品供应 / 农资采购 / 农事服务需求发布与撮合</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 发布信息</a></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>类型</th><th>品目</th><th>数量</th><th>报价</th><th>发布方</th><th>发布时间</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag info">供应</span></td><td>红颜鲜果</td><td>2000 kg</td><td>26 元/kg</td><td>木兰金秋合作社</td><td>07-18 10:20</td><td><span class="tag ok">已成交</span></td></tr>
+                <tr><td><span class="tag warn">需求</span></td><td>红颜礼盒装</td><td>5000 盒</td><td>38 元/盒</td><td>盒马武汉</td><td>07-18 09:05</td><td><span class="tag warn">待响应</span></td></tr>
+                <tr><td><span class="tag warn">需求</span></td><td>章姬电商直发</td><td>3000 kg</td><td>24 元/kg</td><td>拼多多黄陂馆</td><td>07-18 08:40</td><td><span class="tag warn">待响应</span></td></tr>
+                <tr><td><span class="tag info">供应</span></td><td>淡雪精品</td><td>800 kg</td><td>42 元/kg</td><td>六指生态农业</td><td>07-17 16:30</td><td><span class="tag ok">已成交</span></td></tr>
+                <tr><td><span class="tag warn">需求</span></td><td>草莓冻干原料</td><td>10 吨</td><td>12 元/kg</td><td>良品铺子</td><td>07-17 14:10</td><td><span class="tag warn">待响应</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 电商商城 -->
+        <section class="view" id="v-mall">
+          <div class="page-head"><div><h1 class="page-head__title">电商商城 <span class="platform-mark platform-mark--service">线上选品</span></h1><p class="page-head__desc">各品牌线上在售商品，含价格、销量、库存</p></div>
+          <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 上架商品</a></div></div>
+          <div class="goods">
+            <div class="g"><div class="ph">🍓</div><div class="info"><div class="gn">木兰红·红颜精品 1kg</div><div class="gp">¥58</div><div class="gs">月销 1280 · 库存 320</div></div></div>
+            <div class="g"><div class="ph" style="background:linear-gradient(135deg,#FCE4EC,#F3E5F5);color:#C2185B">🎀</div><div class="info"><div class="gn">草莓姐姐·礼盒装 2kg</div><div class="gp">¥128</div><div class="gs">月销 860 · 库存 120</div></div></div>
+            <div class="g"><div class="ph" style="background:linear-gradient(135deg,#E0F2F1,#B2DFDB);color:#00695C">🫐</div><div class="info"><div class="gn">黄陂金秋·淡雪 500g</div><div class="gp">¥42</div><div class="gs">月销 540 · 库存 86</div></div></div>
+            <div class="g"><div class="ph" style="background:linear-gradient(135deg,#FFF3E0,#FFE0B2);color:#E65100">🍯</div><div class="info"><div class="gn">前川甜心·章姬 1kg</div><div class="gp">¥48</div><div class="gs">月销 720 · 库存 210</div></div></div>
+            <div class="g"><div class="ph">🧁</div><div class="info"><div class="gn">六指红颜·冻干 100g</div><div class="gp">¥38</div><div class="gs">月销 410 · 库存 580</div></div></div>
+            <div class="g"><div class="ph" style="background:linear-gradient(135deg,#FCE4EC,#F3E5F5);color:#C2185B">🎁</div><div class="info"><div class="gn">滠口鲜莓·家庭装 3kg</div><div class="gp">¥158</div><div class="gs">月销 305 · 库存 95</div></div></div>
+            <div class="g"><div class="ph">🍰</div><div class="info"><div class="gn">草莓酱·手工 200g</div><div class="gp">¥28</div><div class="gs">月销 980 · 库存 420</div></div></div>
+            <div class="g"><div class="ph" style="background:linear-gradient(135deg,#E0F2F1,#B2DFDB);color:#00695C">🥤</div><div class="info"><div class="gn">草莓果汁·鲜榨 1L</div><div class="gp">¥35</div><div class="gs">月销 660 · 库存 280</div></div></div>
+          </div>
+        </section>
+
+        <!-- 订单管理 -->
+        <section class="view" id="v-order">
+          <div class="page-head"><div><h1 class="page-head__title">订单管理 <span class="platform-mark platform-mark--service">本季 1286 单</span></h1><p class="page-head__desc">线上订单全流程，含状态、金额、物流</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>订单号</th><th>商品</th><th>金额</th><th>渠道</th><th>下单时间</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td>DD20260718001</td><td>红颜精品 1kg ×2</td><td>¥116</td><td>天猫</td><td>07-18 14:20</td><td><span class="tag warn">待发货</span></td></tr>
+                <tr><td>DD20260718002</td><td>礼盒装 2kg</td><td>¥128</td><td>抖音</td><td>07-18 13:05</td><td><span class="tag tech">配送中</span></td></tr>
+                <tr><td>DD20260718003</td><td>家庭装 3kg</td><td>¥158</td><td>拼多多</td><td>07-18 11:40</td><td><span class="tag ok">已签收</span></td></tr>
+                <tr><td>DD20260717098</td><td>章姬 1kg</td><td>¥48</td><td>盒马</td><td>07-17 16:20</td><td><span class="tag ok">已签收</span></td></tr>
+                <tr><td>DD20260717097</td><td>冻干 100g ×3</td><td>¥114</td><td>天猫</td><td>07-17 15:50</td><td><span class="tag warn">待发货</span></td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 物流配送 -->
+        <section class="view" id="v-logistics">
+          <div class="page-head"><div><h1 class="page-head__title">物流配送 <span class="platform-mark platform-mark--service">冷链直发</span></h1><p class="page-head__desc">订单物流跟踪，覆盖 28 个消费城市</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>运单号</th><th>目的地</th><th>承运</th><th>温控</th><th>状态</th><th>预计送达</th></tr></thead>
+              <tbody>
+                <tr><td>SF20260718001</td><td>武汉·盒马仓</td><td>顺丰冷链</td><td><span class="tag ok">2~6℃</span></td><td><span class="tag tech">运输中</span></td><td>今日 18:00</td></tr>
+                <tr><td>SF20260718002</td><td>北京·朝阳区</td><td>京东冷链</td><td><span class="tag ok">2~6℃</span></td><td><span class="tag tech">运输中</span></td><td>明日 10:00</td></tr>
+                <tr><td>SF20260718003</td><td>上海·浦东</td><td>顺丰冷链</td><td><span class="tag ok">2~6℃</span></td><td><span class="tag warn">待揽收</span></td><td>后日 12:00</td></tr>
+                <tr><td>SF20260717088</td><td>广州·天河</td><td>顺丰冷链</td><td><span class="tag ok">2~6℃</span></td><td><span class="tag ok">已送达</span></td><td>已签收</td></tr>
+                <tr><td>SF20260717087</td><td>深圳·南山</td><td>京东冷链</td><td><span class="tag warn">温控异常</span></td><td><span class="tag warn">处理中</span></td><td>延迟</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 价格行情 -->
+        <section class="view" id="v-market">
+          <div class="page-head"><div><h1 class="page-head__title">价格行情 <span class="platform-mark platform-mark--service">实时报价</span></h1><p class="page-head__desc">各品种地头价 / 批发价 / 电商价走势</p></div></div>
+          <div class="card"><div class="card__body">
+            <table class="tbl">
+              <thead><tr><th>品种</th><th>地头价</th><th>批发价</th><th>电商价</th><th>周趋势</th><th>同比</th></tr></thead>
+              <tbody>
+                <tr><td>红颜</td><td style="color:var(--ok)">28 元/kg</td><td>32 元/kg</td><td>58 元/kg</td><td style="color:var(--ok)">↑ 3.7%</td><td style="color:var(--ok)">↑ 8.2%</td></tr>
+                <tr><td>章姬</td><td style="color:var(--ok)">24 元/kg</td><td>28 元/kg</td><td>48 元/kg</td><td style="color:var(--ok)">↑ 2.1%</td><td style="color:var(--ok)">↑ 6.5%</td></tr>
+                <tr><td>淡雪</td><td>32 元/kg</td><td>38 元/kg</td><td>42 元/kg</td><td>→ 0%</td><td style="color:var(--ok)">↑ 4.1%</td></tr>
+                <tr><td>越心</td><td>22 元/kg</td><td>26 元/kg</td><td>38 元/kg</td><td style="color:var(--danger)">↓ 1.2%</td><td style="color:var(--ok)">↑ 3.0%</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </section>
+
+        <!-- 农业资讯 -->
+        <section class="view" id="v-news">
+          <div class="page-head"><div><h1 class="page-head__title">农业资讯 <span class="platform-mark platform-mark--service">政策 / 技术 / 市场</span></h1><p class="page-head__desc">行业政策、种植技术、市场动态</p></div></div>
+          <div class="pl-grid-2">
+            <div class="card"><div class="card__head"><h3>政策动态</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">2026 草莓种植补贴新政发布</span><span class="v">07-17</span></div>
+              <div class="pl-row"><span class="nm">地理标志保护资金申报启动</span><span class="v">07-15</span></div>
+              <div class="pl-row"><span class="nm">设施农业用地新规解读</span><span class="v">07-12</span></div>
+              <div class="pl-row"><span class="nm">农产品电商税收优惠延续</span><span class="v">07-10</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>技术与市场</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">夏季草莓育苗管理要点</span><span class="v">07-18</span></div>
+              <div class="pl-row"><span class="nm">冷链物流降低损耗 15% 的做法</span><span class="v">07-16</span></div>
+              <div class="pl-row"><span class="nm">精品草莓电商溢价策略</span><span class="v">07-14</span></div>
+              <div class="pl-row"><span class="nm">本周红颜需求同比上涨 8%</span><span class="v">07-13</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- ===== 标书补：专家远程服务（项116-119） ===== -->
+        <section class="view" id="v-expert">
+          <div class="page-head"><div><h1 class="page-head__title">专家远程综合服务 <span class="platform-mark platform-mark--service">项116-119</span></h1><p class="page-head__desc">农技问答 / 日志服务 / 农情上报 / 知识共享</p></div>
+            <div class="page-head__actions"><a class="btn btn--sm" href="javascript:;">+ 提问</a></div></div>
+          <div class="pl-grid">
+            <div class="card"><div class="card__head"><h3>农技问答</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">3#棚 叶片发黄</span><span class="v">已回复 · 缺钾</span></div>
+              <div class="pl-row"><span class="nm">5#棚 果实软腐</span><span class="v">已回复 · 灰霉病</span></div>
+              <div class="pl-row"><span class="nm">7#棚 蚜虫怎么治</span><span class="tag warn">待回复</span></div>
+              <div class="pl-row"><span class="nm">章姬糖度偏低</span><span class="v">已回复 · 补钾</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>日志服务</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">李农技·进村指导</span><span class="v">07-17 前川</span></div>
+              <div class="pl-row"><span class="nm">王农技·技术培训</span><span class="v">07-15 木兰</span></div>
+              <div class="pl-row"><span class="nm">赵农技·政策宣传</span><span class="v">07-12 六指</span></div>
+              <div class="pl-row"><span class="nm">本月累计</span><span class="v">42 场次</span></div>
+            </div></div>
+            <div class="card"><div class="card__head"><h3>农情上报</h3></div><div class="card__body">
+              <div class="pl-row"><span class="nm">病虫情·3#棚</span><span class="tag danger">红蜘蛛·重</span></div>
+              <div class="pl-row"><span class="nm">苗情·5#棚</span><span class="tag warn">偏弱</span></div>
+              <div class="pl-row"><span class="nm">墒情·A区</span><span class="tag ok">正常</span></div>
+              <div class="pl-row"><span class="nm">知识共享</span><span class="v">186 篇技术文档</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- ===== 标书补：价格地图（项122） ===== -->
+        <section class="view" id="v-pricemap">
+          <div class="page-head"><div><h1 class="page-head__title">价格地图 <span class="platform-mark platform-mark--service">项122</span></h1><p class="page-head__desc">地图形式展示各地批发市场不同品类销售价格</p></div></div>
+          <div class="card" style="margin-bottom:var(--sp-4)"><div class="card__body" style="padding:0">
+            <img src="mrrqj1wz-image.png" alt="价格分布地图" style="width:100%;height:300px;object-fit:cover;border-radius:var(--r-sm);filter:saturate(.8) brightness(.8)">
+            <div style="position:relative;margin-top:-300px;height:300px">
+              <div style="position:absolute;left:20%;top:40%;background:rgba(230,57,70,.9);color:#fff;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600">武汉 ¥32/kg</div>
+              <div style="position:absolute;left:55%;top:25%;background:rgba(30,144,255,.9);color:#fff;padding:4px 10px;border-radius:4px;font-size:12px">北京 ¥38/kg</div>
+              <div style="position:absolute;left:65%;top:50%;background:rgba(34,197,94,.9);color:#fff;padding:4px 10px;border-radius:4px;font-size:12px">上海 ¥42/kg</div>
+              <div style="position:absolute;left:30%;top:65%;background:rgba(245,158,11,.9);color:#fff;padding:4px 10px;border-radius:4px;font-size:12px">广州 ¥36/kg</div>
+            </div>
+          </div></div>
+          <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>批发市场</th><th>品类</th><th>价格</th><th>趋势</th><th>市场简介</th></tr></thead><tbody>
+            <tr><td>武汉白沙洲农批</td><td>红颜</td><td>32 元/kg</td><td><span style="color:var(--ok)">↑ 3.7%</span></td><td>华中最大果批</td></tr>
+            <tr><td>北京新发地</td><td>红颜</td><td>38 元/kg</td><td><span style="color:var(--ok)">↑ 2.1%</span></td><td>北方枢纽</td></tr>
+            <tr><td>上海辉展</td><td>淡雪</td><td>42 元/kg</td><td>→ 0%</td><td>精品渠道</td></tr>
+            <tr><td>广州江南果批</td><td>章姬</td><td>36 元/kg</td><td><span style="color:var(--ok)">↑ 1.5%</span></td><td>华南枢纽</td></tr>
+          </tbody></table></div></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  (function(){
+    var items=document.querySelectorAll('.sidebar .nav-item[data-v]');
+    var views=document.querySelectorAll('.view');
+    var crumb=document.getElementById('crumb');
+    var titles={home:'工作台',subject:'经营主体',brand:'品牌管理',supply:'供需对接',mall:'电商商城',order:'订单管理',logistics:'物流配送',market:'价格行情',news:'农业资讯',expert:'专家远程服务',pricemap:'价格地图'};
+    items.forEach(function(it){
+      it.addEventListener('click',function(e){
+        e.preventDefault();
+        var v=this.getAttribute('data-v');
+        items.forEach(function(n){n.classList.remove('active')});
+        this.classList.add('active');
+        views.forEach(function(s){s.classList.remove('active')});
+        var tgt=document.getElementById('v-'+v);
+        if(tgt)tgt.classList.add('active');
+        if(crumb)crumb.textContent=titles[v]||'';
+        document.querySelector('.content')?.scrollTo?.(0,0);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

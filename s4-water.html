@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>智慧水肥一张图 · 数据专题</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .ds-col--right{overflow-y:auto;min-height:0;scrollbar-width:thin}
+  .ds-col--right::-webkit-scrollbar{width:6px}
+
+  /* ===== 电磁阀矩阵 ===== */
+  .valve-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .valve{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--dark-line);border-radius:var(--r-xs);background:rgba(14,34,54,.5);cursor:pointer;user-select:none;transition:border-color .15s,background .15s}
+  .valve:hover{border-color:var(--dark-line-strong);background:rgba(20,48,76,.6)}
+  .valve.fault{cursor:not-allowed;opacity:.65}
+  .valve .vi{width:28px;height:28px;border-radius:var(--r-xs);display:grid;place-items:center;font-size:12px;font-family:var(--font-num);font-weight:700;flex-shrink:0}
+  .valve .vn{font-size:12px;color:var(--dark-fg);line-height:1.2}
+  .valve .vs{font-size:10px;font-family:var(--font-num);margin-top:1px}
+  .valve .sw{width:32px;height:17px;background:var(--dark-panel-2);border-radius:9px;position:relative;border:1px solid var(--dark-line);margin-left:auto;flex-shrink:0;transition:background .2s}
+  .valve .sw::after{content:"";position:absolute;left:2px;top:1px;width:11px;height:11px;background:#8FA8C2;border-radius:50%;transition:left .2s,background .2s}
+  .valve[data-state=on] .sw{background:var(--ok);border-color:rgba(34,197,94,.6)}
+  .valve[data-state=on] .sw::after{left:16px;background:#fff}
+  .valve[data-state=fault] .sw{background:var(--danger);border-color:rgba(239,68,68,.6)}
+  .valve[data-state=fault] .sw::after{left:16px;background:#fff}
+
+  /* ===== 智能电动球阀（开度） ===== */
+  .bv{padding:11px 12px;border:1px solid var(--dark-line);border-radius:var(--r-xs);background:rgba(14,34,54,.5);margin-bottom:8px}
+  .bv:last-child{margin-bottom:0}
+  .bv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .bv-name{font-size:12.5px;color:var(--dark-fg);font-weight:600;display:flex;align-items:center;gap:6px}
+  .bv-name .tag{font-size:9px;color:var(--tech);border:1px solid var(--dark-line);padding:1px 5px;border-radius:2px;font-family:var(--font-num)}
+  .bv-pct{font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--tech);line-height:1}
+  .bv-pct small{font-size:11px;color:var(--dark-fg-2);font-weight:400}
+  .pct{font-family:var(--font-num);font-weight:700;color:var(--tech)}
+  .bv-track{position:relative;height:6px;background:var(--dark-panel-2);border-radius:3px;overflow:hidden}
+  .bv-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--tech),var(--tech-soft));border-radius:3px;box-shadow:0 0 8px rgba(30,144,255,.5);transition:width .12s}
+  .bv-ctrl{display:flex;gap:6px;margin-top:9px;align-items:center}
+  .bv-ctrl input[type=range]{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:var(--dark-panel-2);border-radius:2px;outline:none;cursor:pointer}
+  .bv-ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--tech);box-shadow:0 0 8px var(--tech);cursor:pointer;border:2px solid #0E2236}
+  .bv-ctrl input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--tech);border:2px solid #0E2236;cursor:pointer}
+  .bv-btn{padding:4px 10px;font-size:11px;border:1px solid var(--dark-line);border-radius:var(--r-xs);color:var(--dark-fg-2);background:rgba(14,34,54,.6);font-family:var(--font-zh)}
+  .bv-btn:hover{color:var(--tech);border-color:var(--dark-line-strong)}
+  .bv-meta{font-size:10.5px;color:var(--dark-fg-3);margin-top:8px;display:flex;justify-content:space-between}
+  .bv-meta b{font-family:var(--font-num);color:var(--dark-fg)}
+
+  /* ===== 水肥机 ===== */
+  .wf{padding:11px 12px;border:1px solid var(--dark-line);border-radius:var(--r-xs);background:rgba(14,34,54,.5);margin-bottom:8px}
+  .wf:last-child{margin-bottom:0}
+  .wf-head{display:flex;align-items:center;justify-content:space-between}
+  .wf-name{font-size:12.5px;color:var(--dark-fg);font-weight:600;display:flex;align-items:center;gap:6px}
+  .wf-st{font-size:10px;font-family:var(--font-num);padding:2px 8px;border-radius:10px;display:flex;align-items:center;gap:4px}
+  .wf-st.run{background:rgba(34,197,94,.15);color:var(--ok)} .wf-st.run .d{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:blink 1.2s infinite}
+  .wf-st.idle{background:rgba(143,168,194,.15);color:var(--dark-fg-3)} .wf-st.idle .d{width:6px;height:6px;border-radius:50%;background:var(--dark-fg-3)}
+  .wf-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:9px}
+  .wf-cell{font-size:10px;color:var(--dark-fg-3)}
+  .wf-cell b{display:block;font-family:var(--font-num);font-size:14px;color:var(--dark-fg);margin-top:2px;font-weight:700}
+  .wf-btn{margin-top:9px;width:100%;height:26px;border-radius:var(--r-xs);font-size:11.5px;font-weight:600;border:1px solid;transition:all .15s}
+  .wf-btn.run{border-color:var(--danger);color:var(--danger);background:rgba(239,68,68,.1)}
+  .wf-btn.run:hover{background:rgba(239,68,68,.2)}
+  .wf-btn.idle{border-color:var(--ok);color:var(--ok);background:rgba(34,197,94,.1)}
+  .wf-btn.idle:hover{background:rgba(34,197,94,.2)}
+
+  /* ===== 施肥灌溉计划执行台 ===== */
+  .plan-strip{padding:0 var(--sp-6) var(--sp-3);flex-shrink:0}
+  .plan-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .plan-bar h3{font-size:14px;font-weight:600;color:var(--dark-fg);display:flex;align-items:center;gap:8px;letter-spacing:.04em}
+  .plan-bar h3::before{content:"";width:3px;height:13px;background:var(--berry);box-shadow:0 0 8px var(--berry);border-radius:2px}
+  .plan-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3)}
+  .plan-card{padding:11px 13px;background:linear-gradient(135deg,var(--dark-panel),rgba(16,42,67,.5));border:1px solid var(--dark-line);border-radius:var(--r-sm);display:flex;flex-direction:column;gap:7px}
+  .plan-card.running{border-color:rgba(30,144,255,.5);box-shadow:0 0 14px rgba(30,144,255,.15)}
+  .plan-card.done{opacity:.62}
+  .plan-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .plan-title{font-size:12.5px;color:var(--dark-fg);font-weight:600;line-height:1.3}
+  .plan-title small{display:block;font-size:10px;color:var(--dark-fg-3);font-weight:400;margin-top:2px}
+  .plan-badge{font-size:9.5px;font-family:var(--font-num);padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0;letter-spacing:.04em}
+  .plan-badge.pending{background:rgba(143,168,194,.15);color:var(--dark-fg-2)}
+  .plan-badge.running{background:rgba(30,144,255,.2);color:var(--tech)}
+  .plan-badge.paused{background:rgba(245,158,11,.18);color:var(--warn)}
+  .plan-badge.done{background:rgba(34,197,94,.18);color:var(--ok)}
+  .plan-prog{height:6px;background:var(--dark-panel-2);border-radius:3px;overflow:hidden}
+  .plan-fill{height:100%;background:linear-gradient(90deg,var(--tech),var(--tech-soft));border-radius:3px;transition:width .3s;box-shadow:0 0 6px rgba(30,144,255,.4)}
+  .plan-fill.done{background:var(--ok);box-shadow:0 0 6px rgba(34,197,94,.5)}
+  .plan-foot{display:flex;align-items:center;justify-content:space-between}
+  .plan-meta{font-size:10.5px;color:var(--dark-fg-3)}
+  .plan-meta b{font-family:var(--font-num);color:var(--tech)}
+  .plan-btn{height:24px;padding:0 12px;border-radius:var(--r-xs);font-size:11px;font-family:var(--font-zh)}
+  .plan-btn[disabled]{opacity:.5;cursor:not-allowed}
+  .map-dot{cursor:pointer;transition:fill .2s}
+</style>
+</head>
+<body class="screen">
+<div class="screen-app">
+  <header class="ds-top">
+    <div class="ds-top__side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg><span>数据专题 · 04</span></div>
+    <div class="ds-top__title">智慧水肥<span class="accent">一张图</span></div>
+    <div class="ds-top__actions"><a class="ds-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a><span class="ds-top__side" style="min-width:auto"><span class="ds-dot ds-dot--ok"></span>实时</span></div>
+  </header>
+
+  <section class="ds-kpi-band">
+    <div class="ds-kpi"><div class="ds-kpi__label">本周灌溉</div><div class="ds-kpi__val breath">56<span class="ds-kpi__unit">次</span></div><div class="ds-kpi__trend up">▲ 8.3%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">本周施肥</div><div class="ds-kpi__val breath">38<span class="ds-kpi__unit">次</span></div><div class="ds-kpi__trend up">▲ 4.1%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">用水量</div><div class="ds-kpi__val breath">2,140<span class="ds-kpi__unit">m³</span></div><div class="ds-kpi__trend">本周</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">用肥量</div><div class="ds-kpi__val breath">486<span class="ds-kpi__unit">kg</span></div><div class="ds-kpi__trend">本周</div></div>
+    <div class="ds-kpi ds-kpi--berry"><div class="ds-kpi__label">设备故障</div><div class="ds-kpi__val breath">1<span class="ds-kpi__unit">起</span></div><div class="ds-kpi__trend down">阀 F-03</div></div>
+  </section>
+
+  <section class="ds-main">
+    <!-- 左：用量 + 趋势 -->
+    <div class="ds-col ds-col--left">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>水肥用量</h3></div><div class="ds-panel__body">
+        <div class="ds-metric"><span class="ds-metric__label">首部主机</span><span class="ds-metric__val">3<span class="unit">台</span></span></div>
+        <div class="ds-metric"><span class="ds-metric__label">电磁阀</span><span class="ds-metric__val">28<span class="unit">个</span></span></div>
+        <div class="ds-metric"><span class="ds-metric__label">电动球阀</span><span class="ds-metric__val">6<span class="unit">个</span></span></div>
+        <div class="ds-metric"><span class="ds-metric__label">灌溉管网</span><span class="ds-metric__val">4.2<span class="unit">km</span></span></div>
+        <div class="ds-metric"><span class="ds-metric__label">水肥利用率</span><span class="ds-metric__val" style="color:var(--ok)">94%</span></div>
+      </div></div>
+      <div class="ds-panel"><div class="ds-panel__head"><h3>近 7 天用量趋势</h3></div><div class="ds-panel__body">
+        <svg viewBox="0 0 260 120" style="width:100%;height:100px">
+          <g fill="#1E90FF"><rect x="10" y="60" width="24" height="50" rx="2"/><rect x="44" y="45" width="24" height="65" rx="2"/><rect x="78" y="55" width="24" height="55" rx="2"/><rect x="112" y="35" width="24" height="75" rx="2"/><rect x="146" y="50" width="24" height="60" rx="2"/><rect x="180" y="30" width="24" height="80" rx="2"/><rect x="214" y="42" width="24" height="68" rx="2"/></g>
+          <g fill="#22C55E" opacity=".7"><rect x="10" y="85" width="24" height="25" rx="2"/><rect x="44" y="78" width="24" height="32" rx="2"/><rect x="78" y="82" width="24" height="28" rx="2"/><rect x="112" y="70" width="24" height="40" rx="2"/><rect x="146" y="80" width="24" height="30" rx="2"/><rect x="180" y="65" width="24" height="45" rx="2"/><rect x="214" y="74" width="24" height="36" rx="2"/></g>
+        </svg>
+        <div class="ds-legend mt-2" style="font-size:11px"><span><i class="ds-dot" style="background:var(--tech)"></i>用水</span><span><i class="ds-dot" style="background:var(--ok)"></i>用肥</span></div>
+      </div></div>
+    </div>
+
+    <!-- 中：灌溉渠网设备分布（电磁阀点位可点联动） -->
+    <div class="ds-col ds-col--center">
+      <div class="ds-panel" style="flex:1;min-height:0"><div class="ds-panel__head"><h3>水肥一体化设备 · 灌溉渠网分布</h3><span class="ds-top__side" style="min-width:auto;font-size:12px"><span class="ds-dot ds-dot--ok"></span>在线 27 · <span class="ds-dot ds-dot--danger"></span>故障 1</span></div>
+        <div class="ds-panel__body ds-panel--flush" style="position:relative">
+          <svg viewBox="0 0 720 460" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block">
+            <defs>
+              <radialGradient id="wmask" cx="50%" cy="50%" r="62%"><stop offset="0%" stop-color="#06101c" stop-opacity="0"/><stop offset="72%" stop-color="#06101c" stop-opacity=".22"/><stop offset="100%" stop-color="#06101c" stop-opacity=".74"/></radialGradient>
+            </defs>
+            <image href="mrrqj1wz-image.png" x="0" y="0" width="720" height="460" preserveAspectRatio="xMidYMid slice" style="filter:brightness(.5) saturate(.85) contrast(1.05)"/>
+            <rect width="720" height="460" fill="url(#wmask)"/>
+            <!-- 灌溉渠网（主管 + 上下支管） -->
+            <path d="M58 230 L 662 230" stroke="#0EA5E9" stroke-width="5" stroke-linecap="round" opacity=".75"/>
+            <path d="M112 230 L 112 84 M357 230 L 357 84 M602 230 L 602 84" stroke="#0EA5E9" stroke-width="3" opacity=".6"/>
+            <path d="M112 230 L 112 376 M357 230 L 357 376 M602 230 L 602 376" stroke="#0EA5E9" stroke-width="3" opacity=".6"/>
+            <!-- 大棚 -->
+            <g font-size="13" font-weight="700" style="paint-order:stroke;stroke:#06101c;stroke-width:3px;stroke-linejoin:round">
+              <rect x="35" y="30" width="155" height="54" rx="4" fill="rgba(34,197,94,.24)" stroke="rgba(34,197,94,.85)"/><text x="112" y="63" text-anchor="middle" class="zh" fill="#DCE8F5">1号棚</text>
+              <rect x="280" y="30" width="155" height="54" rx="4" fill="rgba(34,197,94,.24)" stroke="rgba(34,197,94,.85)"/><text x="357" y="63" text-anchor="middle" class="zh" fill="#DCE8F5">2号棚</text>
+              <rect x="525" y="30" width="155" height="54" rx="4" fill="rgba(239,68,68,.28)" stroke="rgba(239,68,68,.9)"/><text x="602" y="63" text-anchor="middle" class="zh" fill="#FFC4CA">3号棚</text>
+              <rect x="35" y="376" width="155" height="54" rx="4" fill="rgba(34,197,94,.24)" stroke="rgba(34,197,94,.85)"/><text x="112" y="409" text-anchor="middle" class="zh" fill="#DCE8F5">4号棚</text>
+              <rect x="280" y="376" width="155" height="54" rx="4" fill="rgba(34,197,94,.24)" stroke="rgba(34,197,94,.85)"/><text x="357" y="409" text-anchor="middle" class="zh" fill="#DCE8F5">5号棚</text>
+              <rect x="525" y="376" width="155" height="54" rx="4" fill="rgba(34,197,94,.24)" stroke="rgba(34,197,94,.85)"/><text x="602" y="409" text-anchor="middle" class="zh" fill="#DCE8F5">6号棚</text>
+            </g>
+            <!-- 首部枢纽（水肥机×3 + 球阀×2） -->
+            <g style="paint-order:stroke;stroke:#06101c;stroke-width:2.5px"><circle cx="62" cy="230" r="20" fill="rgba(30,144,255,.20)"/><circle cx="62" cy="230" r="11" fill="#1E90FF"/><text x="62" y="200" text-anchor="middle" font-size="12" class="zh" fill="#9BD2FF" font-weight="700">首部枢纽</text><text x="62" y="266" text-anchor="middle" font-size="9.5" class="zh" fill="#7FA8C9">水肥机×3 · 球阀×2</text></g>
+            <!-- 球阀 Q1/Q2 -->
+            <g style="paint-order:stroke;stroke:#06101c;stroke-width:2px"><rect x="270" y="223" width="14" height="14" rx="2" fill="#1E90FF" stroke="#0E2236"/><text x="277" y="216" text-anchor="middle" font-size="10" fill="#9BD2FF" font-weight="700">Q1</text><rect x="515" y="223" width="14" height="14" rx="2" fill="#1E90FF" stroke="#0E2236"/><text x="522" y="216" text-anchor="middle" font-size="10" fill="#9BD2FF" font-weight="700">Q2</text></g>
+            <!-- 电磁阀点位（v1-v6 可点联动右栏） -->
+            <g style="paint-order:stroke;stroke:#06101c;stroke-width:2px" font-weight="700">
+              <g class="map-dot" data-map="v1"><circle cx="112" cy="150" r="6.5" fill="#22C55E" stroke="#0E2236" stroke-width="1.5"/><text x="100" y="154" text-anchor="end" font-size="11" class="zh" fill="#22C55E">F1</text></g>
+              <g class="map-dot" data-map="v2"><circle cx="357" cy="150" r="6.5" fill="#22C55E" stroke="#0E2236" stroke-width="1.5"/><text x="345" y="154" text-anchor="end" font-size="11" class="zh" fill="#22C55E">F2</text></g>
+              <g class="map-dot" data-map="v3"><circle cx="602" cy="150" r="6.5" fill="#E63946" stroke="#0E2236" stroke-width="1.5"><animate attributeName="r" values="6.5;10;6.5" dur="1.5s" repeatCount="indefinite"/></circle><text x="590" y="154" text-anchor="end" font-size="11" class="zh" fill="#E63946">F3</text></g>
+              <g class="map-dot" data-map="v4"><circle cx="112" cy="306" r="6.5" fill="#5A7A99" stroke="#0E2236" stroke-width="1.5"/><text x="100" y="310" text-anchor="end" font-size="11" class="zh" fill="#8FA8C2">F4</text></g>
+              <g class="map-dot" data-map="v5"><circle cx="357" cy="306" r="6.5" fill="#5A7A99" stroke="#0E2236" stroke-width="1.5"/><text x="345" y="310" text-anchor="end" font-size="11" class="zh" fill="#8FA8C2">F5</text></g>
+              <g class="map-dot" data-map="v6"><circle cx="602" cy="306" r="6.5" fill="#22C55E" stroke="#0E2236" stroke-width="1.5"/><text x="590" y="310" text-anchor="end" font-size="11" class="zh" fill="#22C55E">F6</text></g>
+            </g>
+            <text x="360" y="448" text-anchor="middle" class="zh" fill="#7FA8C9" font-size="10.5" opacity=".85">点击阀位可远程开合对应电磁阀（F1–F6）· Q1/Q2 为电动球阀</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：三类设备远程控制 -->
+    <div class="ds-col ds-col--right">
+      <!-- ① 电磁阀矩阵 -->
+      <div class="ds-panel"><div class="ds-panel__head"><h3>① 电磁阀 · 远程控制</h3><span class="ds-top__side" style="min-width:auto;font-size:11px"><span id="valve-cnt" style="color:var(--ok)" class="text-num">开 3</span> / <span style="color:var(--dark-fg-2)">关 2</span> / <span style="color:var(--danger)">故障 1</span></span></div><div class="ds-panel__body">
+        <div class="valve-grid" id="valve-grid">
+          <div class="valve" data-valve="F1" data-state="on" data-map="v1"><div class="vi" style="background:rgba(34,197,94,.15);color:var(--ok)">F1</div><div><div class="vn">1号棚阀</div><div class="vs" style="color:var(--ok)">开启</div></div><div class="sw"></div></div>
+          <div class="valve" data-valve="F2" data-state="on" data-map="v2"><div class="vi" style="background:rgba(34,197,94,.15);color:var(--ok)">F2</div><div><div class="vn">2号棚阀</div><div class="vs" style="color:var(--ok)">开启</div></div><div class="sw"></div></div>
+          <div class="valve fault" data-valve="F3" data-state="fault" data-map="v3"><div class="vi" style="background:rgba(239,68,68,.15);color:var(--danger)">F3</div><div><div class="vn">3号棚阀</div><div class="vs" style="color:var(--danger)">故障</div></div><div class="sw"></div></div>
+          <div class="valve" data-valve="F4" data-state="off" data-map="v4"><div class="vi" style="background:rgba(143,168,194,.15);color:var(--dark-fg-3)">F4</div><div><div class="vn">4号棚阀</div><div class="vs" style="color:var(--dark-fg-3)">关闭</div></div><div class="sw"></div></div>
+          <div class="valve" data-valve="F5" data-state="off" data-map="v5"><div class="vi" style="background:rgba(143,168,194,.15);color:var(--dark-fg-3)">F5</div><div><div class="vn">5号棚阀</div><div class="vs" style="color:var(--dark-fg-3)">关闭</div></div><div class="sw"></div></div>
+          <div class="valve" data-valve="F6" data-state="on" data-map="v6"><div class="vi" style="background:rgba(34,197,94,.15);color:var(--ok)">F6</div><div><div class="vn">6号棚阀</div><div class="vs" style="color:var(--ok)">开启</div></div><div class="sw"></div></div>
+        </div>
+        <button class="btn btn--sm" id="valve-all" style="width:100%;margin-top:8px;border-color:var(--dark-line);color:var(--dark-fg-2)">一键轮灌（依次开启）</button>
+      </div></div>
+
+      <!-- ② 智能电动球阀 -->
+      <div class="ds-panel"><div class="ds-panel__head"><h3>② 电动球阀 · 开度控制</h3></div><div class="ds-panel__body">
+        <div class="bv" data-bv="Q1">
+          <div class="bv-head"><div class="bv-name">主管球阀 <span class="tag">Q1</span></div><div class="bv-pct"><span class="pct">85</span><small>%</small></div></div>
+          <div class="bv-track"><div class="bv-fill" style="width:85%"></div></div>
+          <div class="bv-ctrl"><input type="range" min="0" max="100" value="85"><button class="bv-btn" data-act="close">关</button><button class="bv-btn" data-act="open">全开</button></div>
+          <div class="bv-meta"><span>流量 <b>11.2 m³/h</b></span><span>压力 <b>0.28 MPa</b></span><span>状态 <b style="color:var(--ok)">通</b></span></div>
+        </div>
+        <div class="bv" data-bv="Q2">
+          <div class="bv-head"><div class="bv-name">支管球阀 <span class="tag">Q2</span></div><div class="bv-pct"><span class="pct">40</span><small>%</small></div></div>
+          <div class="bv-track"><div class="bv-fill" style="width:40%"></div></div>
+          <div class="bv-ctrl"><input type="range" min="0" max="100" value="40"><button class="bv-btn" data-act="close">关</button><button class="bv-btn" data-act="open">全开</button></div>
+          <div class="bv-meta"><span>流量 <b>5.3 m³/h</b></span><span>压力 <b>0.22 MPa</b></span><span>状态 <b style="color:var(--warn)">节流</b></span></div>
+        </div>
+      </div></div>
+
+      <!-- ③ 水肥机 -->
+      <div class="ds-panel"><div class="ds-panel__head"><h3>③ 水肥机 · 远程启停</h3></div><div class="ds-panel__body">
+        <div class="wf" data-wf="WF1">
+          <div class="wf-head"><div class="wf-name">水肥机 WF-1（1–3号棚）</div><div class="wf-st run"><span class="d"></span>运行</div></div>
+          <div class="wf-body"><div class="wf-cell">EC 目标<b>1.8</b></div><div class="wf-cell">pH 目标<b>6.4</b></div><div class="wf-cell">配方<b style="font-size:12px">膨果宝</b></div></div>
+          <button class="wf-btn run">停止运行</button>
+        </div>
+        <div class="wf" data-wf="WF2">
+          <div class="wf-head"><div class="wf-name">水肥机 WF-2（4–6号棚）</div><div class="wf-st idle"><span class="d"></span>待机</div></div>
+          <div class="wf-body"><div class="wf-cell">EC 目标<b>1.6</b></div><div class="wf-cell">pH 目标<b>6.5</b></div><div class="wf-cell">配方<b style="font-size:12px">壮苗剂</b></div></div>
+          <button class="wf-btn idle">启动运行</button>
+        </div>
+        <div class="wf" data-wf="WF3">
+          <div class="wf-head"><div class="wf-name">水肥机 WF-3（育苗棚）</div><div class="wf-st idle"><span class="d"></span>待机</div></div>
+          <div class="wf-body"><div class="wf-cell">EC 目标<b>1.2</b></div><div class="wf-cell">pH 目标<b>5.9</b></div><div class="wf-cell">配方<b style="font-size:12px">促根液</b></div></div>
+          <button class="wf-btn idle">启动运行</button>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== ④ 施肥灌溉计划 · 远程执行 ===== -->
+  <section class="plan-strip">
+    <div class="plan-bar">
+      <h3>施肥灌溉计划 · 远程执行</h3>
+      <div class="flex gap-2" style="align-items:center">
+        <span class="ds-legend" style="font-size:11px"><span><i class="ds-dot ds-dot--ok"></i>已完成 <b id="p-done" class="text-num" style="color:var(--dark-fg)">1</b></span><span><i class="ds-dot" style="background:var(--tech)"></i>执行中 <b id="p-run" class="text-num" style="color:var(--dark-fg)">1</b></span><span><i class="ds-dot" style="background:var(--dark-fg-3)"></i>待执行 <b id="p-pend" class="text-num" style="color:var(--dark-fg)">2</b></span></span>
+        <button class="btn btn--sm btn--primary" id="plan-all">一键执行全部待执行</button>
+      </div>
+    </div>
+    <div class="plan-row" id="plan-row">
+      <div class="plan-card running" data-plan="A" data-state="running" data-progress="60">
+        <div class="plan-top"><div class="plan-title">计划 A · 3号棚膨果期滴灌<small>面积 1.2 亩 · 滴灌 · 配方 膨果宝</small></div><span class="plan-badge running">执行中</span></div>
+        <div class="plan-prog"><div class="plan-fill" style="width:60%"></div></div>
+        <div class="plan-foot"><span class="plan-meta"><b class="pct">60%</b> · 4.8/8.0 L㎡ · 预计 08:42</span><button class="btn btn--sm plan-btn" style="border-color:var(--warn);color:var(--warn)">停止</button></div>
+      </div>
+      <div class="plan-card" data-plan="B" data-state="pending" data-progress="0">
+        <div class="plan-top"><div class="plan-title">计划 B · 1号棚苗期微灌<small>面积 1.0 亩 · 微灌 · 配方 壮苗剂</small></div><span class="plan-badge pending">待执行</span></div>
+        <div class="plan-prog"><div class="plan-fill" style="width:0%"></div></div>
+        <div class="plan-foot"><span class="plan-meta">定 09:30 · 目标 6.0 L/㎡</span><button class="btn btn--sm btn--primary plan-btn">执行</button></div>
+      </div>
+      <div class="plan-card" data-plan="C" data-state="pending" data-progress="0">
+        <div class="plan-top"><div class="plan-title">计划 C · 全园叶面追肥<small>6 棚 · 叶面 · 配方 磷钾液</small></div><span class="plan-badge pending">待执行</span></div>
+        <div class="plan-prog"><div class="plan-fill" style="width:0%"></div></div>
+        <div class="plan-foot"><span class="plan-meta">定 16:00 · 目标 2.5 L/亩</span><button class="btn btn--sm btn--primary plan-btn">执行</button></div>
+      </div>
+      <div class="plan-card done" data-plan="D" data-state="done" data-progress="100">
+        <div class="plan-top"><div class="plan-title">计划 D · 5号棚滴灌<small>面积 1.1 亩 · 滴灌 · 配方 膨果宝</small></div><span class="plan-badge done">已完成</span></div>
+        <div class="plan-prog"><div class="plan-fill done" style="width:100%"></div></div>
+        <div class="plan-foot"><span class="plan-meta">今 06:30 完成 · 用水 8.4m³</span><button class="btn btn--sm plan-btn" style="border-color:var(--dark-line);color:var(--dark-fg-3)" disabled>已完成</button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ds-marquee">
+    <span class="ds-marquee__tag">水肥动态</span>
+    <div class="ds-marquee__track"><div class="ds-marquee__items">
+      <span class="mk"><i class="ds-dot ds-dot--danger"></i>电磁阀 F-03 故障待修</span>
+      <span class="mk"><i class="ds-dot ds-dot--ok"></i>水肥机 WF-1 运行中 · EC <b>1.8</b></span>
+      <span class="mk"><i class="ds-dot ds-dot--ok"></i>计划 A 3号棚滴灌执行中 <b>60%</b></span>
+      <span class="mk"><i class="ds-dot ds-dot--ok"></i>主管球阀 Q1 开度 <b>85%</b></span>
+      <span class="mk"><i class="ds-dot ds-dot--danger"></i>电磁阀 F-03 故障待修</span>
+      <span class="mk"><i class="ds-dot ds-dot--ok"></i>计划 A 3号棚滴灌执行中 <b>60%</b></span>
+    </div></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $=function(s,c){return (c||document).querySelector(s)};
+  var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+
+  /* ===== ① 电磁阀：点击开合 + 地图点位联动 ===== */
+  var VCOLOR={on:'#22C55E',off:'#5A7A99',fault:'#E63946'};
+  function recountValves(){
+    var on=$$('.valve[data-state=on]').length, off=$$('.valve[data-state=off]').length, fault=$$('.valve[data-state=fault]').length;
+    $('#valve-cnt').innerHTML='开 <b>'+on+'</b> / <span style="color:var(--dark-fg-2)">关 '+off+'</span> / <span style="color:var(--danger)">故障 '+fault+'</span>';
+  }
+  function syncMap(v){
+    var dot=$('.map-dot[data-map="'+v.dataset.map+'"] circle');
+    if(!dot) return;
+    var c=VCOLOR[v.dataset.state];
+    dot.setAttribute('fill',c);
+    var txt=v.querySelector('.vs');
+    var lbl=$('.map-dot[data-map="'+v.dataset.map+'"] text');
+    if(lbl) lbl.setAttribute('fill', v.dataset.state==='on'?'#22C55E':(v.dataset.state==='fault'?'#E63946':'#8FA8C2'));
+    // 故障点位保留脉冲动画
+    if(v.dataset.state==='fault' && !dot.querySelector('animate')){ dot.innerHTML='<animate attributeName="r" values="6;10;6" dur="1.5s" repeatCount="indefinite"/>'; }
+  }
+  function toggleValve(v){
+    if(v.dataset.state==='fault') return;
+    var now = v.dataset.state==='on' ? 'off' : 'on';
+    v.dataset.state=now;
+    var vi=v.querySelector('.vi'), vs=v.querySelector('.vs');
+    if(now==='on'){ vi.style.background='rgba(34,197,94,.15)'; vi.style.color='var(--ok)'; vs.textContent='开启'; vs.style.color='var(--ok)'; }
+    else { vi.style.background='rgba(143,168,194,.15)'; vi.style.color='var(--dark-fg-3)'; vs.textContent='关闭'; vs.style.color='var(--dark-fg-3)'; }
+    syncMap(v); recountValves();
+  }
+  $$('.valve').forEach(function(v){ v.addEventListener('click',function(){toggleValve(v);}); });
+  $$('.map-dot').forEach(function(g){
+    g.addEventListener('click',function(){
+      var v=$('.valve[data-map="'+g.dataset.map+'"]'); if(v) toggleValve(v);
+    });
+  });
+  $('#valve-all').addEventListener('click',function(){
+    var off=$$('.valve[data-state=off]');
+    var i=0; var t=setInterval(function(){ if(i>=off.length){clearInterval(t);recountValves();return;} toggleValve(off[i]); i++; },350);
+  });
+  recountValves();
+
+  /* ===== ② 电动球阀：开度滑块 + 开/关 ===== */
+  $$('.bv').forEach(function(bv){
+    var rng=$('input[type=range]',bv), fill=$('.bv-fill',bv), pct=$('.pct',bv), metaStatus=$$('.bv-meta b',bv).slice(-1)[0];
+    function setBV(val){
+      val=Math.max(0,Math.min(100,Math.round(val)));
+      rng.value=val; pct.textContent=val; fill.style.width=val+'%';
+      rng.style.background='linear-gradient(90deg,var(--tech) '+(val)+'%,var(--dark-panel-2) '+(val)+'%)';
+      if(metaStatus){ metaStatus.textContent = val===0?'关':(val<60?'节流':'通'); metaStatus.style.color = val===0?'var(--dark-fg-3)':(val<60?'var(--warn)':'var(--ok)'); }
+    }
+    rng.addEventListener('input',function(){setBV(+rng.value);});
+    $$('.bv-btn',bv).forEach(function(b){ b.addEventListener('click',function(){ setBV(b.dataset.act==='open'?100:0); }); });
+    setBV(+rng.value);
+  });
+
+  /* ===== ③ 水肥机：启停 ===== */
+  $$('.wf').forEach(function(wf){
+    var btn=$('.wf-btn',wf), st=$('.wf-st',wf);
+    btn.addEventListener('click',function(){
+      var running = btn.classList.contains('run');
+      if(running){ btn.className='wf-btn idle'; btn.textContent='启动运行'; st.className='wf-st idle'; st.innerHTML='<span class="d"></span>待机'; }
+      else { btn.className='wf-btn run'; btn.textContent='停止运行'; st.className='wf-st run'; st.innerHTML='<span class="d"></span>运行'; }
+    });
+  });
+
+  /* ===== ④ 施肥灌溉计划：执行/停止/完成 ===== */
+  var PLAN_SPEED={A:600,B:450,C:400}; // ms per 1%
+  var timers={};
+  function planCounts(){
+    var run=0,pend=0,done=0;
+    $$('.plan-card').forEach(function(c){
+      var s=c.dataset.state; if(s==='running')run++; else if(s==='pending')pend++; else if(s==='done')done++;
+    });
+    $('#p-run').textContent=run; $('#p-pend').textContent=pend; $('#p-done').textContent=done;
+  }
+  function renderPlan(c){
+    var p=+c.dataset.progress, st=c.dataset.state;
+    $('.plan-fill',c).style.width=p+'%';
+    $('.plan-fill',c).classList.toggle('done',st==='done');
+    var pctEl=$('.pct',c); if(pctEl) pctEl.textContent=p+'%';
+    var badge=$('.plan-badge',c), btn=$('.plan-btn',c), meta=$('.plan-meta',c);
+    c.classList.remove('running','done');
+    if(st==='running'){ c.classList.add('running'); badge.className='plan-badge running'; badge.textContent='执行中'; btn.textContent='停止'; btn.className='btn btn--sm plan-btn'; btn.disabled=false; btn.style.cssText='border-color:var(--warn);color:var(--warn)'; }
+    else if(st==='paused'){ badge.className='plan-badge paused'; badge.textContent='已暂停'; btn.textContent='继续'; btn.className='btn btn--sm btn--primary plan-btn'; btn.disabled=false; btn.style.cssText=''; }
+    else if(st==='done'){ c.classList.add('done'); badge.className='plan-badge done'; badge.textContent='已完成'; btn.textContent='已完成'; btn.className='btn btn--sm plan-btn'; btn.disabled=true; btn.style.cssText='border-color:var(--dark-line);color:var(--dark-fg-3)'; $('.plan-fill',c).style.width='100%'; if(pctEl)pctEl.textContent='100%'; }
+    else { badge.className='plan-badge pending'; badge.textContent='待执行'; btn.textContent='执行'; btn.className='btn btn--sm btn--primary plan-btn'; btn.disabled=false; btn.style.cssText=''; }
+  }
+  function tickPlan(id){
+    var c=$('.plan-card[data-plan="'+id+'"]');
+    var p=+c.dataset.progress+1; c.dataset.progress=p;
+    $('.plan-fill',c).style.width=Math.min(p,100)+'%';
+    var pctEl=$('.pct',c); if(pctEl)pctEl.textContent=Math.min(p,100)+'%';
+    if(p>=100){ clearInterval(timers[id]); delete timers[id]; c.dataset.state='done'; renderPlan(c); planCounts(); }
+  }
+  function runPlan(id){
+    var c=$('.plan-card[data-plan="'+id+'"]'); if(!c||c.dataset.state==='done')return;
+    c.dataset.state='running'; renderPlan(c); planCounts();
+    if(timers[id])clearInterval(timers[id]);
+    timers[id]=setInterval(function(){tickPlan(id);}, PLAN_SPEED[id]||500);
+  }
+  function pausePlan(id){
+    var c=$('.plan-card[data-plan="'+id+'"]'); if(!c||c.dataset.state!=='running')return;
+    clearInterval(timers[id]); delete timers[id]; c.dataset.state='paused'; renderPlan(c); planCounts();
+  }
+  $$('.plan-card').forEach(function(c){
+    renderPlan(c);
+    $('.plan-btn',c).addEventListener('click',function(){
+      if(this.disabled)return;
+      var id=c.dataset.plan, s=c.dataset.state;
+      if(s==='running') pausePlan(id);
+      else runPlan(id);  // pending 或 paused → 继续/执行
+    });
+  });
+  $('#plan-all').addEventListener('click',function(){
+    $$('.plan-card[data-state=pending]').forEach(function(c){ runPlan(c.dataset.plan); });
+  });
+  planCounts();
+
+  /* 计划 A 初始为执行中：自动推进，演示远程执行 */
+  runPlan('A');
+})();
+</script>
+</body>
+</html>

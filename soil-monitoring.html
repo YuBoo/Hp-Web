@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>土壤与气象监测 · AI 决策平台 — 黄陂草莓数字农事平台</title>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    /* ── 页面专用样式 ── */
+
+    /* 全宽覆盖 + 纵向撑满 */
+    .content {
+      max-width: none;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .monitor-layout {
+      flex: 1;
+      display: flex;
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+
+    /* 左列表 + 右详情 水平分栏（继承 .monitor-layout 的 flex:1 已在上方定义） */
+
+    .panel {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .panel-title {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+
+    .panel-count {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--border-soft);
+      padding: 1px 8px;
+      border-radius: var(--radius-pill);
+    }
+
+    /* ── 左列：设备列表 ── */
+    .left-col {
+      width: 300px;
+      min-width: 280px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .left-col .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .device-table-wrap {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* 搜索栏 */
+    .search-bar {
+      margin: 8px 10px;
+      position: relative;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 6px 10px 6px 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--fg);
+      background: var(--surface);
+      outline: none;
+      transition: border-color var(--motion-fast);
+    }
+    .search-bar input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+    }
+    .search-bar input::placeholder {
+      color: var(--muted);
+    }
+    .search-bar svg {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .device-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .device-table th {
+      text-align: left;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .device-table td {
+      padding: 6px 10px;
+      font-size: var(--text-xs);
+      border-bottom: 1px solid var(--border-soft);
+      color: var(--fg-2);
+      cursor: pointer;
+      transition: background var(--motion-fast);
+    }
+
+    .device-table tr:last-child td { border-bottom: none; }
+
+    .device-table tr:hover td { background: #f5f8ff; }
+
+    .device-table tr.selected td {
+      background: var(--accent-bg);
+      position: relative;
+    }
+
+    .device-table tr.selected td:first-child {
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .device-name {
+      font-weight: 500;
+      color: var(--fg);
+      font-size: var(--text-xs);
+    }
+
+    .device-type {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* ── 右列：详情面板 ── */
+    .right-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-panel .panel-body {
+      flex: 1;
+      padding: var(--space-3);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .device-detail-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .detail-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: var(--meta);
+      text-align: center;
+      padding: var(--space-6);
+    }
+
+    .detail-empty svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: var(--space-4);
+      opacity: 0.3;
+    }
+
+    .detail-empty p {
+      font-size: var(--text-sm);
+      line-height: 1.6;
+    }
+
+    /* ── 设备信息头（右上） ── */
+    .device-info-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: var(--space-3);
+    }
+
+    .device-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .device-avatar svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+    }
+
+    .device-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .device-meta-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .device-meta-location {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .device-meta-extra {
+      display: flex;
+      gap: var(--space-3);
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .device-meta-extra span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ── 参数网格（右下） ── */
+    .param-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .param-card {
+      background: #fafafa;
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .param-label {
+      font-size: var(--text-xs);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .param-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .param-value {
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--fg);
+    }
+
+    .param-value .unit {
+      font-size: var(--text-sm);
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+
+    .param-range {
+      font-size: var(--text-xs);
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .param-bar {
+      height: 4px;
+      border-radius: 3px;
+      background: var(--border);
+      margin-top: var(--space-2);
+      overflow: hidden;
+    }
+
+    .param-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width var(--motion-base) var(--ease-standard);
+    }
+
+    /* ── 参数历史趋势图 ── */
+    .chart-section {
+      margin-top: var(--space-2);
+      flex-shrink: 0;
+    }
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+    .chart-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--fg);
+      letter-spacing: 0.03em;
+    }
+    .chart-param-name {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .chart-wrap {
+      background: #fafafa;
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      border: 1px solid var(--border-soft);
+      position: relative;
+    }
+    .chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: 180px;
+    }
+    .chart-tooltip {
+      position: absolute;
+      background: var(--fg);
+      color: var(--surface);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--motion-fast);
+      white-space: nowrap;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      font-weight: 500;
+    }
+    .chart-tooltip.show { opacity: 1; }
+
+    /* ── 时间范围滑块 ── */
+    .range-slider-wrap {
+      margin-top: 8px;
+      position: relative;
+      height: 32px;
+      padding: 0 8px;
+    }
+    .range-slider-track {
+      position: absolute;
+      top: 50%;
+      left: 8px;
+      right: 8px;
+      height: 4px;
+      background: var(--border-soft);
+      border-radius: 2px;
+      transform: translateY(-50%);
+    }
+    .range-slider-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      opacity: 0.5;
+    }
+    .range-slider-handle {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: ew-resize;
+      z-index: 2;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      transition: box-shadow var(--motion-fast);
+    }
+    .range-slider-handle:hover,
+    .range-slider-handle:active {
+      box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+    }
+    .range-slider-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin: 0 8px 2px;
+    }
+
+    /* 参数卡片点击交互 */
+    .param-card {
+      cursor: pointer;
+      transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+    }
+    .param-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .param-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+      background: #f0f5ff;
+    }
+
+    /* ── 告警 ── */
+    .detail-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: var(--space-2);
+      margin-top: var(--space-2);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .detail-section-title:first-of-type { margin-top: 0; }
+
+    /* 异常标记 */
+    .alert-note {
+      background: var(--warn-bg);
+      border: 1px solid #ffe58f;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #d48806;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-top: var(--space-2);
+    }
+
+    .alert-note svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── 设备类型筛选按钮 ── */
+    .type-filter-bar {
+      display: flex;
+      gap: 6px;
+      padding: 6px 10px;
+      flex-wrap: wrap;
+    }
+    .type-filter-btn {
+      font-size: 11px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      color: var(--fg-2);
+      cursor: pointer;
+      transition: all var(--motion-fast);
+    }
+    .type-filter-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .type-filter-btn.active {
+      background: var(--accent);
+      color: var(--accent-on);
+      border-color: var(--accent);
+    }
+    /* 设备类型标签 */
+    .dev-type-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 0 5px;
+      border-radius: 3px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .dev-type-soil {
+      background: #e6f7ff;
+      color: #1890ff;
+    }
+    .dev-type-weather {
+      background: #fff7e6;
+      color: #fa8c16;
+    }
+
+    /* ── 响应式 ── */
+    @media (max-width: 900px) {
+      .monitor-layout {
+        flex-direction: column;
+      }
+      .left-col {
+        width: 100%;
+        min-width: 0;
+      }
+      .left-col .panel {
+        max-height: 260px;
+      }
+      .param-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  /* HS-WEB 作业组件变量 → 黄陂 token 别名(AI决策紫#7B2CBF) */
+  :root{--accent:var(--tech);--accent-bg:#E6F2FF;--accent-on:#fff;--border-soft:var(--border);--meta:var(--fg-3);--muted:var(--fg-2);--space-2:var(--sp-2);--space-3:var(--sp-3);--space-4:var(--sp-4);--space-6:var(--sp-6);--text-xs:12px;--text-sm:13px;--text-2xl:22px;--radius-sm:var(--r-sm);--radius-md:var(--r-md);--radius-pill:999px;--shadow-sm:var(--shadow);--success:var(--ok);--warn-bg:var(--warn-soft);--motion-base:.2s;--motion-fast:.15s;--ease-standard:cubic-bezier(.4,0,.2,1);}
+  /* HS-WEB 作业组件变量 → 黄陂 token 别名（主色 AI 决策紫 #7B2CBF） */
+  :root{--accent:var(--tech);--accent-bg:#E6F2FF;--accent-on:#fff;--border-soft:var(--border);--meta:var(--fg-3);--muted:var(--fg-2);--space-2:var(--sp-2);--space-3:var(--sp-3);--space-4:var(--sp-4);--space-6:var(--sp-6);--text-xs:12px;--text-sm:13px;--text-2xl:22px;--radius-sm:var(--r-sm);--radius-md:var(--r-md);--radius-pill:999px;--shadow-sm:var(--shadow);--success:var(--ok);--warn-bg:var(--warn-soft);--motion-base:.2s;--motion-fast:.15s;--ease-standard:cubic-bezier(.4,0,.2,1);}
+  /* 修复: 黄陂 .page 包裹层断了 HS-WEB monitor-layout 的 flex 链，补回 */
+  .admin .content > .page{flex:1;display:flex;flex-direction:column;min-height:0;padding:0;overflow:hidden}
+  .admin .content > .page > .monitor-layout{flex:1;min-height:0;padding:var(--space-4);box-sizing:border-box;align-items:stretch}
+  .alert-trigger-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:6px;background:var(--danger);color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .alert-trigger-btn:hover{opacity:.88}
+  .alert-mask{position:fixed;inset:0;background:rgba(10,25,41,.5);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+  .alert-modal{background:#fff;border-radius:14px;width:460px;max-width:92vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.22);overflow:hidden}
+  .alert-modal__head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,#FFF1F0,#FFF7F5)}
+  .alert-modal__title{font-size:15px;font-weight:700;color:var(--danger);display:flex;align-items:center;gap:8px}
+  .alert-modal__close{background:none;border:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px}
+  .alert-modal__body{padding:16px 20px;overflow-y:auto;flex:1}
+  .alert-modal__foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--surface-2,#fafafa)}
+  .alert-tip{font-size:13px;color:var(--fg,#333);margin-bottom:12px;line-height:1.6}
+  .alert-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .alert-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FFF5F5;border:1px solid #FFD6D6;border-radius:8px;font-size:12px}
+  .alert-item__name{font-weight:600;color:#333;min-width:72px}
+  .alert-item__val{font-family:var(--font-mono);font-weight:700;min-width:62px}
+  .alert-item__range{color:var(--muted);flex:1}
+  .alert-item__tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:#FFE0E0;color:var(--danger)}
+  .alert-suggest{font-size:12px;color:#444;background:#F0F7FF;border-radius:8px;padding:11px 13px;line-height:1.65;border-left:3px solid var(--accent)}
+  .alert-ok{text-align:center;padding:26px 10px;color:var(--ok,#52c41a);font-size:14px;line-height:1.7}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  </style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:var(--tech)">AI</span> AI 决策平台</div>
+    <nav class="breadcrumb"><span>AI 决策平台</span> <i>/</i> <b>土壤与气象监测</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__actions">
+      <button class="btn btn--ghost btn--sm">导出</button>
+      <button class="btn btn--primary btn--sm">+ 添加设备</button>
+      <a class="btn btn--ghost btn--sm" href="ai-platform.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回决策平台</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">AI 决策</div>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/><path d="M12 6V3M12 21v-3M6 12H3M21 12h-3"/></svg></span><span>AI 病虫害识别</span><span class="sub-count">1280</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>AI 诊断问答</span><span class="sub-count">86</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></span><span>决策模型</span><span class="sub-count">5</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span><span>生长预测</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg></span><span>温光调控模型</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8M12 8c0-3 2-5 5-5M12 12c0-3-2-5-5-5"/></svg></span><span>表型监测模型</span></a>
+        <a class="nav-item active" href="soil-monitoring.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M5 10c0 4 3 8 7 12 4-4 7-8 7-12a7 7 0 0 0-14 0z"/><circle cx="12" cy="10" r="2"/></svg></span><span>土壤与气象监测</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span><span>病虫害知识图谱 ▲</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>防控推荐与效果</span></a>
+      </div>
+      <div class="sidebar__group"><div class="sidebar__title">监测与规则</div>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></span><span>病虫害监测</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>预警规则</span></a>
+        <a class="nav-item" href="ai-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>知识库</span></a>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page">
+      <!-- 左右分栏：左列表 + 右上信息 + 右下参数 -->
+      <div class="monitor-layout">
+
+        <!-- 左：设备列表 -->
+        <div class="left-col">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm.5 5a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm8-6a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5z"/></svg>
+                设备列表
+              </div>
+              <span class="panel-count" id="deviceCount">9台</span>
+            </div>
+            <div class="type-filter-bar">
+              <button class="type-filter-btn active" onclick="filterByDeviceType('all')" id="filterAll">全部</button>
+              <button class="type-filter-btn" onclick="filterByDeviceType('soil')" id="filterSoil">墒情设备</button>
+              <button class="type-filter-btn" onclick="filterByDeviceType('weather')" id="filterWeather">气象设备</button>
+            </div>
+            <div class="device-table-wrap">
+              <div class="search-bar">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/></svg>
+                <input type="text" placeholder="搜索传感器编号或名称..." id="searchInput" oninput="filterDevices(this.value)">
+              </div>
+              <table class="device-table">
+                <thead>
+                  <tr>
+                    <th>传感器编号</th>
+                    <th>地块</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody id="deviceListBody">
+                  <!-- JS 渲染 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：详情面板（右上信息 + 右下参数） -->
+        <div class="right-col">
+          <div class="panel detail-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"/></svg>
+                实时采集参数
+              </div>
+              <span style="font-size:var(--text-xs);color:var(--muted);" id="refreshLabel">实时 · 2分钟前</span>
+            </div>
+
+            <div class="panel-body">
+              <!-- 未选中状态 -->
+              <div class="detail-empty" id="detailEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                <p>点击左侧设备列表中的传感器<br>查看其实时采集参数详情</p>
+              </div>
+
+              <!-- 设备详情内容 -->
+              <div id="detailBody" class="device-detail-body"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+  <script>
+    // ── 设备数据 ──
+    var DEVICES = [
+      {
+        id: 'S-A1-001',
+        name: 'A1 综合采集站',
+        type: '土壤综合传感器',
+        plotLabel: 'A1 地块 · 红颜草莓',
+        zone: 'A',
+        battery: 87,
+        protocol: 'LoRaWAN',
+        calibration: '2024-12-15',
+        online: true,
+        deviceAddr: 'S-A1-001',
+        saveDataInterval: 30,
+        offlineInterval: 10,
+        nodeInfoList: [
+          { nodeId: 'N-A1-001', nodeName: '主节点', enable: true, nodeMold: '综合', nodeType: 'master' },
+          { nodeId: 'N-A1-002', nodeName: '温度节点', enable: true, nodeMold: '温度', nodeType: 'slave' },
+          { nodeId: 'N-A1-003', nodeName: '湿度节点', enable: true, nodeMold: '湿度', nodeType: 'slave' }
+        ],
+        status: '在线',
+        statusClass: 'online',
+        params: [
+          { key: 'temp', label: '土壤温度', value: '26.8', unit: '°C', dot: '#faad14', min: 15, max: 35, pct: 59, status: 'normal' },
+          { key: 'humid', label: '土壤湿度', value: '62.4', unit: '%', dot: '#1890ff', min: 30, max: 80, pct: 65, status: 'normal' },
+          { key: 'ec', label: 'EC 电导率', value: '1.28', unit: 'mS/cm', dot: '#722ed1', min: 0.5, max: 3.0, pct: 31, status: 'normal' },
+          { key: 'ph', label: 'pH 值', value: '6.8', unit: '', dot: '#52c41a', min: 5.5, max: 8.5, pct: 52, status: 'normal' },
+          { key: 'n', label: '速效氮', value: '128', unit: 'mg/kg', dot: '#13c2c2', min: 80, max: 200, pct: 64, status: 'normal' },
+          { key: 'p', label: '速效磷', value: '18.5', unit: 'mg/kg', dot: '#faad14', min: 20, max: 40, pct: 37, status: 'low' },
+          { key: 'k', label: '速效钾', value: '156', unit: 'mg/kg', dot: '#52c41a', min: 100, max: 300, pct: 52, status: 'normal' }
+        ],
+        readings: [
+          { historyId: 'H001', nodeId: 'N-A1-001', deviceAddress: 'S-A1-001', time: '14:00', temStr: '26.8°C', temValue: 26.8, humStr: '62.4%', humValue: 62.4, alarmStatus: 0, recordTime: 1720072800000, items: [{ k: '温度', v: '26.8°C' }, { k: '湿度', v: '62.4%' }, { k: 'EC', v: '1.28' }, { k: 'pH', v: '6.8' }] },
+          { historyId: 'H002', nodeId: 'N-A1-001', deviceAddress: 'S-A1-001', time: '13:30', temStr: '26.5°C', temValue: 26.5, humStr: '63.1%', humValue: 63.1, alarmStatus: 0, recordTime: 1720071000000, items: [{ k: '温度', v: '26.5°C' }, { k: '湿度', v: '63.1%' }, { k: 'EC', v: '1.30' }, { k: 'pH', v: '6.8' }] },
+          { historyId: 'H003', nodeId: 'N-A1-001', deviceAddress: 'S-A1-001', time: '13:00', temStr: '26.3°C', temValue: 26.3, humStr: '63.8%', humValue: 63.8, alarmStatus: 0, recordTime: 1720069200000, items: [{ k: '温度', v: '26.3°C' }, { k: '湿度', v: '63.8%' }, { k: 'EC', v: '1.31' }, { k: 'pH', v: '6.7' }] },
+          { historyId: 'H004', nodeId: 'N-A1-001', deviceAddress: 'S-A1-001', time: '12:30', temStr: '26.1°C', temValue: 26.1, humStr: '64.2%', humValue: 64.2, alarmStatus: 0, recordTime: 1720067400000, items: [{ k: '温度', v: '26.1°C' }, { k: '湿度', v: '64.2%' }, { k: 'EC', v: '1.33' }, { k: 'pH', v: '6.7' }] },
+          { historyId: 'H005', nodeId: 'N-A1-001', deviceAddress: 'S-A1-001', time: '12:00', temStr: '25.9°C', temValue: 25.9, humStr: '64.5%', humValue: 64.5, alarmStatus: 0, recordTime: 1720065600000, items: [{ k: '温度', v: '25.9°C' }, { k: '湿度', v: '64.5%' }, { k: 'EC', v: '1.32' }, { k: 'pH', v: '6.7' }] }
+        ],
+        alerts: null
+      },
+      {
+        id: 'S-A2-001',
+        name: 'A2 综合采集站',
+        type: '土壤综合传感器',
+        plotLabel: 'A2 地块 · 红颜草莓',
+        zone: 'A',
+        battery: 62,
+        protocol: 'LoRaWAN',
+        calibration: '2024-11-20',
+        online: true,
+        deviceAddr: 'S-A2-001',
+        saveDataInterval: 30,
+        offlineInterval: 10,
+        nodeInfoList: [
+          { nodeId: 'N-A2-001', nodeName: '主节点', enable: true, nodeMold: '综合', nodeType: 'master' },
+          { nodeId: 'N-A2-002', nodeName: '温度节点', enable: true, nodeMold: '温度', nodeType: 'slave' },
+          { nodeId: 'N-A2-003', nodeName: '湿度节点', enable: true, nodeMold: '湿度', nodeType: 'slave' }
+        ],
+        status: '在线',
+        statusClass: 'online',
+        params: [
+          { key: 'temp', label: '土壤温度', value: '25.4', unit: '°C', dot: '#faad14', min: 15, max: 35, pct: 52, status: 'normal' },
+          { key: 'humid', label: '土壤湿度', value: '68.1', unit: '%', dot: '#1890ff', min: 30, max: 80, pct: 76, status: 'normal' },
+          { key: 'ec', label: 'EC 电导率', value: '1.15', unit: 'mS/cm', dot: '#722ed1', min: 0.5, max: 3.0, pct: 26, status: 'normal' },
+          { key: 'ph', label: 'pH 值', value: '7.0', unit: '', dot: '#52c41a', min: 5.5, max: 8.5, pct: 54, status: 'normal' },
+          { key: 'n', label: '速效氮', value: '142', unit: 'mg/kg', dot: '#13c2c2', min: 80, max: 200, pct: 71, status: 'normal' },
+          { key: 'p', label: '速效磷', value: '23.6', unit: 'mg/kg', dot: '#faad14', min: 20, max: 40, pct: 59, status: 'normal' },
+          { key: 'k', label: '速效钾', value: '134', unit: 'mg/kg', dot: '#52c41a', min: 100, max: 300, pct: 45, status: 'normal' }
+        ],
+        readings: [
+          { historyId: 'H101', nodeId: 'N-A2-001', deviceAddress: 'S-A2-001', time: '14:00', temStr: '25.4°C', temValue: 25.4, humStr: '68.1%', humValue: 68.1, alarmStatus: 0, recordTime: 1720072800000, items: [{ k: '温度', v: '25.4°C' }, { k: '湿度', v: '68.1%' }, { k: 'EC', v: '1.15' }, { k: 'pH', v: '7.0' }] },
+          { historyId: 'H102', nodeId: 'N-A2-001', deviceAddress: 'S-A2-001', time: '13:30', temStr: '25.2°C', temValue: 25.2, humStr: '68.5%', humValue: 68.5, alarmStatus: 0, recordTime: 1720071000000, items: [{ k: '温度', v: '25.2°C' }, { k: '湿度', v: '68.5%' }, { k: 'EC', v: '1.16' }, { k: 'pH', v: '7.0' }] },
+          { historyId: 'H103', nodeId: 'N-A2-001', deviceAddress: 'S-A2-001', time: '13:00', temStr: '25.0°C', temValue: 25.0, humStr: '69.0%', humValue: 69.0, alarmStatus: 0, recordTime: 1720069200000, items: [{ k: '温度', v: '25.0°C' }, { k: '湿度', v: '69.0%' }, { k: 'EC', v: '1.17' }, { k: 'pH', v: '6.9' }] },
+          { historyId: 'H104', nodeId: 'N-A2-001', deviceAddress: 'S-A2-001', time: '12:30', temStr: '24.8°C', temValue: 24.8, humStr: '69.3%', humValue: 69.3, alarmStatus: 0, recordTime: 1720067400000, items: [{ k: '温度', v: '24.8°C' }, { k: '湿度', v: '69.3%' }, { k: 'EC', v: '1.18' }, { k: 'pH', v: '6.9' }] },
+          { historyId: 'H105', nodeId: 'N-A2-001', deviceAddress: 'S-A2-001', time: '12:00', temStr: '24.6°C', temValue: 24.6, humStr: '69.8%', humValue: 69.8, alarmStatus: 0, recordTime: 1720065600000, items: [{ k: '温度', v: '24.6°C' }, { k: '湿度', v: '69.8%' }, { k: 'EC', v: '1.20' }, { k: 'pH', v: '6.9' }] }
+        ],
+        alerts: null
+      },
+      {
+        id: 'S-A3-001',
+        name: 'A3 温度监测器',
+        type: '土壤温度传感器',
+        plotLabel: 'A3 棚 · 章姬草莓',
+        zone: 'A',
+        battery: 34,
+        protocol: 'NB-IoT',
+        calibration: '2024-10-08',
+        online: true,
+        deviceAddr: 'S-A3-001',
+        saveDataInterval: 10,
+        offlineInterval: 5,
+        nodeInfoList: [
+          { nodeId: 'N-A3-001', nodeName: '主节点', enable: true, nodeMold: '温度', nodeType: 'master' },
+          { nodeId: 'N-A3-002', nodeName: '温度传感器', enable: true, nodeMold: '温度', nodeType: 'slave' }
+        ],
+        status: '温度超标',
+        statusClass: 'warning',
+        params: [
+          { key: 'temp', label: '土壤温度', value: '36.2', unit: '°C', dot: '#ff4d4f', min: 15, max: 35, pct: 106, status: 'high' },
+          { key: 'humid', label: '土壤湿度', value: '38.0', unit: '%', dot: '#1890ff', min: 30, max: 80, pct: 16, status: 'low' }
+        ],
+        readings: [
+          { historyId: 'H201', nodeId: 'N-A3-001', deviceAddress: 'S-A3-001', time: '14:00', temStr: '36.2°C', temValue: 36.2, humStr: '38.0%', humValue: 38.0, alarmStatus: 1, recordTime: 1720072800000, items: [{ k: '温度', v: '36.2°C' }, { k: '湿度', v: '38.0%' }] },
+          { historyId: 'H202', nodeId: 'N-A3-001', deviceAddress: 'S-A3-001', time: '13:30', temStr: '35.8°C', temValue: 35.8, humStr: '38.5%', humValue: 38.5, alarmStatus: 1, recordTime: 1720071000000, items: [{ k: '温度', v: '35.8°C' }, { k: '湿度', v: '38.5%' }] },
+          { historyId: 'H203', nodeId: 'N-A3-001', deviceAddress: 'S-A3-001', time: '13:00', temStr: '35.5°C', temValue: 35.5, humStr: '39.2%', humValue: 39.2, alarmStatus: 1, recordTime: 1720069200000, items: [{ k: '温度', v: '35.5°C' }, { k: '湿度', v: '39.2%' }] },
+          { historyId: 'H204', nodeId: 'N-A3-001', deviceAddress: 'S-A3-001', time: '12:30', temStr: '35.1°C', temValue: 35.1, humStr: '39.8%', humValue: 39.8, alarmStatus: 0, recordTime: 1720067400000, items: [{ k: '温度', v: '35.1°C' }, { k: '湿度', v: '39.8%' }] },
+          { historyId: 'H205', nodeId: 'N-A3-001', deviceAddress: 'S-A3-001', time: '12:00', temStr: '34.8°C', temValue: 34.8, humStr: '40.3%', humValue: 40.3, alarmStatus: 0, recordTime: 1720065600000, items: [{ k: '温度', v: '34.8°C' }, { k: '湿度', v: '40.3%' }] }
+        ],
+        alerts: '当前土壤温度 36.2°C，超过适宜上限 35°C，建议加强灌溉降温。已持续超标约 2 小时。'
+      },
+      {
+        id: 'S-B1-001',
+        name: 'B1 养分监测站',
+        type: '氮磷钾传感器',
+        plotLabel: 'B1 地块 · 红颜草莓',
+        zone: 'B',
+        battery: 91,
+        protocol: 'LoRaWAN',
+        calibration: '2025-01-05',
+        online: true,
+        deviceAddr: 'S-B1-001',
+        saveDataInterval: 60,
+        offlineInterval: 15,
+        nodeInfoList: [
+          { nodeId: 'N-B1-001', nodeName: '主节点', enable: true, nodeMold: '养分', nodeType: 'master' },
+          { nodeId: 'N-B1-002', nodeName: '氮传感器', enable: true, nodeMold: '氮', nodeType: 'slave' },
+          { nodeId: 'N-B1-003', nodeName: '磷传感器', enable: true, nodeMold: '磷', nodeType: 'slave' },
+          { nodeId: 'N-B1-004', nodeName: '钾传感器', enable: true, nodeMold: '钾', nodeType: 'slave' }
+        ],
+        status: '在线',
+        statusClass: 'online',
+        params: [
+          { key: 'temp', label: '土壤温度', value: '24.6', unit: '°C', dot: '#faad14', min: 15, max: 35, pct: 48, status: 'normal' },
+          { key: 'humid', label: '土壤湿度', value: '71.3', unit: '%', dot: '#1890ff', min: 30, max: 80, pct: 83, status: 'normal' },
+          { key: 'n', label: '速效氮', value: '156', unit: 'mg/kg', dot: '#13c2c2', min: 80, max: 200, pct: 78, status: 'normal' },
+          { key: 'p', label: '速效磷', value: '26.4', unit: 'mg/kg', dot: '#faad14', min: 20, max: 40, pct: 66, status: 'normal' },
+          { key: 'k', label: '速效钾', value: '182', unit: 'mg/kg', dot: '#52c41a', min: 100, max: 300, pct: 61, status: 'normal' }
+        ],
+        readings: [
+          { historyId: 'H301', nodeId: 'N-B1-001', deviceAddress: 'S-B1-001', time: '14:00', temStr: '24.6°C', temValue: 24.6, humStr: '71.3%', humValue: 71.3, alarmStatus: 0, recordTime: 1720072800000, items: [{ k: '温度', v: '24.6°C' }, { k: '湿度', v: '71.3%' }, { k: '氮', v: '156' }, { k: '磷', v: '26.4' }, { k: '钾', v: '182' }] },
+          { historyId: 'H302', nodeId: 'N-B1-001', deviceAddress: 'S-B1-001', time: '13:30', temStr: '24.4°C', temValue: 24.4, humStr: '71.8%', humValue: 71.8, alarmStatus: 0, recordTime: 1720071000000, items: [{ k: '温度', v: '24.4°C' }, { k: '湿度', v: '71.8%' }, { k: '氮', v: '154' }, { k: '磷', v: '26.2' }, { k: '钾', v: '180' }] },
+          { historyId: 'H303', nodeId: 'N-B1-001', deviceAddress: 'S-B1-001', time: '13:00', temStr: '24.3°C', temValue: 24.3, humStr: '72.0%', humValue: 72.0, alarmStatus: 0, recordTime: 1720069200000, items: [{ k: '温度', v: '24.3°C' }, { k: '湿度', v: '72.0%' }, { k: '氮', v: '153' }, { k: '磷', v: '26.0' }, { k: '钾', v: '178' }] },
+          { historyId: 'H304', nodeId: 'N-B1-001', deviceAddress: 'S-B1-001', time: '12:30', temStr: '24.1°C', temValue: 24.1, humStr: '72.5%', humValue: 72.5, alarmStatus: 0, recordTime: 1720067400000, items: [{ k: '温度', v: '24.1°C' }, { k: '湿度', v: '72.5%' }, { k: '氮', v: '152' }, { k: '磷', v: '25.8' }, { k: '钾', v: '176' }] },
+          { historyId: 'H305', nodeId: 'N-B1-001', deviceAddress: 'S-B1-001', time: '12:00', temStr: '23.9°C', temValue: 23.9, humStr: '73.0%', humValue: 73.0, alarmStatus: 0, recordTime: 1720065600000, items: [{ k: '温度', v: '23.9°C' }, { k: '湿度', v: '73.0%' }, { k: '氮', v: '150' }, { k: '磷', v: '25.5' }, { k: '钾', v: '174' }] }
+        ],
+        alerts: null
+      },
+      {
+        id: 'S-C1-001',
+        name: 'C1 养分监测站',
+        type: '氮磷钾传感器',
+        plotLabel: 'C1 地块 · 红颜草莓',
+        zone: 'C',
+        battery: 56,
+        protocol: 'LoRaWAN',
+        calibration: '2024-12-22',
+        online: true,
+        deviceAddr: 'S-C1-001',
+        saveDataInterval: 60,
+        offlineInterval: 15,
+        nodeInfoList: [
+          { nodeId: 'N-C1-001', nodeName: '主节点', enable: true, nodeMold: '养分', nodeType: 'master' },
+          { nodeId: 'N-C1-002', nodeName: '氮传感器', enable: true, nodeMold: '氮', nodeType: 'slave' },
+          { nodeId: 'N-C1-003', nodeName: '磷传感器', enable: true, nodeMold: '磷', nodeType: 'slave' },
+          { nodeId: 'N-C1-004', nodeName: '钾传感器', enable: true, nodeMold: '钾', nodeType: 'slave' }
+        ],
+        status: '在线',
+        statusClass: 'online',
+        params: [
+          { key: 'temp', label: '土壤温度', value: '27.1', unit: '°C', dot: '#faad14', min: 15, max: 35, pct: 60, status: 'normal' },
+          { key: 'humid', label: '土壤湿度', value: '55.8', unit: '%', dot: '#1890ff', min: 30, max: 80, pct: 52, status: 'normal' },
+          { key: 'n', label: '速效氮', value: '98', unit: 'mg/kg', dot: '#13c2c2', min: 80, max: 200, pct: 49, status: 'normal' },
+          { key: 'p', label: '速效磷', value: '14.2', unit: 'mg/kg', dot: '#faad14', min: 20, max: 40, pct: 28, status: 'low' },
+          { key: 'k', label: '速效钾', value: '118', unit: 'mg/kg', dot: '#52c41a', min: 100, max: 300, pct: 39, status: 'normal' }
+        ],
+        readings: [
+          { historyId: 'H401', nodeId: 'N-C1-001', deviceAddress: 'S-C1-001', time: '14:00', temStr: '27.1°C', temValue: 27.1, humStr: '55.8%', humValue: 55.8, alarmStatus: 0, recordTime: 1720072800000, items: [{ k: '温度', v: '27.1°C' }, { k: '湿度', v: '55.8%' }, { k: '氮', v: '98' }, { k: '磷', v: '14.2' }, { k: '钾', v: '118' }] },
+          { historyId: 'H402', nodeId: 'N-C1-001', deviceAddress: 'S-C1-001', time: '13:30', temStr: '27.0°C', temValue: 27.0, humStr: '56.2%', humValue: 56.2, alarmStatus: 0, recordTime: 1720071000000, items: [{ k: '温度', v: '27.0°C' }, { k: '湿度', v: '56.2%' }, { k: '氮', v: '99' }, { k: '磷', v: '14.5' }, { k: '钾', v: '119' }] },
+          { historyId: 'H403', nodeId: 'N-C1-001', deviceAddress: 'S-C1-001', time: '13:00', temStr: '26.8°C', temValue: 26.8, humStr: '56.5%', humValue: 56.5, alarmStatus: 0, recordTime: 1720069200000, items: [{ k: '温度', v: '26.8°C' }, { k: '湿度', v: '56.5%' }, { k: '氮', v: '98' }, { k: '磷', v: '14.8' }, { k: '钾', v: '120' }] },
+          { historyId: 'H404', nodeId: 'N-C1-001', deviceAddress: 'S-C1-001', time: '12:30', temStr: '26.6°C', temValue: 26.6, humStr: '56.8%', humValue: 56.8, alarmStatus: 0, recordTime: 1720067400000, items: [{ k: '温度', v: '26.6°C' }, { k: '湿度', v: '56.8%' }, { k: '氮', v: '97' }, { k: '磷', v: '15.0' }, { k: '钾', v: '120' }] },
+          { historyId: 'H405', nodeId: 'N-C1-001', deviceAddress: 'S-C1-001', time: '12:00', temStr: '26.5°C', temValue: 26.5, humStr: '57.0%', humValue: 57.0, alarmStatus: 0, recordTime: 1720065600000, items: [{ k: '温度', v: '26.5°C' }, { k: '湿度', v: '57.0%' }, { k: '氮', v: '97' }, { k: '磷', v: '15.2' }, { k: '钾', v: '121' }] }
+        ],
+        alerts: null
+      },
+      // ─── 气象设备（合并自气象监测页面） ───
+      {
+        id: 'MET-A1-001', name: 'A区气象站', deviceType: 'weather', type: '气象站',
+        plotLabel: 'A区 · 草莓育苗区', lng: 120.1234, lat: 30.5678,
+        online: true, status: '在线', statusClass: 'online',
+        saveDataInterval: 30, offlineInterval: 60,
+        protocol: '4G', battery: 100, calibration: '2025-01-01',
+        nodeInfoList: [
+          { nodeId: 'N-A1-001', nodeName: '温湿度传感器', enable: true, nodeMold: '常规', nodeType: 'temp_humidity' },
+          { nodeId: 'N-A1-002', nodeName: '风速风向传感器', enable: true, nodeMold: '常规', nodeType: 'wind' },
+          { nodeId: 'N-A1-003', nodeName: '大气压传感器', enable: true, nodeMold: '常规', nodeType: 'pressure' },
+          { nodeId: 'N-A1-004', nodeName: '光照传感器', enable: true, nodeMold: '常规', nodeType: 'light' }
+        ],
+        params: [
+          { key: 'tem', label: '空气温度', value: '28.3', unit: '°C', dot: '#faad14', min: -10, max: 50, pct: 64, status: 'normal' },
+          { key: 'hum', label: '空气湿度', value: '74.2', unit: '%', dot: '#1890ff', min: 0, max: 100, pct: 74, status: 'normal' },
+          { key: 'wind', label: '风速', value: '3.2', unit: 'm/s', dot: '#13c2c2', min: 0, max: 20, pct: 16, status: 'normal' },
+          { key: 'windDir', label: '风向', value: '东南风', unit: '', dot: '#722ed1', min: null, max: null, pct: null, status: 'normal' },
+          { key: 'pressure', label: '大气压力', value: '1013', unit: 'hPa', dot: '#52c41a', min: 970, max: 1050, pct: 62, status: 'normal' },
+          { key: 'light', label: '光照强度', value: '52400', unit: 'Lux', dot: '#faad14', min: 0, max: 120000, pct: 44, status: 'normal' }
+        ],
+        historyReadings: [
+          { time: '14:00', tem: 28.3, hum: 74.2 }, { time: '13:30', tem: 28.1, hum: 74.8 },
+          { time: '13:00', tem: 27.8, hum: 75.3 }, { time: '12:30', tem: 27.5, hum: 76.0 },
+          { time: '12:00', tem: 27.2, hum: 76.5 }, { time: '11:30', tem: 26.9, hum: 77.1 },
+          { time: '11:00', tem: 26.5, hum: 77.8 }, { time: '10:30', tem: 26.1, hum: 78.5 },
+          { time: '10:00', tem: 25.8, hum: 79.0 }, { time: '09:30', tem: 25.5, hum: 79.6 },
+          { time: '09:00', tem: 25.2, hum: 80.2 }, { time: '08:30', tem: 24.9, hum: 80.8 }
+        ],
+        alerts: null
+      },
+      {
+        id: 'MET-B1-001', name: 'B区气象站', deviceType: 'weather', type: '气象站',
+        plotLabel: 'B区 · 草莓种植大棚', lng: 120.2345, lat: 30.6789,
+        online: true, status: '在线', statusClass: 'online',
+        saveDataInterval: 30, offlineInterval: 60,
+        protocol: '4G', battery: 100, calibration: '2025-01-15',
+        nodeInfoList: [
+          { nodeId: 'N-B1-001', nodeName: '温湿度传感器', enable: true, nodeMold: '常规', nodeType: 'temp_humidity' },
+          { nodeId: 'N-B1-002', nodeName: 'CO₂传感器', enable: true, nodeMold: '常规', nodeType: 'co2' },
+          { nodeId: 'N-B1-003', nodeName: '光照传感器', enable: true, nodeMold: '常规', nodeType: 'light' }
+        ],
+        params: [
+          { key: 'tem', label: '空气温度', value: '27.8', unit: '°C', dot: '#faad14', min: -10, max: 50, pct: 63, status: 'normal' },
+          { key: 'hum', label: '空气湿度', value: '76.5', unit: '%', dot: '#1890ff', min: 0, max: 100, pct: 77, status: 'normal' },
+          { key: 'co2', label: 'CO₂浓度', value: '418', unit: 'ppm', dot: '#52c41a', min: 300, max: 2000, pct: 7, status: 'normal' },
+          { key: 'light', label: '光照强度', value: '49800', unit: 'Lux', dot: '#faad14', min: 0, max: 120000, pct: 42, status: 'normal' },
+          { key: 'wind', label: '风速', value: '2.8', unit: 'm/s', dot: '#13c2c2', min: 0, max: 20, pct: 14, status: 'normal' },
+          { key: 'windDir', label: '风向', value: '南风', unit: '', dot: '#722ed1', min: null, max: null, pct: null, status: 'normal' }
+        ],
+        historyReadings: [
+          { time: '14:00', tem: 27.8, hum: 76.5 }, { time: '13:30', tem: 27.5, hum: 77.0 },
+          { time: '13:00', tem: 27.2, hum: 77.5 }, { time: '12:30', tem: 26.9, hum: 78.1 },
+          { time: '12:00', tem: 26.6, hum: 78.6 }, { time: '11:30', tem: 26.3, hum: 79.2 },
+          { time: '11:00', tem: 26.0, hum: 79.8 }, { time: '10:30', tem: 25.7, hum: 80.3 },
+          { time: '10:00', tem: 25.4, hum: 80.9 }, { time: '09:30', tem: 25.1, hum: 81.4 },
+          { time: '09:00', tem: 24.8, hum: 82.0 }, { time: '08:30', tem: 24.5, hum: 82.5 }
+        ],
+        alerts: null
+      },
+      {
+        id: 'MET-C1-001', name: 'C区气象站', deviceType: 'weather', type: '气象站',
+        plotLabel: 'C区 · 草莓采摘园', lng: 120.3456, lat: 30.7890,
+        online: true, status: '温度报警', statusClass: 'warning',
+        saveDataInterval: 30, offlineInterval: 60,
+        protocol: '4G', battery: 100, calibration: '2025-02-01',
+        nodeInfoList: [
+          { nodeId: 'N-C1-001', nodeName: '温湿度传感器', enable: true, nodeMold: '常规', nodeType: 'temp_humidity' },
+          { nodeId: 'N-C1-002', nodeName: '风速风向传感器', enable: true, nodeMold: '常规', nodeType: 'wind' },
+          { nodeId: 'N-C1-003', nodeName: '雨量传感器', enable: true, nodeMold: '雨量', nodeType: 'rain' },
+          { nodeId: 'N-C1-004', nodeName: '蒸发量传感器', enable: false, nodeMold: '蒸发量', nodeType: 'evaporation' }
+        ],
+        params: [
+          { key: 'tem', label: '空气温度', value: '39.6', unit: '°C', dot: '#ff4d4f', min: -10, max: 50, pct: 83, status: 'high' },
+          { key: 'hum', label: '空气湿度', value: '55.2', unit: '%', dot: '#1890ff', min: 0, max: 100, pct: 55, status: 'normal' },
+          { key: 'wind', label: '风速', value: '4.1', unit: 'm/s', dot: '#13c2c2', min: 0, max: 20, pct: 21, status: 'normal' },
+          { key: 'windDir', label: '风向', value: '西北风', unit: '', dot: '#722ed1', min: null, max: null, pct: null, status: 'normal' },
+          { key: 'rain', label: '今日降水', value: '12.4', unit: 'mm', dot: '#13c2c2', min: 0, max: 200, pct: 6, status: 'normal' }
+        ],
+        historyReadings: [
+          { time: '14:00', tem: 39.6, hum: 55.2 }, { time: '13:30', tem: 39.2, hum: 55.8 },
+          { time: '13:00', tem: 38.8, hum: 56.3 }, { time: '12:30', tem: 38.3, hum: 57.0 },
+          { time: '12:00', tem: 37.9, hum: 57.5 }, { time: '11:30', tem: 37.4, hum: 58.1 },
+          { time: '11:00', tem: 36.8, hum: 58.8 }, { time: '10:30', tem: 36.2, hum: 59.5 },
+          { time: '10:00', tem: 35.6, hum: 60.2 }, { time: '09:30', tem: 35.0, hum: 61.0 },
+          { time: '09:00', tem: 34.3, hum: 61.8 }, { time: '08:30', tem: 33.7, hum: 62.5 }
+        ],
+        alerts: '当前空气温度 39.6°C，超过作物适宜上限 35°C，建议加强通风和遮阳降温。已持续超标约 3 小时。'
+      },
+      {
+        id: 'MET-D1-001', name: 'D区雨量站', deviceType: 'weather', type: '气象站',
+        plotLabel: 'D区 · 草莓母本园', lng: 120.4567, lat: 30.8901,
+        online: false, status: '离线', statusClass: 'offline',
+        saveDataInterval: 30, offlineInterval: 60,
+        protocol: '4G', battery: 100, calibration: '2025-02-10',
+        nodeInfoList: [
+          { nodeId: 'N-D1-001', nodeName: '雨量传感器', enable: true, nodeMold: '雨量', nodeType: 'rain' },
+          { nodeId: 'N-D1-002', nodeName: '蒸发量传感器', enable: true, nodeMold: '蒸发量', nodeType: 'evaporation' },
+          { nodeId: 'N-D1-003', nodeName: '温湿度传感器', enable: true, nodeMold: '常规', nodeType: 'temp_humidity' }
+        ],
+        params: [
+          { key: 'rain', label: '今日降水', value: '24.8', unit: 'mm', dot: '#13c2c2', min: 0, max: 200, pct: 12, status: 'normal' },
+          { key: 'evap', label: '今日蒸发量', value: '3.6', unit: 'mm', dot: '#fa8c16', min: 0, max: 20, pct: 18, status: 'normal' },
+          { key: 'tem', label: '空气温度', value: '26.5', unit: '°C', dot: '#faad14', min: -10, max: 50, pct: 61, status: 'normal' },
+          { key: 'hum', label: '空气湿度', value: '82.1', unit: '%', dot: '#1890ff', min: 0, max: 100, pct: 82, status: 'normal' },
+          { key: 'accumRain', label: '周累计降水', value: '56.2', unit: 'mm', dot: '#13c2c2', min: 0, max: 300, pct: 19, status: 'normal' }
+        ],
+        historyReadings: [
+          { time: '14:00', tem: 26.5, hum: 82.1 }, { time: '13:30', tem: 26.2, hum: 82.5 },
+          { time: '13:00', tem: 25.9, hum: 83.0 }, { time: '12:30', tem: 25.6, hum: 83.4 },
+          { time: '12:00', tem: 25.3, hum: 83.8 }, { time: '11:30', tem: 25.0, hum: 84.2 },
+          { time: '11:00', tem: 24.7, hum: 84.6 }, { time: '10:30', tem: 24.4, hum: 85.0 },
+          { time: '10:00', tem: 24.1, hum: 85.5 }, { time: '09:30', tem: 23.8, hum: 86.0 },
+          { time: '09:00', tem: 23.5, hum: 86.4 }, { time: '08:30', tem: 23.2, hum: 86.8 }
+        ],
+        alerts: null
+      }
+    ];
+
+    var selectedId = null;
+    var currentFilter = '';
+    var currentTypeFilter = 'all';
+    var allDevices = DEVICES;
+
+
+
+    // ── 渲染设备列表 ──
+    function renderDeviceList() {
+      var keyword = currentFilter.trim().toLowerCase();
+      var devices = allDevices.filter(function(d) {
+        if (currentTypeFilter === 'soil' && d.deviceType === 'weather') return false;
+        if (currentTypeFilter === 'weather' && d.deviceType !== 'weather') return false;
+        if (keyword && d.id.toLowerCase().indexOf(keyword) === -1 && d.name.toLowerCase().indexOf(keyword) === -1) return false;
+        return true;
+      });
+
+      var html = '';
+      for (var i = 0; i < devices.length; i++) {
+        var d = devices[i];
+        var sel = selectedId === d.id ? ' selected' : '';
+        var isWeather = d.deviceType === 'weather';
+        var typeBadge = isWeather ? '<span class="dev-type-badge dev-type-weather">气象</span>' : '<span class="dev-type-badge dev-type-soil">墒情</span>';
+        html += '<tr class="' + sel + '" data-id="' + d.id + '" onclick="selectDevice(\'' + d.id + '\')">';
+        html += '<td><div class="device-name">' + typeBadge + ' ' + d.id + '</div><span class="device-type">' + d.name + '</span></td>';
+        html += '<td>' + d.plotLabel + '</td>';
+        html += '<td><span class="status-pill ' + d.statusClass + '"><span class="status-dot"></span>' + d.status + '</span></td>';
+        html += '</tr>';
+      }
+
+      document.getElementById('deviceListBody').innerHTML = html;
+      document.getElementById('deviceCount').textContent = devices.length + '台';
+
+      if (selectedId && devices.some(function(d) { return d.id === selectedId; })) {
+        showDeviceDetail(selectedId);
+      } else {
+        if (devices.length > 0) {
+          selectDevice(devices[0].id);
+        } else {
+          selectedId = null;
+          document.getElementById('detailEmpty').style.display = 'flex';
+        }
+      }
+    }
+
+    // ── 选中设备 ──
+    function selectDevice(id) {
+      selectedId = id;
+      renderDeviceList();
+      showDeviceDetail(id);
+    }
+
+    // ── 生成72小时历史趋势数据（带日期） ──
+    function generateHistory(device) {
+      var history = {};
+      for (var p = 0; p < device.params.length; p++) {
+        var param = device.params[p];
+        var baseNum = parseFloat(param.value);
+        var data = [];
+        var now = new Date();
+        // 24个点，跨越3天
+        var totalHours = 72;
+        var step = totalHours / (24 - 1);
+        for (var i = 23; i >= 0; i--) {
+          var t = new Date(now);
+          t.setHours(t.getHours() - Math.round(i * step));
+          t.setMinutes(0);
+          var month = ('0' + (t.getMonth() + 1)).slice(-2);
+          var day = ('0' + t.getDate()).slice(-2);
+          var hour = ('0' + t.getHours()).slice(-2);
+          var timeStr = month + '-' + day + ' ' + hour + ':00';
+          var variation = (Math.random() - 0.5) * baseNum * 0.3;
+          var val = Math.round((baseNum + variation) * 100) / 100;
+          data.push({ time: timeStr, value: val, ts: t.getTime() });
+        }
+        history[param.key] = data;
+      }
+      return history;
+    }
+
+    var rangeLeft = 0, rangeRight = 100, isDragging = null;
+
+    // ── 渲染 SVG 趋势图 ──
+    function renderChart(device, paramKey) {
+      var param = null;
+      for (var i = 0; i < device.params.length; i++) {
+        if (device.params[i].key === paramKey) { param = device.params[i]; break; }
+      }
+      if (!param) return '';
+
+      var history = device._history || (device._history = generateHistory(device));
+      var allData = history[paramKey];
+      if (!allData || allData.length === 0) return '';
+
+      // 应用范围滑块过滤
+      var len = allData.length;
+      var startIdx = Math.round(rangeLeft / 100 * (len - 1));
+      var endIdx = Math.round(rangeRight / 100 * (len - 1));
+      startIdx = Math.max(0, Math.min(startIdx, len - 2));
+      endIdx = Math.max(startIdx + 1, Math.min(endIdx, len - 1));
+      var data = allData.slice(startIdx, endIdx + 1);
+
+      var container = document.querySelector('.right-col');
+      var w = container ? Math.max(400, container.offsetWidth - 48) : 800;
+      var h = 180;
+      var padL = 46, padR = 16, padT = 16, padB = 28;
+      var plotW = w - padL - padR;
+      var plotH = h - padT - padB;
+
+      // 值域
+      var vals = data.map(function(d) { return d.value; });
+      var vMin = Math.min.apply(null, vals);
+      var vMax = Math.max.apply(null, vals);
+      var vRange = vMax - vMin || 1;
+      var yPad = vRange * 0.12;
+      var yMin = vMin - yPad;
+      var yMax = vMax + yPad;
+      var yRange = yMax - yMin;
+
+      // Y轴刻度（5条横线 + 标签）
+      var ySteps = 4;
+      var yLabels = [];
+      for (var y = 0; y <= ySteps; y++) {
+        yLabels.push(Number((yMin + (yRange * y / ySteps)).toFixed(1)));
+      }
+
+      // 坐标转换
+      function valToY(v) { return padT + plotH - ((v - yMin) / yRange * plotH); }
+      function idxToX(idx) { return padL + (idx / (data.length - 1)) * plotW; }
+
+      // X轴标签（取头中尾，最多6个）
+      var xLabelCount = Math.min(data.length, 6);
+      var xLabelIdxes = [];
+      for (var i = 0; i < xLabelCount; i++) {
+        xLabelIdxes.push(Math.round(i * (data.length - 1) / (xLabelCount - 1)));
+      }
+
+      // 折线路径
+      var points = [];
+      for (var i = 0; i < data.length; i++) {
+        points.push(idxToX(i) + ',' + valToY(data[i].value));
+      }
+      var linePath = 'M' + points.join(' L');
+
+      // 面积填充
+      var areaPath = linePath + ' L' + idxToX(data.length - 1) + ',' + (padT + plotH) + ' L' + idxToX(0) + ',' + (padT + plotH) + ' Z';
+
+      var color = param.dot || '#2f6feb';
+
+      // 数据点圆
+      var dotsHtml = '';
+      for (var i = 0; i < data.length; i++) {
+        var showDot = i === data.length - 1;
+        dotsHtml += '<circle cx="' + idxToX(i) + '" cy="' + valToY(data[i].value) + '" r="' + (showDot ? 3.5 : 2) + '" ' +
+          'fill="' + (showDot ? color : 'white') + '" stroke="' + color + '" stroke-width="1.5" ' +
+          'data-idx="' + i + '" data-time="' + data[i].time + '" data-val="' + data[i].value + '" ' +
+          'style="cursor:pointer" ' +
+          'onmouseenter="showChartTooltip(event,this)" onmouseleave="hideChartTooltip()" />';
+      }
+
+      // 构建SVG网格+折线
+      var gridHtml = '';
+      for (var y = 0; y <= ySteps; y++) {
+        var yy = padT + plotH - (plotH * y / ySteps);
+        var isMid = y > 0 && y < ySteps;
+        gridHtml += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (w - padR) + '" y2="' + yy + '" stroke="' + (isMid ? '#eee' : '#ddd') + '" stroke-width="' + (isMid ? '0.5' : '1') + '"/>';
+        gridHtml += '<text x="' + (padL - 6) + '" y="' + (yy + 4) + '" text-anchor="end" fill="#888" font-size="11" font-family="ui-monospace,monospace">' + yLabels[y] + '</text>';
+      }
+      // 竖线 + X轴日期标签
+      for (var xi = 0; xi < xLabelIdxes.length; xi++) {
+        var ii = xLabelIdxes[xi];
+        var xx = idxToX(ii);
+        gridHtml += '<line x1="' + xx + '" y1="' + padT + '" x2="' + xx + '" y2="' + (padT + plotH) + '" stroke="#eee" stroke-width="0.5" stroke-dasharray="2,3"/>';
+        var timeParts = data[ii].time.split(' ');
+        gridHtml += '<text x="' + xx + '" y="' + (padT + plotH + 16) + '" text-anchor="middle" fill="#888" font-size="10" font-family="ui-monospace,monospace">' + timeParts[0] + '</text>';
+        gridHtml += '<text x="' + xx + '" y="' + (padT + plotH + 28) + '" text-anchor="middle" fill="#aaa" font-size="9" font-family="ui-monospace,monospace">' + (timeParts[1] || '') + '</text>';
+      }
+
+      var gradId = 'grad_' + paramKey.replace(/[^a-zA-Z0-9]/g, '_');
+
+      return '<div class="chart-section">' +
+        '<div class="chart-header">' +
+          '<div class="chart-title">历史趋势</div>' +
+          '<div class="chart-param-name">' + param.label + ' (' + param.unit + ')' + '</div>' +
+        '</div>' +
+        '<div class="chart-wrap">' +
+          '<div class="chart-tooltip" id="chartTooltip"></div>' +
+          '<svg width="' + w + '" height="' + h + '">' +
+            gridHtml +
+            '<defs>' +
+              '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">' +
+                '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.18"/>' +
+                '<stop offset="100%" stop-color="' + color + '" stop-opacity="0.02"/>' +
+              '</linearGradient>' +
+            '</defs>' +
+            '<path d="' + areaPath + '" fill="url(#' + gradId + ')" />' +
+            '<path d="' + linePath + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+            dotsHtml +
+          '</svg>' +
+        '</div>' +
+        '<div class="range-slider-time">' +
+          '<span>' + allData[0].time + '</span>' +
+          '<span>拖动时间范围</span>' +
+          '<span>' + allData[allData.length - 1].time + '</span>' +
+        '</div>' +
+        '<div class="range-slider-wrap" id="rangeSliderWrap">' +
+          '<div class="range-slider-track"></div>' +
+          '<div class="range-slider-fill" id="rangeFill" style="left:' + rangeLeft + '%;width:' + (rangeRight - rangeLeft) + '%"></div>' +
+          '<div class="range-slider-handle" id="rangeHandleL" style="left:' + rangeLeft + '%" onmousedown="startDrag(event,\'L\')"></div>' +
+          '<div class="range-slider-handle" id="rangeHandleR" style="left:' + rangeRight + '%" onmousedown="startDrag(event,\'R\')"></div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    // ── 滑块拖拽逻辑 ──
+    function startDrag(e, side) {
+      e.preventDefault();
+      isDragging = side;
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', stopDrag);
+    }
+    function onDrag(e) {
+      var wrap = document.getElementById('rangeSliderWrap');
+      if (!wrap || !isDragging) return;
+      var rect = wrap.getBoundingClientRect();
+      var pct = (e.clientX - rect.left) / rect.width * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      if (isDragging === 'L') {
+        if (pct >= rangeRight - 5) pct = rangeRight - 5;
+        rangeLeft = pct;
+      } else {
+        if (pct <= rangeLeft + 5) pct = rangeLeft + 5;
+        rangeRight = pct;
+      }
+      document.getElementById('rangeHandleL').style.left = rangeLeft + '%';
+      document.getElementById('rangeHandleR').style.left = rangeRight + '%';
+      document.getElementById('rangeFill').style.left = rangeLeft + '%';
+      document.getElementById('rangeFill').style.width = (rangeRight - rangeLeft) + '%';
+      // 重新渲染图表
+      var device = getCurrentDevice();
+      if (device) showDeviceDetail(device.id);
+    }
+    function stopDrag() {
+      isDragging = null;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    function getCurrentDevice() {
+      if (!selectedId) return null;
+      for (var i = 0; i < DEVICES.length; i++) {
+        if (DEVICES[i].id === selectedId) return DEVICES[i];
+      }
+      return null;
+    }
+
+    // ── 图表 Tooltip ──
+    function showChartTooltip(e, el) {
+      var tip = document.getElementById('chartTooltip');
+      if (!tip) return;
+      var time = el.getAttribute('data-time');
+      var val = el.getAttribute('data-val');
+      tip.textContent = time + '  ' + val;
+      tip.className = 'chart-tooltip show';
+      var wrap = el.closest('.chart-wrap');
+      if (!wrap) return;
+      var wrapRect = wrap.getBoundingClientRect();
+      var left = e.clientX - wrapRect.left;
+      left = Math.max(10, Math.min(left, wrapRect.width - 10));
+      tip.style.left = left + 'px';
+      tip.style.top = '-4px';
+    }
+    function hideChartTooltip() {
+      var tip = document.getElementById('chartTooltip');
+      if (tip) tip.className = 'chart-tooltip';
+    }
+
+    var currentChartParam = null;
+
+    // ── 渲染设备详情 ──
+    function showDeviceDetail(id) {
+      var device = null;
+      for (var i = 0; i < DEVICES.length; i++) {
+        if (DEVICES[i].id === id) { device = DEVICES[i]; break; }
+      }
+      if (!device) return;
+
+      var detailBody = document.getElementById('detailBody');
+      document.getElementById('detailEmpty').style.display = 'none';
+
+      var isWeather = device.deviceType === 'weather';
+
+      // ── 设备信息头 ──
+      var infoHeader = '';
+      var nodesHtml = '';
+      if (isWeather) {
+        var wOfflineLabel = device.online
+          ? '<span class="status-pill ' + device.statusClass + '" style="font-size:11px;padding:1px 8px;"><span class="status-dot"></span>' + device.status + '</span>'
+          : '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--meta);background:var(--border-soft);padding:1px 8px;border-radius:var(--radius-pill);"><svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg> 离线</span>';
+        infoHeader =
+          '<div class="device-info-header">' +
+            '<div class="device-avatar"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm-1 5a1 1 0 112 0 1 1 0 01-2 0zm1 4a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1z"/></svg></div>' +
+            '<div class="device-meta">' +
+              '<div class="device-meta-name">' + device.name +
+                ' <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);background:var(--border-soft);padding:0 6px;border-radius:3px;">' + device.id + '</span>' +
+                wOfflineLabel +
+              '</div>' +
+              '<div class="device-meta-location">' + device.plotLabel +
+                ' · 经度 ' + device.lng + ' 纬度 ' + device.lat + '</div>' +
+              '<div class="device-meta-extra">' +
+                '<span>采集间隔 ' + device.saveDataInterval + '分</span>' +
+                '<span>离线判定 ' + device.offlineInterval + '分</span>' +
+                (device.online ? '<span>● 设备启用</span>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        nodesHtml = '<div class="detail-section-title">传感器节点 (' + device.nodeInfoList.length + ')</div>';
+        nodesHtml += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:var(--space-3);">';
+        for (var ni = 0; ni < device.nodeInfoList.length; ni++) {
+          var nd = device.nodeInfoList[ni];
+          var moldBg = nd.nodeMold === '雨量' ? '#e6fffb' : (nd.nodeMold === '蒸发量' ? '#fff7e6' : '#e6f7ff');
+          var moldColor = nd.nodeMold === '雨量' ? '#13c2c2' : (nd.nodeMold === '蒸发量' ? '#fa8c16' : '#1890ff');
+          nodesHtml +=
+            '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#fafafa;border-radius:var(--radius-sm);border:1px solid var(--border-soft);">' +
+              '<div style="display:flex;align-items:center;gap:8px;min-width:0;">' +
+                '<span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);background:var(--surface);padding:0 5px;border-radius:3px;border:1px solid var(--border-soft);">' + nd.nodeId + '</span>' +
+                '<span style="font-size:var(--text-xs);color:var(--fg);font-weight:500;">' + nd.nodeName + '</span>' +
+                '<span style="font-size:9px;padding:1px 6px;border-radius:var(--radius-pill);font-weight:500;background:' + moldBg + ';color:' + moldColor + ';">' + nd.nodeMold + '</span>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:10px;">' +
+                '<span style="width:6px;height:6px;border-radius:50%;background:' + (nd.enable ? 'var(--success)' : 'var(--meta)') + ';"></span>' +
+                (nd.enable ? '启用' : '停用') +
+              '</div>' +
+            '</div>';
+        }
+        nodesHtml += '</div>';
+      } else {
+        infoHeader =
+          '<div class="device-info-header">' +
+            '<div class="device-avatar"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm.5 5a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H4a.5.5 0 01-.5-.5zm8-6a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5zm0 3a.5.5 0 01.5-.5h3.5a.5.5 0 010 1H12a.5.5 0 01-.5-.5z"/></svg></div>' +
+            '<div class="device-meta">' +
+              '<div class="device-meta-name">' + device.id +
+                '<span class="status-pill ' + device.statusClass + '" style="font-size:11px;padding:1px 8px;"><span class="status-dot"></span>' + device.status + '</span>' +
+              '</div>' +
+              '<div class="device-meta-location">' + device.name + ' · ' + device.plotLabel + '</div>' +
+              '<div class="device-meta-extra">' +
+                '<span><svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M2.5 8a5.5 5.5 0 0111 0 5.5 5.5 0 01-11 0zM8 4a4 4 0 100 8 4 4 0 000-8z"/></svg> ' + device.protocol + '</span>' +
+                '<span><svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M8 1a.5.5 0 01.5.5v.69A7.002 7.002 0 0115 9h.5a.5.5 0 010 1h-.69A7.002 7.002 0 019 14.81v.69a.5.5 0 01-1 0v-.69A7.002 7.002 0 011 10h-.5a.5.5 0 010-1h.69A7.002 7.002 0 017.5 2.19V1.5A.5.5 0 018 1zm0 2a6 6 0 100 12A6 6 0 008 3z"/></svg> ' + device.battery + '%</span>' +
+                '<span><svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path fill-rule="evenodd" d="M1 4.5A1.5 1.5 0 012.5 3h11A1.5 1.5 0 0115 4.5V12a1 1 0 01-1 1H2a1 1 0 01-1-1V4.5zm1.5 0h11V6h-11V4.5zM2 12V7h12v5H2z"/></svg> 校准 ' + device.calibration + '</span>' +
+                '<span style="color:var(--accent);font-weight:500;">地址 ' + (device.deviceAddr || device.id) + '</span>' +
+                '<span>保存 ' + (device.saveDataInterval || 30) + '分</span>' +
+                '<span>离线 ' + (device.offlineInterval || 10) + '分</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        nodesHtml = '<div class="detail-section-title">节点信息</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-3);">' +
+            (device.nodeInfoList && device.nodeInfoList.length ? device.nodeInfoList.map(function(n) {
+              return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f8ff;border:1px solid #d6e4ff;border-radius:6px;padding:4px 10px;font-size:11px;color:var(--fg-2);">' +
+                '<span style="font-weight:600;color:var(--accent);">' + n.nodeId + '</span>' +
+                '<span>' + n.nodeName + '</span>' +
+                '<span style="color:var(--muted);font-size:10px;">' + n.nodeMold + '</span>' +
+                '<span style="color:var(--muted);font-size:10px;background:var(--border-soft);padding:0 5px;border-radius:4px;">' + n.nodeType + '</span>' +
+                (n.enable ? '<span style="color:#52c41a;font-size:10px;">●启用</span>' : '<span style="color:#ff4d4f;font-size:10px;">○停用</span>') +
+              '</span>';
+            }).join('') : '<span style="font-size:11px;color:var(--muted);">无节点信息</span>') +
+          '</div>';
+      }
+
+      var paramCards = '';
+      for (var i = 0; i < device.params.length; i++) {
+        var p = device.params[i];
+        var barColor = p.status === 'high' ? '#ff4d4f' : (p.status === 'low' ? '#faad14' : '#52c41a');
+        var pct = Math.min(p.pct, 100);
+        var activeClass = currentChartParam === p.key ? ' active' : '';
+        paramCards += '<div class="param-card' + activeClass + '" onclick="switchChart(\'' + device.id + '\',\'' + p.key + '\')">';
+        paramCards += '<div class="param-label"><span class="param-dot" style="background:' + p.dot + '"></span>' + p.label + '</div>';
+        paramCards += '<div class="param-value">' + p.value + '<span class="unit">' + p.unit + '</span></div>';
+        paramCards += '<div class="param-range">范围 ' + (p.min !== undefined ? p.min + '–' + p.max : '') + (p.unit || '') + '</div>';
+        paramCards += '<div class="param-bar"><div class="param-bar-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>';
+        paramCards += '</div>';
+      }
+
+      if (!currentChartParam || !device.params.some(function(p) { return p.key === currentChartParam; })) {
+        currentChartParam = device.params[0].key;
+      }
+
+      var chartHtml = renderChart(device, currentChartParam);
+
+      var alertHtml = '';
+      if (device.alerts) {
+        alertHtml = '<div class="alert-note"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>' + device.alerts + '</div>';
+      }
+
+      var alarmBadgeHtml = '';
+      if (device.readings && device.readings.length > 0) {
+        var latestReading = device.readings[0];
+        var alarmStatus = latestReading.alarmStatus || 0;
+        if (alarmStatus === 1) {
+          alarmBadgeHtml = '<span style="display:inline-flex;align-items:center;gap:4px;background:#fff2f0;color:#ff4d4f;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:500;">● 报警中</span>';
+        } else {
+          alarmBadgeHtml = '<span style="display:inline-flex;align-items:center;gap:4px;background:#f6ffed;color:#52c41a;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:500;">● 正常</span>';
+        }
+      }
+
+      detailBody.innerHTML =
+        '<!-- 设备信息头 -->' +
+        infoHeader +
+        '<!-- 实时参数 -->' +
+        '<div class="detail-section-title">' +
+          '实时参数' +
+          (alarmBadgeHtml ? '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:10px;font-weight:500;padding:1px 8px;border-radius:10px;">' + alarmBadgeHtml + '</span>' : '') +
+          '<button class="alert-trigger-btn" onclick="showAlertModal(\'' + device.id + '\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2 2 20h20L12 2z"/><path d="M12 9v5M12 17h.01"/></svg>系统预警</button>' +
+        '</div>' +
+        '<div class="param-grid">' + paramCards + '</div>' +
+        chartHtml +
+        alertHtml;
+    }
+    // ── 系统预警弹窗 ──
+    function showAlertModal(deviceId){
+      var device = null;
+      for(var i=0;i<DEVICES.length;i++){ if(DEVICES[i].id===deviceId){ device=DEVICES[i]; break; } }
+      if(!device){ return; }
+      var over = [];
+      for(var k=0;k<device.params.length;k++){
+        var p = device.params[k];
+        if(p.status==='high' || p.status==='low'){ over.push(p); }
+      }
+      var body = '';
+      if(over.length===0){
+        body = '<div class="alert-ok">✓ 当前设备各项采集参数<br>均在安全阈值范围内<br><span style="font-size:12px;color:var(--muted);">暂无预警</span></div>';
+      } else {
+        body = '<div class="alert-tip">检测到 <b style="color:var(--danger)">'+over.length+'</b> 项采集参数超出安全阈值，<br>建议立即进行<b>水肥供给动态调控</b>：</div>';
+        body += '<div class="alert-list">';
+        for(var j=0;j<over.length;j++){
+          var op = over[j];
+          body += '<div class="alert-item">'+
+            '<div class="alert-item__name">'+op.label+'</div>'+
+            '<div class="alert-item__val" style="color:'+(op.status==='high'?'var(--danger)':'var(--warn,#faad14)')+'">'+op.value+(op.unit||'')+'</div>'+
+            '<div class="alert-item__range">安全 '+(op.min!==undefined?op.min+'–'+op.max:'—')+(op.unit||'')+'</div>'+
+            '<span class="alert-item__tag">'+(op.status==='high'?'↑ 超上限':'↓ 低于下限')+'</span>'+
+          '</div>';
+        }
+        body += '</div>';
+        body += '<div class="alert-suggest"><b>调控建议：</b>根据超阈值参数调整灌溉量与氮磷钾配比；可前往 AI 决策平台「<b>水肥调控模型</b>」，按当前墒情自动生成水肥方案并联动电磁阀执行。</div>';
+      }
+      var mask = document.getElementById('alertMask');
+      if(!mask){
+        mask = document.createElement('div');
+        mask.id = 'alertMask';
+        mask.className = 'alert-mask';
+        mask.setAttribute('onclick','if(event.target===this)closeAlertModal()');
+        mask.innerHTML =
+          '<div class="alert-modal" onclick="event.stopPropagation()">'+
+            '<div class="alert-modal__head">'+
+              '<div class="alert-modal__title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 20h20L12 2z"/><path d="M12 9v5M12 17h.01"/></svg>系统预警</div>'+
+              '<button class="alert-modal__close" onclick="closeAlertModal()">×</button>'+
+            '</div>'+
+            '<div class="alert-modal__body" id="alertModalBody"></div>'+
+            '<div class="alert-modal__foot">'+
+              '<a href="ai-platform.html" style="padding:7px 16px;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;text-decoration:none;font-weight:600">去水肥调控模型</a>'+
+              '<button onclick="closeAlertModal()" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:#fff;color:#666;font-size:13px;cursor:pointer">知道了</button>'+
+            '</div>'+
+          '</div>';
+        document.body.appendChild(mask);
+      }
+      document.getElementById('alertModalBody').innerHTML = body;
+      mask.style.display = 'flex';
+    }
+    function closeAlertModal(){
+      var m = document.getElementById('alertMask');
+      if(m){ m.style.display = 'none'; }
+    }
+
+    // ── 切换图表参数 ──
+    function switchChart(deviceId, paramKey) {
+      currentChartParam = paramKey;
+      showDeviceDetail(deviceId);
+    }
+
+    // ── 搜索过滤 ──
+    function filterDevices(keyword) {
+      currentFilter = keyword;
+      renderDeviceList();
+    }
+
+    // ── 设备类型筛选 ──
+    function filterByDeviceType(type) {
+      currentTypeFilter = type;
+      var btns = document.querySelectorAll('.type-filter-btn');
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      var targetBtn = document.getElementById(type === 'all' ? 'filterAll' : (type === 'soil' ? 'filterSoil' : 'filterWeather'));
+      if (targetBtn) targetBtn.classList.add('active');
+      renderDeviceList();
+    }
+
+    // ── 初始化（renderSidebar 已移除，改用内联黄陂侧栏）──
+
+    if (DEVICES.length > 0) {
+      selectDevice(DEVICES[0].id);
+    }
+  </script>
+</body>
+</html>

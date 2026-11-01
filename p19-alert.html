@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>智能预警与决策 · 种植管理平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .leaf-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow)}
+  .leaf-card .thumb{height:120px;background:linear-gradient(135deg,rgba(58,74,42,.4),rgba(31,42,20,.78)),url('assets/ref/pest-1.png') center/cover;position:relative}
+  .leaf-card .thumb .spot{position:absolute;width:42px;height:42px;border:2px solid var(--danger);border-radius:50%;left:40%;top:30%}
+  .leaf-card .thumb .spot2{position:absolute;width:28px;height:28px;border:2px solid var(--warn);border-radius:50%;left:55%;top:55%}
+  .leaf-card .body{padding:12px}
+  .decision-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tech);border-radius:var(--r-md);padding:16px;box-shadow:var(--shadow)}
+  .decision-card .conf{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-num);font-size:12px;color:var(--tech);font-weight:600}
+  .tab-pane{display:none}.tab-pane.active{display:block}
+  .push-item{display:flex;gap:12px;padding:12px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:8px}
+  .push-item .lvl{width:4px;border-radius:2px;flex-shrink:0}.push-item .lvl.r{background:var(--danger)}.push-item .lvl.o{background:var(--warn)}.push-item .lvl.y{background:#FACC15}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo">莓</span> 黄陂草莓数字农事平台</div>
+    <nav class="breadcrumb"><span>种植管理平台</span> <i>/</i> <b>智能预警与决策</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索预警 / 病害"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span class="badge-dot">6</span></button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">运营</div><a class="nav-item" href="workbench.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>运营工作台</span></a></div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">种植管理</div>
+        <a class="nav-item" href="p12-device-monitor.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span>设备监控墙</span></a>
+        <a class="nav-item" href="p15-environment.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span>气象监测</span></a>
+        <a class="nav-item active" href="p19-alert.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>智能预警</span></a>
+        <a class="nav-item" href="p110-task.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>农事任务</span></a>
+        <a class="nav-item" href="p116-video.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a>
+      </div>
+      <div class="sidebar__group"><div class="sidebar__title">AI 决策</div><a class="nav-item" href="p21-water.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a><a class="nav-item" href="p23-pest.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="13" rx="4"/><path d="M19 7l-3 2M5 7l3 2M19 13h-3M8 13H5"/></svg></span><span>病虫害防控</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">物联网 / 孪生</div><a class="nav-item" href="p32-device-data.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 16.1a10 10 0 0 1 0-14.2M7.8 13.3a6 6 0 0 1 0-8.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 13.3a6 6 0 0 0 0-8.5M19.1 16.1a10 10 0 0 0 0-14.2"/></svg></span><span>设备数据查看</span></a><a class="nav-item" href="p34-alert-config.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></span><span>预警设置</span></a><a class="nav-item" href="p41-twin3d.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg></span><span>三维园区总览</span></a><a class="nav-item" href="p44-emergency.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><span>应急模拟</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">农机 / 溯源</div><a class="nav-item" href="p62-machine.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>农机实时监控</span></a><a class="nav-item" href="p64-machine-stat.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计</span></a><a class="nav-item" href="p77-trace-code.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>溯源码生成</span></a><a class="nav-item" href="p78-trace-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>溯源码查询</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">系统</div><a class="nav-item" href="p132-led.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></span><span>大屏内容管理</span></a></div>
+    </aside>
+
+    <main class="content">
+      <div class="page">
+        <div class="page-head">
+          <div><h1 class="page-head__title">智能预警与决策支持<span class="platform-mark platform-mark--plant">AI 识别</span></h1><p class="page-head__desc">图像识别预警 + 实时推送 + AI 决策建议汇总 · 综合 3 号棚温度超限与红颜炭疽病早期征兆。</p></div>
+          <div class="page-head__actions"><span class="tag tag--ok"><span class="dot dot--ok"></span>处理率 94%</span><span class="tag tag--danger"><span class="dot dot--danger"></span>活跃告警 2</span><span class="tag tag--warn"><span class="dot dot--warn"></span>本周累计 14</span><button class="btn">预警规则</button><button class="btn btn--primary">全部已读</button></div>
+        </div>
+
+        <div class="tabs" id="tabs">
+          <div class="tab active" data-tab="recog">① 图像识别预警 <span class="tag tag--danger" style="margin-left:6px">3</span></div>
+          <div class="tab" data-tab="push">② 实时预警推送 <span class="tag tag--warn" style="margin-left:6px">6</span></div>
+          <div class="tab" data-tab="dec">③ 智能决策推荐 <span class="tag tag--tech" style="margin-left:6px">4</span></div>
+        </div>
+
+        <!-- Tab1 图像识别 -->
+        <div class="tab-pane active" data-pane="recog">
+          <div class="grid-3">
+            <div class="leaf-card"><div class="thumb"><div class="spot"></div><div class="spot2"></div></div><div class="body"><div class="flex justify-between items-center"><b style="font-size:13px">炭疽病（早期）</b><span class="tag tag--warn">中度</span></div><div class="text-fg2" style="font-size:12px;margin-top:6px">3号棚 · 红颜 · 叶面<br>识别置信度 <b class="text-tech">92%</b> · 07-18 13:24</div><div class="mt-3 flex gap-2"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm btn--primary">生成防控任务</button></div></div></div>
+            <div class="leaf-card"><div class="thumb" style="background:linear-gradient(135deg,rgba(74,58,42,.4),rgba(42,31,20,.78)),url('assets/ref/plant-2.png') center/cover"><div class="spot" style="border-color:var(--warn);left:30%;top:50%"></div></div><div class="body"><div class="flex justify-between items-center"><b style="font-size:13px">灰霉病（疑似）</b><span class="tag" style="background:#FEF4E6;color:var(--warn)">轻度</span></div><div class="text-fg2" style="font-size:12px;margin-top:6px">5号棚 · 越心 · 果实<br>识别置信度 <b class="text-tech">78%</b> · 07-18 11:02</div><div class="mt-3 flex gap-2"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm">忽略</button></div></div></div>
+            <div class="leaf-card"><div class="thumb" style="background:linear-gradient(135deg,rgba(58,42,74,.4),rgba(31,20,42,.78)),url('assets/ref/trace-1.png') center/cover"><div class="spot" style="border-color:var(--danger);left:50%;top:40%"></div></div><div class="body"><div class="flex justify-between items-center"><b style="font-size:13px">叶斑病</b><span class="tag tag--danger">重度</span></div><div class="text-fg2" style="font-size:12px;margin-top:6px">2号棚 · 章姬 · 叶面<br>识别置信度 <b class="text-tech">88%</b> · 07-18 09:15</div><div class="mt-3 flex gap-2"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm btn--primary">生成防控任务</button></div></div></div>
+          </div>
+        </div>
+
+        <!-- Tab2 实时推送 -->
+        <div class="tab-pane" data-pane="push">
+          <div class="card"><div class="card__body">
+            <div class="push-item"><div class="lvl r"></div><div class="flex-1"><div class="flex justify-between"><b style="font-size:13px">温度超限 · 3号棚</b><span class="text-fg3" style="font-size:12px">2分钟前</span></div><div class="text-fg2" style="font-size:12px;margin-top:4px">当前 32.0℃ · 阈值上限 30℃ · 建议开启风机+外遮阳</div></div><button class="btn btn--sm btn--primary">立即处置</button></div>
+            <div class="push-item"><div class="lvl o"></div><div class="flex-1"><div class="flex justify-between"><b style="font-size:13px">设备故障 · 水肥阀 F-03</b><span class="text-fg3" style="font-size:12px">15分钟前</span></div><div class="text-fg2" style="font-size:12px;margin-top:4px">电磁阀无响应 · 建议派单维修</div></div><button class="btn btn--sm">派单</button></div>
+            <div class="push-item"><div class="lvl o"></div><div class="flex-1"><div class="flex justify-between"><b style="font-size:13px">CO₂ 偏高 · 5号棚</b><span class="text-fg3" style="font-size:12px">1小时前</span></div><div class="text-fg2" style="font-size:12px;margin-top:4px">当前 980ppm · 阈值上限 800ppm · 建议通风换气</div></div><button class="btn btn--sm">处置</button></div>
+            <div class="push-item"><div class="lvl y"></div><div class="flex-1"><div class="flex justify-between"><b style="font-size:13px">土壤湿度偏低 · 2号棚</b><span class="text-fg3" style="font-size:12px">2小时前</span></div><div class="text-fg2" style="font-size:12px;margin-top:4px">当前 38% · 阈值下限 45% · 建议启动滴灌</div></div><button class="btn btn--sm">处置</button></div>
+            <div class="push-item"><div class="lvl y"></div><div class="flex-1"><div class="flex justify-between"><b style="font-size:13px">摄像头离线 · CAM-101</b><span class="text-fg3" style="font-size:12px">3小时前</span></div><div class="text-fg2" style="font-size:12px;margin-top:4px">1号棚入口摄像头 · 最后在线 3 小时前</div></div><button class="btn btn--sm">查看</button></div>
+          </div></div>
+        </div>
+
+        <!-- Tab3 决策推荐 -->
+        <div class="tab-pane" data-pane="dec">
+          <div class="grid-2">
+            <div class="decision-card"><div class="flex justify-between items-center"><b>3号棚降温综合方案</b><span class="conf"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/></svg>置信度 94%</span></div><p class="text-fg2" style="font-size:13px;margin-top:8px">综合温度 32℃、光照 8.2klx、棚外风速 1.2m/s，建议：① 开启顶部风机 3 档 ② 展开外遮阳网 70% ③ 暂停补光灯。预计 40 分钟内降至 27℃。</p><div class="flex gap-2 mt-3"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm btn--primary" onclick="location.href='p110-task.html'">采纳 → 生成任务</button></div></div>
+            <div class="decision-card" style="border-left-color:var(--berry)"><div class="flex justify-between items-center"><b>红颜炭疽病防控方案</b><span class="conf" style="color:var(--berry)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/></svg>置信度 90%</span></div><p class="text-fg2" style="font-size:13px;margin-top:8px">3号棚红颜叶面检出炭疽病早期病斑。建议：清除病叶 + 喷施咪鲜胺（已规避禁限用农药），7 天后复采对比。湿度偏高时加强通风。</p><div class="flex gap-2 mt-3"><button class="btn btn--sm">查看方案</button><button class="btn btn--sm btn--primary" onclick="location.href='p110-task.html'">采纳 → 生成任务</button></div></div>
+            <div class="decision-card"><div class="flex justify-between items-center"><b>2号棚滴灌补水建议</b><span class="conf"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/></svg>置信度 86%</span></div><p class="text-fg2" style="font-size:13px;margin-top:8px">2号棚土壤湿度 38% 低于下限，结合水肥模型 v3 建议滴灌 6 L/㎡，分 2 次执行，间隔 4 小时，同步追施钾肥。</p><div class="flex gap-2 mt-3"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm btn--primary" onclick="location.href='p110-task.html'">采纳 → 生成任务</button></div></div>
+            <div class="decision-card" style="border-left-color:var(--warn)"><div class="flex justify-between items-center"><b>5号棚通风降碳建议</b><span class="conf" style="color:var(--warn)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/></svg>置信度 82%</span></div><p class="text-fg2" style="font-size:13px;margin-top:8px">5号棚 CO₂ 980ppm 持续偏高，建议开启顶通风窗 30 分钟，配合循环风机降低至 700ppm 以下。</p><div class="flex gap-2 mt-3"><button class="btn btn--sm">查看详情</button><button class="btn btn--sm btn--primary" onclick="location.href='p110-task.html'">采纳 → 生成任务</button></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('#tabs .tab').forEach(function(t){
+    t.onclick=function(){
+      document.querySelectorAll('#tabs .tab').forEach(function(x){x.classList.remove('active')});
+      t.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.toggle('active',p.dataset.pane===t.dataset.tab)});
+    };
+  });
+</script>
+</body>
+</html>

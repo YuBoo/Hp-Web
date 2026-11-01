@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>水肥调控模型 · AI 决策平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .npk-bar{display:flex;height:28px;border-radius:var(--r-xs);overflow:hidden;border:1px solid var(--border)}
+  .npk-bar div{display:grid;place-items:center;color:#fff;font-size:11px;font-family:var(--font-num);font-weight:600}
+  .threshold-row{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:8px}
+  .threshold-row .lab{width:70px;color:var(--fg-2)}
+  .threshold-row .bar{flex:1;height:8px;background:var(--bg);border-radius:4px;position:relative}
+  .threshold-row .bar i{position:absolute;top:0;bottom:0;left:0;background:var(--tech);border-radius:4px}
+  .threshold-row .bar b{position:absolute;top:-2px;width:2px;height:12px;background:var(--danger)}
+  .threshold-row .val{width:80px;text-align:right;font-family:var(--font-num);color:var(--fg)}
+  .node-step{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .node-step .n{width:24px;height:24px;border-radius:50%;background:var(--tech-soft);color:var(--tech);display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .node-step .n.done{background:var(--ok);color:#fff}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo">莓</span> 黄陂草莓数字农事平台</div>
+    <nav class="breadcrumb"><span>AI 决策平台</span> <i>/</i> <b>水肥调控模型</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索配方 / 地块"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span class="badge-dot">6</span></button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">运营</div><a class="nav-item" href="workbench.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>运营工作台</span></a></div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">种植管理</div>
+        <a class="nav-item" href="p12-device-monitor.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span>设备监控墙</span></a>
+        <a class="nav-item" href="p15-environment.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span>气象监测</span></a>
+        <a class="nav-item" href="p19-alert.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>智能预警</span></a>
+        <a class="nav-item" href="p110-task.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>农事任务</span></a>
+        <a class="nav-item" href="p116-video.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">AI 决策</div>
+        <a class="nav-item active" href="p21-water.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a>
+        <a class="nav-item" href="p23-pest.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="13" rx="4"/><path d="M19 7l-3 2M5 7l3 2M19 13h-3M8 13H5"/></svg></span><span>病虫害防控</span></a>
+      </div>
+      <div class="sidebar__group"><div class="sidebar__title">物联网 / 孪生</div><a class="nav-item" href="p32-device-data.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 16.1a10 10 0 0 1 0-14.2M7.8 13.3a6 6 0 0 1 0-8.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 13.3a6 6 0 0 0 0-8.5M19.1 16.1a10 10 0 0 0 0-14.2"/></svg></span><span>设备数据查看</span></a><a class="nav-item" href="p34-alert-config.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></span><span>预警设置</span></a><a class="nav-item" href="p41-twin3d.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg></span><span>三维园区总览</span></a><a class="nav-item" href="p44-emergency.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><span>应急模拟</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">农机 / 溯源</div><a class="nav-item" href="p62-machine.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>农机实时监控</span></a><a class="nav-item" href="p64-machine-stat.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计</span></a><a class="nav-item" href="p77-trace-code.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>溯源码生成</span></a><a class="nav-item" href="p78-trace-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>溯源码查询</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">系统</div><a class="nav-item" href="p132-led.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></span><span>大屏内容管理</span></a></div>
+    </aside>
+
+    <main class="content">
+      <div class="page">
+        <div class="page-head">
+          <div><h1 class="page-head__title">草莓水肥调控模型<span class="platform-mark platform-mark--ai">AI 模型 · v3.2</span></h1><p class="page-head__desc">按品种/生育期匹配水肥配方，墒情超阈值预警并动态调控 · 当前 3 号棚红颜膨果期。</p></div>
+          <div class="page-head__actions"><span class="tag tag--ok"><span class="dot dot--ok"></span>模型运行中</span><button class="btn">历史配方</button></div>
+        </div>
+
+        <!-- 参数输入 + 推荐方案 -->
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1fr 1.4fr">
+          <div class="card">
+            <div class="card__head"><h3><span class="bar"></span>参数输入 · 目标反推</h3></div>
+            <div class="card__body">
+              <div class="form-row"><label>品种</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>红颜</option><option>章姬</option><option>淡雪</option><option>越心</option></select></div></div>
+              <div class="form-row"><label>生育期</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>膨果期</option><option>花芽分化期</option><option>坐果期</option><option>成熟期</option></select></div></div>
+              <div class="form-row"><label>地块</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>3号棚 · 红颜</option></select></div></div>
+              <div style="border-top:1px solid var(--border);margin:12px 0;padding-top:12px">
+                <div class="text-fg2" style="font-size:12px;margin-bottom:10px">产量-品质目标反推</div>
+                <div class="form-row"><label>预期产量</label><div class="ctrl"><div class="flex items-center gap-2"><input class="input" style="width:90px" value="3000"><span class="text-fg2" style="font-size:12px">kg/亩</span><div class="progress" style="flex:1"><div class="progress__bar" style="width:75%"></div></div></div></div></div>
+                <div class="form-row"><label>目标糖度</label><div class="ctrl"><div class="flex items-center gap-2"><input class="input" style="width:90px" value="12"><span class="text-fg2" style="font-size:12px">°Bx</span><div class="progress" style="flex:1"><div class="progress__bar progress__bar--tech" style="width:60%"></div></div></div></div></div>
+              </div>
+              <button class="btn btn--primary" style="width:100%"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8"/></svg>重新计算配方</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__head"><h3><span class="bar"></span>推荐水肥配方（本期）</h3><div class="flex gap-2"><span class="tag tag--tech">配方 v3</span><span class="tag tag--ok"><span class="dot dot--ok"></span>已匹配墒情</span></div></div>
+            <div class="card__body">
+              <div class="grid-2 mb-4">
+                <div><div class="text-fg2" style="font-size:12px">氮磷钾比例 N:P:K</div><div class="text-num" style="font-size:26px;color:var(--berry)">15 : 10 : 25</div><div class="npk-bar mt-2"><div style="flex:15;background:#3B82F6">N 15</div><div style="flex:10;background:#22C55E">P 10</div><div style="flex:25;background:#E63946">K 25</div></div></div>
+                <div><div class="text-fg2" style="font-size:12px">灌溉量 / 频次</div><div class="text-num" style="font-size:26px">8 <span style="font-size:14px;color:var(--fg-2)">L/㎡·次</span></div><div class="text-fg2" style="font-size:13px;margin-top:4px">每日 2 次 · 06:00 / 18:00</div></div>
+              </div>
+              <div class="text-fg2" style="font-size:12px;margin-bottom:8px">各阶段营养阈值（EC mS/cm）</div>
+              <div class="threshold-row"><span class="lab">苗期</span><div class="bar"><i style="width:40%"></i><b style="left:55%"></b></div><span class="val">0.8 ~ 1.2</span></div>
+              <div class="threshold-row"><span class="lab">花芽分化</span><div class="bar"><i style="width:55%"></i><b style="left:70%"></b></div><span class="val">1.2 ~ 1.8</span></div>
+              <div class="threshold-row"><span class="lab" style="color:var(--berry);font-weight:600">膨果期</span><div class="bar"><i style="width:75%;background:var(--berry)"></i><b style="left:90%"></b></div><span class="val" style="color:var(--berry)">1.8 ~ 2.4</span></div>
+              <div class="threshold-row"><span class="lab">成熟期</span><div class="bar"><i style="width:65%"></i><b style="left:80%"></b></div><span class="val">1.6 ~ 2.0</span></div>
+
+              <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+                <div class="text-fg2" style="font-size:12px;margin-bottom:4px">关键调控节点</div>
+                <div class="node-step"><span class="n done">1</span><span style="font-size:13px">基肥配制（腐熟有机肥 + 复合肥）</span><span class="tag tag--ok" style="margin-left:auto">已完成</span></div>
+                <div class="node-step"><span class="n done">2</span><span style="font-size:13px">花前期追肥（高磷促花）</span><span class="tag tag--ok" style="margin-left:auto">已完成</span></div>
+                <div class="node-step"><span class="n">3</span><span style="font-size:13px;color:var(--berry);font-weight:500">膨果期高钾追肥 + 滴灌</span><span class="tag tag--berry" style="margin-left:auto">进行中</span></div>
+                <div class="node-step"><span class="n" style="background:var(--bg);color:var(--fg-3)">4</span><span style="font-size:13px;color:var(--fg-3)">转色期控水提糖</span></div>
+              </div>
+              <div class="flex gap-2 mt-4">
+                <button class="btn" style="flex:1">下发水肥机</button>
+                <button class="btn btn--primary" style="flex:1" onclick="location.href='p110-task.html'">采纳 → 生成灌溉任务</button>
+              </div>
+              <!-- 方案审核与历史（对齐 HS-WEB 13/09） -->
+              <div style="margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px">
+                <div class="flex justify-between items-center mb-2"><span class="text-fg2">方案审核 · 状态</span><span><span class="tag tag--warn">待审核</span> <span class="tag">已通过</span> <span class="tag tag--tech">执行中</span></span></div>
+                <div class="text-fg3" style="line-height:1.7">支持<b style="color:var(--fg-2)">人工确认 / 自动执行</b>双模式 · 记录审核人及操作日志 · 历史方案库可追溯、复用、复制修改后下发</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 实时土壤联动 + 历史迭代 -->
+        <div class="ds-grid-2-3" style="grid-template-columns:1fr 1.4fr">
+          <div class="card" style="border-left:3px solid var(--warn)">
+            <div class="card__head"><h3><span class="bar" style="background:var(--warn)"></span>实时土壤联动 · 3号棚</h3><span class="tag tag--warn"><span class="dot dot--warn"></span>实时</span></div>
+            <div class="card__body">
+              <div class="grid-2 mb-3">
+                <div><div class="text-fg2" style="font-size:11px">土壤 PH</div><div class="text-num" style="font-size:22px">6.5</div><span class="tag tag--ok">适宜 6.0-6.8</span></div>
+                <div><div class="text-fg2" style="font-size:11px">EC 电导率</div><div class="text-num" style="font-size:22px;color:var(--warn)">1.8</div><span class="tag tag--warn">接近上限 2.0</span></div>
+                <div><div class="text-fg2" style="font-size:11px">土壤温度</div><div class="text-num" style="font-size:22px">22℃</div><span class="tag tag--ok">正常</span></div>
+                <div><div class="text-fg2" style="font-size:11px">土壤湿度</div><div class="text-num" style="font-size:22px">60%</div><span class="tag tag--ok">适宜</span></div>
+              </div>
+              <div style="background:var(--warn-soft);border:1px solid rgba(245,158,11,.3);border-radius:var(--r-sm);padding:12px;margin-top:8px">
+                <div class="flex items-center gap-2 mb-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><b style="color:var(--warn);font-size:13px">墒情超阈值预警</b></div>
+                <div class="text-fg2" style="font-size:12px">EC 值 1.8 接近膨果期上限 2.0，建议降低本次追肥浓度 15%，并增加清水灌溉量。</div>
+                <button class="btn btn--sm" style="margin-top:8px;background:var(--warn);color:#fff;border-color:var(--warn)">动态调控浓度</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card__head"><h3><span class="bar"></span>历史迭代优化 · 用量-产量-品质曲线</h3><span class="more">查看 v1/v2 ›</span></div>
+            <div class="card__body">
+              <svg viewBox="0 0 600 200" style="width:100%;height:200px">
+                <g stroke="rgba(0,0,0,.05)"><line x1="40" y1="40" x2="590" y2="40"/><line x1="40" y1="90" x2="590" y2="90"/><line x1="40" y1="140" x2="590" y2="140"/><line x1="40" y1="180" x2="590" y2="180"/></g>
+                <path d="M40,140 L160,120 L280,95 L400,70 L520,55 L590,50" fill="none" stroke="#E63946" stroke-width="2.5"/>
+                <path d="M40,140 L160,120 L280,95 L400,70 L520,55 L590,50 L590,200 L40,200 Z" fill="rgba(230,57,70,.07)"/>
+                <path d="M40,160 L160,150 L280,135 L400,118 L520,100 L590,92" fill="none" stroke="#22C55E" stroke-width="2"/>
+                <path d="M40,120 L160,128 L280,118 L400,108 L520,98 L590,95" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-dasharray="4 3"/>
+                <g font-size="9" fill="#9CA3AF"><text x="40" y="196">v1</text><text x="160" y="196">v1.5</text><text x="280" y="196">v2</text><text x="400" y="196">v2.5</text><text x="520" y="196">v3</text></g>
+                <g font-size="10" fill="#6B7280"><rect x="40" y="10" width="10" height="2" fill="#E63946"/><text x="56" y="15">产量</text><rect x="100" y="10" width="10" height="2" fill="#22C55E"/><text x="116" y="15">糖度</text><rect x="160" y="10" width="10" height="2" fill="#0EA5E9"/><text x="176" y="15">用肥量</text></g>
+                <circle cx="520" cy="55" r="4" fill="#E63946"/><text x="530" y="50" font-size="10" fill="#E63946" font-family="var(--font-num)">v3 改进点：钾肥+5%</text>
+              </svg>
+              <div class="text-fg2" style="font-size:12px;margin-top:8px">v3 较 v2：产量 +8.3%、糖度 +0.4°Bx、单亩用肥量 −4.2%（更精准匹配膨果期需求）。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

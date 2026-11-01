@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>原稿 ↔ 平台 对应总览 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .wrap{max-width:1200px;margin:0 auto;padding:32px 24px}
+  .hero{background:linear-gradient(135deg,var(--berry),var(--berry-deep));border-radius:var(--r-lg);padding:28px 32px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+  .hero h1{font-size:24px;font-weight:700;margin-bottom:6px}
+  .hero p{font-size:14px;opacity:.92}
+  .hero .stat{display:flex;gap:28px;margin-top:18px}
+  .hero .stat b{font-family:var(--font-num);font-size:26px;display:block;line-height:1}
+  .hero .stat span{font-size:12px;opacity:.85}
+  .legend-row{display:flex;gap:16px;margin-bottom:16px;font-size:13px;color:var(--fg-2);align-items:center;flex-wrap:wrap}
+  .map-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--shadow);display:flex;gap:18px;align-items:flex-start}
+  .map-card .idx{width:36px;height:36px;border-radius:var(--r-sm);background:var(--bg);color:var(--fg-2);font-family:var(--font-num);font-size:18px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+  .map-card.done .idx{background:var(--ok-soft);color:var(--ok)}
+  .map-card.todo .idx{background:var(--warn-soft);color:var(--warn)}
+  .map-card.na .idx{background:#F3F4F6;color:var(--offline)}
+  .map-card .body{flex:1;min-width:0}
+  .map-card .src{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .map-card .src b{font-size:15px;color:var(--fg)}
+  .map-card .src .from{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
+  .map-card .dst{margin-top:10px}
+  .map-card .dst-lab{font-size:11px;color:var(--fg-3);margin-bottom:6px;letter-spacing:.04em}
+  .chip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:var(--r-xs);background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:12px;margin:0 6px 6px 0;cursor:pointer;transition:all .15s}
+  .chip:hover{border-color:var(--berry);color:var(--berry);background:var(--berry-soft)}
+  .chip .code{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:2px}
+  .st{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}
+  .st.ok{background:var(--ok-soft);color:var(--ok)} .st.todo{background:var(--warn-soft);color:var(--warn)} .st.na{background:#F3F4F6;color:var(--offline)}
+  .note{font-size:12px;color:var(--fg-2);margin-top:8px;line-height:1.6}
+  .info-box{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--tech);border-radius:var(--r-sm);padding:14px 16px;margin-top:24px;font-size:13px;color:var(--fg-2);line-height:1.7}
+  .info-box b{color:var(--fg)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+    <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+    <span class="text-fg3" style="font-size:12px">墨刀设计原稿 → 平台页面 映射</span>
+  </div>
+
+  <div class="hero">
+    <h1>原稿 ↔ 平台 对应总览</h1>
+    <p>黄陂草莓数字农事平台 Web 端，对应墨刀历史设计稿的 10 个原稿平台。下列每条说明：原稿来源 → 平台中对应的实际页面。</p>
+    <div class="stat">
+      <div><b>7</b><span>已对应（P0 已建）</span></div>
+      <div><b>2</b><span>未对应（P1 待建）</span></div>
+      <div><b>1</b><span>不适用（移动端）</span></div>
+    </div>
+  </div>
+
+  <div class="legend-row">
+    <span class="st ok"><span class="dot dot--ok"></span>已对应</span>
+    <span class="st todo"><span class="dot dot--warn"></span>未对应（P1 待建）</span>
+    <span class="st na"><span class="dot dot--offline"></span>不适用</span>
+    <span style="margin-left:auto;color:var(--fg-3)">点击页面代号可直接跳转</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <!-- 1 大屏 -->
+    <div class="map-card done">
+      <div class="idx">01</div>
+      <div class="body">
+        <div class="src"><b>黄陂草莓产业数据大屏</b><span class="st ok">已对应</span><span class="from">原稿/黄陂草莓产业数据大屏</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="index.html">驾驶舱门户<span class="code">S-00</span></a>
+          <a class="chip" href="s1-industry.html">产业一张图<span class="code">S-1</span></a>
+          <a class="chip" href="s2-planting.html">种植一张图<span class="code">S-2</span></a>
+          <a class="chip" href="s3-env.html">环境监测图<span class="code">S-3</span></a>
+          <a class="chip" href="s4-water.html">智慧水肥图<span class="code">S-4</span></a>
+          <a class="chip" href="s5-trace.html">草莓溯源图<span class="code">S-5</span></a>
+          <a class="chip" href="s6-park.html">智慧园区图<span class="code">S-6</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 种植管理 -->
+    <div class="map-card done">
+      <div class="idx">02</div>
+      <div class="body">
+        <div class="src"><b>智慧草莓种植管理平台</b><span class="st ok">已对应</span><span class="from">原稿/智慧草莓种植管理平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="workbench.html">运营工作台<span class="code">P-00</span></a>
+          <a class="chip" href="p12-device-monitor.html">设备监控墙<span class="code">P-12</span></a>
+          <a class="chip" href="p15-environment.html">气象监测<span class="code">P-15</span></a>
+          <a class="chip" href="p19-alert.html">智能预警<span class="code">P-19</span></a>
+          <a class="chip" href="p110-task.html">农事任务<span class="code">P-110</span></a>
+          <a class="chip" href="p116-video.html">视频监控<span class="code">P-116</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 AI决策 -->
+    <div class="map-card done">
+      <div class="idx">03</div>
+      <div class="body">
+        <div class="src"><b>AI 模型决策平台</b><span class="st ok">已对应</span><span class="from">原稿/AI模型决策平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="p21-water.html">水肥调控模型<span class="code">P-21</span></a>
+          <a class="chip" href="p23-pest.html">病虫害防控模型<span class="code">P-23</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 物联网 -->
+    <div class="map-card done">
+      <div class="idx">04</div>
+      <div class="body">
+        <div class="src"><b>物联网感知平台</b><span class="st ok">已对应</span><span class="from">原稿/物联网感知平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="p32-device-data.html">设备数据查看<span class="code">P-32</span></a>
+          <a class="chip" href="p34-alert-config.html">预警设置<span class="code">P-34</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 数字孪生 -->
+    <div class="map-card done">
+      <div class="idx">05</div>
+      <div class="body">
+        <div class="src"><b>数字孪生平台</b><span class="st ok">已对应</span><span class="from">原稿/数字孪生平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="p41-twin3d.html">三维园区总览<span class="code">P-41</span></a>
+          <a class="chip" href="p44-emergency.html">应急模拟<span class="code">P-44</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 农机 -->
+    <div class="map-card done">
+      <div class="idx">06</div>
+      <div class="body">
+        <div class="src"><b>农机智慧监管平台</b><span class="st ok">已对应</span><span class="from">原稿/农机智慧监管平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="p62-machine.html">农机实时监控<span class="code">P-62</span></a>
+          <a class="chip" href="p64-machine-stat.html">作业统计<span class="code">P-64</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 溯源 -->
+    <div class="map-card done">
+      <div class="idx">07</div>
+      <div class="body">
+        <div class="src"><b>区块链草莓全程品质溯源平台</b><span class="st ok">已对应</span><span class="from">原稿/区块链草莓全程品质溯源平台</span></div>
+        <div class="dst">
+          <div class="dst-lab">对应平台页面</div>
+          <a class="chip" href="p77-trace-code.html">溯源码生成<span class="code">P-77</span></a>
+          <a class="chip" href="p78-trace-query.html">溯源码查询<span class="code">P-78</span></a>
+        </div>
+        <div class="note">说明：本模块主色用溯源紫 <code style="font-family:var(--font-mono)">#7B2CBF</code>，与原稿一致。</div>
+      </div>
+    </div>
+
+    <!-- 8 产业服务 -->
+    <div class="map-card todo">
+      <div class="idx">08</div>
+      <div class="body">
+        <div class="src"><b>草莓产业服务平台</b><span class="st todo">未对应（P1 待建）</span><span class="from">原稿/草莓产业服务平台</span></div>
+        <div class="note">原稿含：专家服务（农技问答/日志/农情/知识共享）、市场行情。PRD 标为 P1，本轮未建；需要时按原稿补 P-51/P-52。</div>
+      </div>
+    </div>
+
+    <!-- 9 农文旅 -->
+    <div class="map-card todo">
+      <div class="idx">09</div>
+      <div class="body">
+        <div class="src"><b>农文旅销平台（商城中台）</b><span class="st todo">未对应（P1 待建）</span><span class="from">原稿/农文旅销平台</span></div>
+        <div class="note">原稿含：供应商入驻、产品服务、订单处理、营销推广、经营分析。PRD 标为 P1；消费者前端见独立商城项目，需要时补 P-81~P-85。</div>
+      </div>
+    </div>
+
+    <!-- 10 移动端 -->
+    <div class="map-card na">
+      <div class="idx">10</div>
+      <div class="body">
+        <div class="src"><b>智慧草莓园移动端</b><span class="st na">不适用</span><span class="from">原稿/智慧草莓园移动端</span></div>
+        <div class="note">移动端原稿不在本 Web 综合管理端范围内（本端仅桌面 Web）。移动端为独立项目。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="info-box">
+    <b>关于原稿的说明：</b>墨刀原稿为 React 离线包，其设计数据（坐标/颜色/尺寸）经二次加密、无法直接转成静态 HTML，也无法在预览里渲染（之前那个"查看原稿"链接因此无效，已移除）。<br>
+    本平台页面是<b>依据 PRD + 原稿视觉规范（莓红/溯源紫/科技蓝、双态外壳）重建</b>的对应实现，结构与原稿一一对应（见上表）。<br>
+    若需某页面与原稿<b>像素级 1:1 对齐</b>，请从墨刀导出该页<b>截图或 PDF</b>给我作对照——我无法自行截图墨刀稿。
+  </div>
+
+</div>
+</body>
+</html>

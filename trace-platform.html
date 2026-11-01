@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>区块链溯源平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+/* 对齐 HS-WEB p77 的色彩系统：--berry 映射到溯源紫 */
+body{--berry:#7B2CBF;--berry-deep:#5B1A8F;--berry-soft:#F3EAFC}
+.view{display:none}.view.active{display:block}
+.sidebar .nav-item{cursor:pointer}
+.pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}.pl-row:last-child{border:none}
+.pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}.pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}.pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+.pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#7B2CBF,#9D4EDD);border-radius:3px}
+.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
+.chain-chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer}
+.chain-chk.on{background:var(--trace-soft);border-color:var(--trace)}
+.chain-chk .ck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);display:grid;place-items:center;flex-shrink:0}
+.chain-chk.on .ck{background:var(--trace);border-color:var(--trace)}
+  /* HS-WEB 风格：溯源码列表卡 + 抽屉 */
+  .tc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:box-shadow .2s}
+  .tc-card:hover{box-shadow:var(--shadow-hover)}
+  .tc-card .tc-info{flex:1;display:grid;grid-template-columns:1.5fr 1fr 0.8fr 1fr 0.8fr 0.8fr;gap:8px;align-items:center}
+  .tc-card .tc-info .tc-code{font-family:var(--font-num);font-weight:700;color:var(--trace);font-size:14px}
+  .tc-card .tc-info .tc-label{font-size:10px;color:var(--fg-3);display:block;margin-bottom:2px}
+  .tc-card .tc-info .tc-val{font-size:13px;color:var(--fg)}
+  .tc-card .tc-actions{display:flex;gap:6px;flex-shrink:0}
+  .tc-card .tc-actions .btn{padding:5px 12px;font-size:12px}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:520px;max-width:92vw;background:var(--surface);z-index:51;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(16,24,40,.1)}
+  .drawer.open{transform:translateX(0)}
+  .drawer .drawer__head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .drawer .drawer__head h3{font-size:16px;font-weight:600;color:var(--fg)}
+  .drawer .drawer__body{flex:1;overflow-y:auto;padding:20px}
+  .drawer .drawer__foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+  .mask{position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+  .mask.open{opacity:1;pointer-events:auto}
+  .chain-chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer}
+  .chain-chk.on{background:var(--trace-soft);border-color:var(--trace)}
+  .chain-chk .ck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);display:grid;place-items:center;flex-shrink:0}
+  .chain-chk.on .ck{background:var(--trace);border-color:var(--trace)}
+.qr-box{width:200px;height:200px;background:#fff;padding:10px;border-radius:var(--r-sm);margin:0 auto;border:1px solid var(--border)}
+.qr-box svg{width:100%;height:100%}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.info-row .k{color:var(--fg-2)}.info-row .v{color:var(--fg);font-weight:500}
+.info-row .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.trace{background:var(--trace-soft);color:var(--trace)}.tag.warn{background:var(--warn-soft);color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:var(--trace)">溯</span> 区块链溯源平台</div>
+    <nav class="breadcrumb"><span>区块链溯源平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="输入溯源码 / 批次号"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">区块链溯源</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="code"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>溯源码生成</span></a>
+        <a class="nav-item" data-v="query"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>溯源查询</span></a>
+      </div>
+    </aside>
+    <main class="content"><div class="page">
+
+      <!-- 工作台 -->
+      <section class="view active" id="v-home">
+        <div class="page-head"><div><h1 class="page-head__title">区块链溯源平台 <span class="platform-mark platform-mark--trace">一物一码</span></h1><p class="page-head__desc">2026-07-18 · 上链批次 36 · 累计扫码 3,206 次 · 覆盖 28 个消费城市</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">上链批次</div><div class="kpi__val">36<span class="unit">批</span></div><div class="kpi__trend up">↑ 本周新增 8</div></div>
+          <div class="kpi"><div class="kpi__label">累计扫码</div><div class="kpi__val">3,206<span class="unit">次</span></div><div class="kpi__trend up">↑ 18%</div></div>
+          <div class="kpi"><div class="kpi__label">覆盖城市</div><div class="kpi__val">28<span class="unit">个</span></div><div class="kpi__trend">含 6 省市</div></div>
+          <div class="kpi"><div class="kpi__label">质检合格</div><div class="kpi__val" style="color:var(--ok)">100<span class="unit">%</span></div><div class="kpi__trend">36 批全合格</div></div>
+        </div>
+        <div class="pl-grid">
+          <div class="card"><div class="card__head"><h3>扫码城市 TOP</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:var(--trace)"></i>武汉</span><span class="v">1280 次</span></div><div class="pl-bar"><i style="width:92%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#9D4EDD"></i>北京</span><span class="v">686 次</span></div><div class="pl-bar"><i style="width:54%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#C77DFF"></i>上海</span><span class="v">520 次</span></div><div class="pl-bar"><i style="width:40%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#E0AAFF"></i>广州</span><span class="v">380 次</span></div><div class="pl-bar"><i style="width:28%"></i></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>近期批次</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">SB20260718001</span><span class="v">红颜 · 420kg</span></div>
+            <div class="pl-row"><span class="nm">SB20260718002</span><span class="v">章姬 · 260kg</span></div>
+            <div class="pl-row"><span class="nm">SB20260717008</span><span class="v">淡雪 · 140kg</span></div>
+            <div class="pl-row"><span class="nm">SB20260717007</span><span class="v">红颜 · 390kg</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>溯源链路</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">种植档案</span><span class="v" style="color:var(--ok)">✓ 上链</span></div>
+            <div class="pl-row"><span class="nm">农事记录</span><span class="v" style="color:var(--ok)">✓ 上链</span></div>
+            <div class="pl-row"><span class="nm">质检报告</span><span class="v" style="color:var(--ok)">✓ 上链</span></div>
+            <div class="pl-row"><span class="nm">物流冷链</span><span class="v" style="color:var(--ok)">✓ 上链</span></div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 溯源码生成（HS-WEB 风格：列表 + 查看溯源码 + 查看详情 + 新建） -->
+      <section class="view" id="v-code">
+        <div class="page-head"><div><h1 class="page-head__title">溯源码生成 <span class="platform-mark platform-mark--trace">码证合一</span></h1><p class="page-head__desc">已生成溯源码管理 · 点击查看溯源码/详情 · 新建溯源码</p></div>
+        <div class="page-head__actions"><button class="btn btn--primary" onclick="showNew()">+ 新建溯源码</button></div></div>
+
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">已生成溯源码</div><div class="kpi__val">36<span class="unit">批次</span></div><div class="kpi__trend up">↑ 本月新增 8</div></div>
+          <div class="kpi"><div class="kpi__label">四维完整</div><div class="kpi__val" style="color:var(--ok)">32<span class="unit">个</span></div><div class="kpi__trend">农事+环境+投入品+质检</div></div>
+          <div class="kpi"><div class="kpi__label">消费者扫码</div><div class="kpi__val">3,206<span class="unit">次</span></div><div class="kpi__trend up">↑ 18%</div></div>
+          <div class="kpi"><div class="kpi__label">本月生成</div><div class="kpi__val">8<span class="unit">个</span></div><div class="kpi__trend">覆盖 28 城</div></div>
+        </div>
+
+        <div class="card"><div class="card__head"><h3>已生成溯源码</h3></div><div class="card__body">
+          <div class="tc-card">
+            <div class="tc-info">
+              <div><span class="tc-label">溯源码</span><span class="tc-code">SB20260718001</span></div>
+              <div><span class="tc-label">产品名称</span><span class="tc-val">红颜鲜果</span></div>
+              <div><span class="tc-label">规格</span><span class="tc-val">420 kg</span></div>
+              <div><span class="tc-label">采收日期</span><span class="tc-val">2026-07-18</span></div>
+              <div><span class="tc-label">扫码次数</span><span class="tc-val">326</span></div>
+              <div><span class="tc-label">上链</span><span class="tc-val" style="color:var(--ok)">✓ 已上链</span></div>
+            </div>
+            <div class="tc-actions"><button class="btn btn--sm" onclick="showView('SB20260718001','红颜鲜果','420 kg','2026-07-18','黄陂·木兰金秋 3号棚','12.1°Bx')">查看溯源码</button><button class="btn btn--sm btn--primary" onclick="showDetail('SB20260718001')">查看详情</button></div>
+          </div>
+          <div class="tc-card">
+            <div class="tc-info">
+              <div><span class="tc-label">溯源码</span><span class="tc-code">SB20260718002</span></div>
+              <div><span class="tc-label">产品名称</span><span class="tc-val">章姬鲜果</span></div>
+              <div><span class="tc-label">规格</span><span class="tc-val">260 kg</span></div>
+              <div><span class="tc-label">采收日期</span><span class="tc-val">2026-07-15</span></div>
+              <div><span class="tc-label">扫码次数</span><span class="tc-val">186</span></div>
+              <div><span class="tc-label">上链</span><span class="tc-val" style="color:var(--ok)">✓ 已上链</span></div>
+            </div>
+            <div class="tc-actions"><button class="btn btn--sm" onclick="showView('SB20260718002','章姬鲜果','260 kg','2026-07-15','黄陂·木兰金秋 2号棚','11.9°Bx')">查看溯源码</button><button class="btn btn--sm btn--primary" onclick="showDetail('SB20260718002')">查看详情</button></div>
+          </div>
+          <div class="tc-card">
+            <div class="tc-info">
+              <div><span class="tc-label">溯源码</span><span class="tc-code">SB20260717008</span></div>
+              <div><span class="tc-label">产品名称</span><span class="tc-val">淡雪精品</span></div>
+              <div><span class="tc-label">规格</span><span class="tc-val">140 kg</span></div>
+              <div><span class="tc-label">采收日期</span><span class="tc-val">2026-07-12</span></div>
+              <div><span class="tc-label">扫码次数</span><span class="tc-val">98</span></div>
+              <div><span class="tc-label">上链</span><span class="tc-val" style="color:var(--ok)">✓ 已上链</span></div>
+            </div>
+            <div class="tc-actions"><button class="btn btn--sm" onclick="showView('SB20260717008','淡雪精品','140 kg','2026-07-12','黄陂·木兰金秋 4号棚','12.0°Bx')">查看溯源码</button><button class="btn btn--sm btn--primary" onclick="showDetail('SB20260717008')">查看详情</button></div>
+          </div>
+          <div class="tc-card">
+            <div class="tc-info">
+              <div><span class="tc-label">溯源码</span><span class="tc-code">SB20260717007</span></div>
+              <div><span class="tc-label">产品名称</span><span class="tc-val">红颜鲜果</span></div>
+              <div><span class="tc-label">规格</span><span class="tc-val">390 kg</span></div>
+              <div><span class="tc-label">采收日期</span><span class="tc-val">2026-07-10</span></div>
+              <div><span class="tc-label">扫码次数</span><span class="tc-val">412</span></div>
+              <div><span class="tc-label">上链</span><span class="tc-val" style="color:var(--ok)">✓ 已上链</span></div>
+            </div>
+            <div class="tc-actions"><button class="btn btn--sm" onclick="showView('SB20260717007','红颜鲜果','390 kg','2026-07-10','黄陂·木兰金秋 6号棚','12.4°Bx')">查看溯源码</button><button class="btn btn--sm btn--primary" onclick="showDetail('SB20260717007')">查看详情</button></div>
+          </div>
+        </div></div>
+      </section>
+
+      <!-- 新建溯源码（对齐 HS-WEB 截图：4步流程 + 多维关联表单） -->
+      <section class="view" id="v-newCode">
+        <div class="page-head"><div><h1 class="page-head__title">新建溯源码</h1><p class="page-head__desc">一物一码溯源码生成 / 新建</p></div>
+        <div class="page-head__actions"><button class="btn" onclick="switchView('code')">返回列表</button></div></div>
+
+        <!-- 提示信息 -->
+        <div style="background:var(--berry-soft);border:1px solid rgba(123,44,191,.2);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--berry);color:#fff;display:grid;place-items:center;font-size:14px;font-style:italic;flex-shrink:0">i</div>
+          <span style="font-size:13px;color:var(--fg-2)">填写产品基本信息，依次关联四个维度的数据，至少关联2项即可生成一物一码。生成后自动跳回溯源码列表并打开该码的完整溯源详情。</span>
+        </div>
+
+        <!-- 流程进度条 -->
+        <div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:20px">
+          <div style="flex:1;display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--berry);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px">1</div>
+            <div><div style="font-size:14px;font-weight:600;color:var(--fg)">关联任务</div><div style="font-size:11px;color:var(--fg-3)">农事作业记录</div></div>
+          </div>
+          <div style="width:40px;height:2px;background:var(--berry);margin:auto 8px"></div>
+          <div style="flex:1;display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--berry);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px">2</div>
+            <div><div style="font-size:14px;font-weight:600;color:var(--fg)">土壤数据</div><div style="font-size:11px;color:var(--fg-3)">自动带出读数</div></div>
+          </div>
+          <div style="width:40px;height:2px;background:var(--border);margin:auto 8px"></div>
+          <div style="flex:1;display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--border-strong);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px">3</div>
+            <div><div style="font-size:14px;font-weight:600;color:var(--fg-2)">宣传资料</div><div style="font-size:11px;color:var(--fg-3)">上传实拍图/文件</div></div>
+          </div>
+          <div style="width:40px;height:2px;background:var(--border);margin:auto 8px"></div>
+          <div style="flex:1;display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--border-strong);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px">4</div>
+            <div><div style="font-size:14px;font-weight:600;color:var(--fg-2)">检测报告</div><div style="font-size:11px;color:var(--fg-3)">第三方检测文件</div></div>
+          </div>
+        </div>
+
+        <!-- 产品信息 -->
+        <div class="card" style="margin-bottom:16px"><div class="card__body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-row"><label>产品名称</label><div class="ctrl"><input class="input input--block" value="红颜鲜果 · 特级"></div></div>
+            <div class="form-row"><label>品种</label><div class="ctrl"><input class="input input--block" value="红颜"></div></div>
+            <div class="form-row"><label>关联批次</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>PC-2026-A1-001 · 木兰金秋3号棚</option><option>PC-2026-A2-002 · 木兰金秋2号棚</option></select></div></div>
+            <div class="form-row"><label>码类型</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>一物一码（每件独立编码）</option><option>批次码（同批次共享）</option></select></div></div>
+            <div class="form-row"><label>销售规格</label><div class="ctrl"><input class="input input--block" value="420g/盒"></div></div>
+            <div class="form-row"><label>产地地块</label><div class="ctrl"><select class="select" style="width:100%;height:34px"><option>木兰金秋基地 · 3号棚 · 红颜（120亩）</option></select></div></div>
+          </div>
+        </div></div>
+
+        <!-- ① 关联农事作业任务 -->
+        <div class="card" style="margin-bottom:16px"><div class="card__head">
+          <h3><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:28px;height:28px;border-radius:6px;background:rgba(123,44,191,.1);color:var(--berry);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>关联农事作业任务</span></h3>
+          <span class="tag tag--ok">已关联1项</span>
+        </div><div class="card__body">
+          <div style="font-size:12px;color:var(--fg-3);margin-bottom:12px">从该批次的农事作业记录中勾选需要展示的环节</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <label style="border:2px solid var(--berry);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;background:var(--berry);display:grid;place-items:center;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span><b style="font-size:13px;color:var(--fg)">定植移栽</b><div style="font-size:11px;color:var(--fg-3)">2025-09-15 · 王建国班组</div></span></label>
+            <label style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);flex-shrink:0"></span><span><b style="font-size:13px;color:var(--fg)">基肥施用</b><div style="font-size:11px;color:var(--fg-3)">2025-09-10 · 王建国班组</div></span></label>
+            <label style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);flex-shrink:0"></span><span><b style="font-size:13px;color:var(--fg)">滴灌补水·膨果期</b><div style="font-size:11px;color:var(--fg-3)">2026-01-20 · 李秀英班组</div></span></label>
+            <label style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);flex-shrink:0"></span><span><b style="font-size:13px;color:var(--fg)">病虫害绿色防控</b><div style="font-size:11px;color:var(--fg-3)">2026-02-15 · 李秀英班组</div></span></label>
+            <label style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);flex-shrink:0"></span><span><b style="font-size:13px;color:var(--fg)">追肥·膨果钾肥</b><div style="font-size:11px;color:var(--fg-3)">2026-01-10 · 王建国班组</div></span></label>
+            <label style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-strong);flex-shrink:0"></span><span><b style="font-size:13px;color:var(--fg)">适时采收</b><div style="font-size:11px;color:var(--fg-3)">2026-07-18 · 联合采收组</div></span></label>
+          </div>
+        </div></div>
+
+        <!-- ② 土壤监测数据 -->
+        <div class="card" style="margin-bottom:16px"><div class="card__head">
+          <h3><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:28px;height:28px;border-radius:6px;background:rgba(34,197,94,.1);color:var(--ok);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a6 6 0 0 0-6 6c0 7 6 14 6 14s6-7 6-14a6 6 0 0 0-6-6z"/><circle cx="12" cy="8" r="2"/></svg></span>土壤监测数据</span></h3>
+          <span class="tag tag--ok">已关联</span>
+        </div><div class="card__body">
+          <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">自动带出所选地块的最新传感器读数与近7天趋势</div>
+          <div style="font-size:11px;color:var(--fg-3);margin-bottom:10px">当前地块：木兰金秋基地 · 3号棚 · 采集时间 2026-07-18 06:00</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-radius:var(--r-sm);overflow:hidden">
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">pH值</div><div class="text-num" style="font-size:18px;font-weight:700;color:var(--ok)">6.4</div></div>
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">含水量</div><div class="text-num" style="font-size:18px;font-weight:700">28<span style="font-size:11px">%</span></div></div>
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">地温</div><div class="text-num" style="font-size:18px;font-weight:700">22.8<span style="font-size:11px">℃</span></div></div>
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">电导率 EC</div><div class="text-num" style="font-size:18px;font-weight:700">2.8</div></div>
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">速效氮 N</div><div class="text-num" style="font-size:18px;font-weight:700;color:var(--berry)">86</div></div>
+            <div style="background:var(--surface);padding:10px;text-align:center"><div style="font-size:11px;color:var(--fg-3);margin-bottom:4px">速效磷 P</div><div class="text-num" style="font-size:18px;font-weight:700;color:var(--berry)">128</div></div>
+          </div>
+        </div></div>
+
+        <!-- ③ 宣传资料（待关联） -->
+        <div class="card" style="margin-bottom:16px"><div class="card__head">
+          <h3><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:28px;height:28px;border-radius:6px;background:rgba(245,158,11,.1);color:var(--warn);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>宣传资料</span></h3>
+          <span class="tag" style="background:var(--warn-soft);color:var(--warn)">待关联</span>
+        </div><div class="card__body">
+          <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">上传产品实拍图、包装图、宣传文档（JPG/PNG/PDF，最多5个）</div>
+          <div style="border:2px dashed var(--border-strong);border-radius:var(--r-sm);padding:24px;text-align:center;color:var(--fg-3);font-size:13px;cursor:pointer" onclick="this.innerHTML='<div style=color:var(--berry)>✓ 已上传：红颜实拍.jpg</div>'">点击或拖拽上传产品实拍图 / 文件</div>
+        </div></div>
+
+        <!-- ④ 检测报告（待关联） -->
+        <div class="card" style="margin-bottom:16px"><div class="card__head">
+          <h3><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:28px;height:28px;border-radius:6px;background:rgba(245,158,11,.1);color:var(--warn);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h3"/></svg></span>检测报告</span></h3>
+          <span class="tag" style="background:var(--warn-soft);color:var(--warn)">待关联</span>
+        </div><div class="card__body">
+          <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">上传第三方检测机构出具的农残/品质检测报告（PDF）</div>
+          <div style="border:2px dashed var(--border-strong);border-radius:var(--r-sm);padding:24px;text-align:center;color:var(--fg-3);font-size:13px;cursor:pointer" onclick="this.innerHTML='<div style=color:var(--berry)>✓ 已上传：农残检测报告_0718.pdf</div>'">点击或拖拽上传检测报告 PDF</div>
+        </div></div>
+
+        <!-- 底部操作栏 -->
+        <div style="position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 0;display:flex;align-items:center;gap:12px;z-index:10">
+          <span style="font-size:13px;color:var(--fg-3)">已关联维度 <b style="color:var(--berry)">2 / 4</b>（至少需2项）</span>
+          <span style="flex:1"></span>
+          <button class="btn" onclick="switchView('code')">取消</button>
+          <button class="btn btn--primary" onclick="switchView('code')">生成溯源码并关联</button>
+        </div>
+      </section>
+
+      <!-- 查看溯源码（全页视图，JS 填充） -->
+      <section class="view" id="v-view">
+        <div class="page-head"><div><h1 class="page-head__title">查看溯源码 <span class="platform-mark platform-mark--trace">码证合一</span></h1></div>
+        <div class="page-head__actions"><button class="btn" onclick="switchView('code')">返回列表</button></div></div>
+        <div id="viewBody"></div>
+      </section>
+
+      <!-- 查看详情（全页视图，JS 填充） -->
+      <section class="view" id="v-detail">
+        <div class="page-head"><div><h1 class="page-head__title">溯源详情 <span class="platform-mark platform-mark--trace">全链路追溯</span></h1></div>
+        <div class="page-head__actions"><button class="btn" onclick="switchView('code')">返回列表</button></div></div>
+        <div id="detailBody"></div>
+      </section>
+
+      <!-- 溯源查询 -->
+      <section class="view" id="v-query">
+        <div class="page-head"><div><h1 class="page-head__title">溯源查询 <span class="platform-mark platform-mark--trace">扫码追溯</span></h1><p class="page-head__desc">输入溯源码 / 批次号，查询全链路追溯信息</p></div></div>
+        <div class="card" style="margin-bottom:var(--sp-4)"><div class="card__body">
+          <div style="display:flex;gap:10px"><input class="input input--block" style="flex:1;height:36px" placeholder="输入溯源码，如 SB20260718001" value="SB20260718001"><button class="btn btn--primary">查询</button></div>
+        </div></div>
+        <div class="grid-2">
+          <div class="card"><div class="card__head"><h3>批次信息</h3></div><div class="card__body">
+            <div class="info-row"><span class="k">溯源码</span><span class="v" style="color:var(--trace)">SB20260718001</span></div>
+            <div class="info-row"><span class="k">品种 / 产量</span><span class="v">红颜 · 1.2 吨</span></div>
+            <div class="info-row"><span class="k">产地</span><span class="v">黄陂 · 木兰金秋 3号棚</span></div>
+            <div class="info-row"><span class="k">采收日期</span><span class="v">2026-07-18</span></div>
+            <div class="info-row"><span class="k">质检</span><span class="v" style="color:var(--ok)">农残合格 · 糖度 12.1°Bx</span></div>
+            <div class="info-row"><span class="k">上链状态</span><span class="v" style="color:var(--trace)">已上链 ✓</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>全链路追溯</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">① 育苗定植</span><span class="v">09-15 · 红颜种苗</span></div>
+            <div class="pl-row"><span class="nm">② 农事管理</span><span class="v">施肥12 · 灌溉28 · 植保3</span></div>
+            <div class="pl-row"><span class="nm">③ 环境监测</span><span class="v">均温25.1℃ · 湿68%</span></div>
+            <div class="pl-row"><span class="nm">④ 质检上链</span><span class="v">07-18 · 合格</span></div>
+            <div class="pl-row"><span class="nm">⑤ 冷链出库</span><span class="v">07-18 · 武汉仓</span></div>
+            <div class="pl-row"><span class="nm">⑥ 终端扫码</span><span class="v">326 次查询</span></div>
+          </div></div>
+        </div>
+      </section>
+
+    </div></main>
+  </div>
+</div>
+
+<script>
+  // 视图切换
+  var titles={home:'工作台',code:'溯源码生成',query:'溯源查询',newCode:'新建溯源码',view:'查看溯源码',detail:'溯源详情'};
+  function switchView(v){
+    document.querySelectorAll('.sidebar .nav-item[data-v]').forEach(function(n){n.classList.remove('active')});
+    document.querySelectorAll('.view').forEach(function(s){s.classList.remove('active')});
+    var t=document.getElementById('v-'+v);if(t)t.classList.add('active');
+    var crumb=document.getElementById('crumb');if(crumb)crumb.textContent=titles[v]||'';
+    document.querySelector('.content')?.scrollTo?.(0,0);
+  }
+  document.querySelectorAll('.sidebar .nav-item[data-v]').forEach(function(it){
+    it.addEventListener('click',function(e){e.preventDefault();switchView(this.getAttribute('data-v'));});
+  });
+  // QR 生成
+  function genQR(svgId){
+    var s=document.getElementById(svgId);if(!s)return;s.innerHTML='';
+    var g='',n=25,pattern="101100101101011001100101010101101001101011001100110011010101100110101010101101001101011001100101101010101101001101011001100110011010101100110101010101101001101011001100101100110011010101101001101011001100110010110101010110100110101100110010110";
+    for(var y=0;y<n;y++){for(var x=0;x<n;x++){
+      var fill=(pattern[(x*7+y*3)%pattern.length]==='1');
+      if((x<7&&y<7)||(x>17&&y<7)||(x<7&&y>17)){var bx=x>17?x-18:x,by=y;if((bx%6===0||by%6===0)||(bx>0&&bx<6&&by>0&&by<6))fill=true;else if(bx>1&&bx<5&&by>1&&by<5)fill=true;else fill=false;}
+      g+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+(fill?'#1F2937':'#fff')+'"/>';
+    }}
+    s.innerHTML=g;
+  }
+  // 新建溯源码 → 全页 p77 两栏视图
+  function showNew(){switchView('newCode');setTimeout(function(){genQR('qrNew');},50);}
+  // 查看溯源码 → 全页视图，JS 填充内容
+  function showView(code,name,spec,date,origin,sugar){
+    document.getElementById('viewBody').innerHTML=
+      '<div style="max-width:500px;margin:0 auto">'+
+      '<div class="qr-box"><svg viewBox="0 0 25 25" id="qrViewSvg"></svg></div>'+
+      '<div style="text-align:center;margin-top:12px"><div class="text-num" style="font-size:18px;color:var(--berry)">'+code+'</div><div class="text-fg2" style="font-size:12px;margin-top:2px">批次溯源码</div></div>'+
+      '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:8px">'+
+      '<div class="info-row"><span class="k">产品名称</span><span class="v">'+name+'</span></div>'+
+      '<div class="info-row"><span class="k">规格 / 产量</span><span class="v">'+spec+'</span></div>'+
+      '<div class="info-row"><span class="k">产地</span><span class="v">'+origin+'</span></div>'+
+      '<div class="info-row"><span class="k">采收日期</span><span class="v">'+date+'</span></div>'+
+      '<div class="info-row"><span class="k">质检结果</span><span class="v" style="color:var(--ok)">农残合格 ✓</span></div>'+
+      '<div class="info-row"><span class="k">糖度</span><span class="v" style="color:var(--berry)">'+sugar+'</span></div>'+
+      '<div class="info-row"><span class="k">区块链状态</span><span class="v" style="color:var(--berry)"><span class="dot" style="background:var(--berry)"></span>已上链 ✓</span></div>'+
+      '<div style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;margin-top:10px">'+
+      '<div class="flex justify-between items-center mb-2"><b style="font-size:12px">质量检测指标</b><span class="tag tag--trace">第三方 · '+date+'</span></div>'+
+      '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">'+
+      '<div><div class="text-fg3">糖度</div><div class="text-num" style="color:var(--berry)">'+sugar+'</div></div>'+
+      '<div><div class="text-fg3">速效氮</div><div class="text-num">86</div></div>'+
+      '<div><div class="text-fg3">速效磷</div><div class="text-num">38</div></div>'+
+      '<div><div class="text-fg3">速效钾</div><div class="text-num">128</div></div></div>'+
+      '<div class="flex justify-between items-center mt-3 pt-2" style="border-top:1px dashed var(--border)">'+
+      '<span class="text-fg2" style="font-size:12px">综合评价</span>'+
+      '<span class="tag tag--ok"><span class="dot dot--ok"></span>优 · 累计查询 326 次</span></div></div></div>'+
+      '<div class="flex gap-2 mt-4">'+
+      '<button class="btn" style="flex:1" onclick="switchView(\'code\')">返回列表</button>'+
+      '<button class="btn" style="flex:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>打印预览</button>'+
+      '<button class="btn btn--primary" style="flex:1">导出 PNG</button></div></div>';
+    switchView('view');
+    setTimeout(function(){genQR('qrViewSvg');},50);
+  }
+  // 查看详情 → 全页视图，JS 填充
+  function showDetail(code){
+    document.getElementById('detailBody').innerHTML=
+      '<div style="max-width:500px;margin:0 auto">'+
+      '<div class="qr-box"><svg viewBox="0 0 25 25" id="qrDetailSvg"></svg></div>'+
+      '<div style="text-align:center;margin-top:12px"><div class="text-num" style="font-size:18px;color:var(--berry)">'+code+'</div><div class="text-fg2" style="font-size:12px;margin-top:2px">批次溯源码</div></div>'+
+      '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:8px">'+
+      '<div class="info-row"><span class="k">品种 / 产量</span><span class="v">红颜 · 1.2 吨</span></div>'+
+      '<div class="info-row"><span class="k">产地</span><span class="v">武汉黄陂 · 木兰金秋基地 3号棚</span></div>'+
+      '<div class="info-row"><span class="k">采收日期</span><span class="v">2026-07-18</span></div>'+
+      '<div class="info-row"><span class="k">质检结果</span><span class="v" style="color:var(--ok)">农残合格 ✓ · 糖度 12.1°Bx</span></div>'+
+      '<div class="info-row"><span class="k">区块链状态</span><span class="v" style="color:var(--berry)"><span class="dot" style="background:var(--berry)"></span>已上链 ✓</span></div></div>'+
+      '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px"><b style="font-size:13px;margin-bottom:8px;display:block">全链路追溯</b>'+
+      '<div class="info-row"><span class="k">① 育苗定植</span><span class="v">09-15 · 红颜种苗</span></div>'+
+      '<div class="info-row"><span class="k">② 农事管理</span><span class="v">施肥12 · 灌溉28 · 植保3</span></div>'+
+      '<div class="info-row"><span class="k">③ 环境监测</span><span class="v">均温25.1℃ · 湿68%</span></div>'+
+      '<div class="info-row"><span class="k">④ 质检上链</span><span class="v">07-18 · 合格</span></div>'+
+      '<div class="info-row"><span class="k">⑤ 冷链出库</span><span class="v">07-18 · 武汉仓</span></div>'+
+      '<div class="info-row"><span class="k">⑥ 终端扫码</span><span class="v">326 次查询</span></div></div>'+
+      '<div style="border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;margin-top:14px">'+
+      '<div class="flex justify-between items-center mb-2"><b style="font-size:12px">质量检测指标</b><span class="tag tag--trace">第三方 · 07-18</span></div>'+
+      '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">'+
+      '<div><div class="text-fg3">糖度</div><div class="text-num" style="color:var(--berry)">12.1°Bx</div></div>'+
+      '<div><div class="text-fg3">速效氮</div><div class="text-num">86</div></div>'+
+      '<div><div class="text-fg3">速效磷</div><div class="text-num">38</div></div>'+
+      '<div><div class="text-fg3">速效钾</div><div class="text-num">128</div></div></div>'+
+      '<div class="flex justify-between items-center mt-3 pt-2" style="border-top:1px dashed var(--border)">'+
+      '<span class="text-fg2" style="font-size:12px">综合评价</span>'+
+      '<span class="tag tag--ok"><span class="dot dot--ok"></span>优 · 累计查询 326 次</span></div></div>'+
+      '<button class="btn mt-4" style="width:100%" onclick="switchView(\'code\')">返回列表</button></div>';
+    switchView('detail');
+    setTimeout(function(){genQR('qrDetailSvg');},50);
+  }
+</script>
+</body>
+</html>

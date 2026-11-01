@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>三维园区总览 · 数字孪生平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .twin-viewport{position:relative;height:calc(100vh - 56px - 48px);min-height:560px;background:
+    radial-gradient(900px 500px at 30% 30%,rgba(30,144,255,.18),transparent 60%),
+    radial-gradient(700px 400px at 75% 70%,rgba(230,57,70,.10),transparent 60%),
+    linear-gradient(180deg,#0A1929,#08131F);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--dark-line)}
+  .twin-viewport svg{width:100%;height:100%;display:block}
+  .hud{position:absolute;background:rgba(14,34,54,.78);border:1px solid var(--dark-line);border-radius:var(--r-sm);backdrop-filter:blur(6px);color:var(--dark-fg)}
+  .hud--tr{top:14px;right:14px;width:200px;padding:12px}
+  .hud--tl{top:14px;left:14px;width:220px;padding:12px}
+  .hud--bl{bottom:14px;left:14px;padding:8px 12px}
+  .hud h4{font-size:12px;color:var(--dark-fg-2);margin-bottom:8px;letter-spacing:.05em}
+  .layer-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--dark-fg)}
+  .layer-row .sw{width:28px;height:16px;background:var(--dark-panel-2);border-radius:8px;position:relative;border:1px solid var(--dark-line)}
+  .layer-row .sw.on{background:var(--tech)}
+  .layer-row .sw::after{content:"";position:absolute;left:2px;top:1px;width:12px;height:12px;background:#fff;border-radius:50%;transition:.2s}
+  .layer-row .sw.on::after{left:13px}
+  .float-label{position:absolute;background:rgba(14,34,54,.85);border:1px solid var(--dark-line);border-radius:var(--r-xs);padding:4px 8px;font-size:11px;color:var(--dark-fg);font-family:var(--font-num)}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo">莓</span> 黄陂草莓数字农事平台</div>
+    <nav class="breadcrumb"><span>数字孪生平台</span> <i>/</i> <b>三维园区总览</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="定位大棚 / 设备"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></button>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">运营</div><a class="nav-item" href="workbench.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>运营工作台</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">种植管理</div><a class="nav-item" href="p12-device-monitor.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span>设备监控墙</span></a><a class="nav-item" href="p15-environment.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span>气象监测</span></a><a class="nav-item" href="p19-alert.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5z"/><path d="M12 8v4M12 16h.01"/></svg></span><span>智能预警</span></a><a class="nav-item" href="p110-task.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>农事任务</span></a><a class="nav-item" href="p116-video.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span>视频监控</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">AI 决策</div><a class="nav-item" href="p21-water.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5S5 9 5 14a7 7 0 0 0 14 0c0-5-7-11.5-7-11.5z"/></svg></span><span>水肥调控模型</span></a><a class="nav-item" href="p23-pest.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="13" rx="4"/><path d="M19 7l-3 2M5 7l3 2M19 13h-3M8 13H5"/></svg></span><span>病虫害防控</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">物联网 / 孪生</div><a class="nav-item" href="p32-device-data.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 16.1a10 10 0 0 1 0-14.2M7.8 13.3a6 6 0 0 1 0-8.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 13.3a6 6 0 0 0 0-8.5M19.1 16.1a10 10 0 0 0 0-14.2"/></svg></span><span>设备数据查看</span></a><a class="nav-item" href="p34-alert-config.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></span><span>预警设置</span></a><a class="nav-item active" href="p41-twin3d.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg></span><span>三维园区总览</span></a><a class="nav-item" href="p44-emergency.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><span>应急模拟</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">农机 / 溯源</div><a class="nav-item" href="p62-machine.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>农机实时监控</span></a><a class="nav-item" href="p64-machine-stat.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计</span></a><a class="nav-item" href="p77-trace-code.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>溯源码生成</span></a><a class="nav-item" href="p78-trace-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>溯源码查询</span></a></div>
+      <div class="sidebar__group"><div class="sidebar__title">系统</div><a class="nav-item" href="p132-led.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></span><span>大屏内容管理</span></a></div>
+    </aside>
+
+    <main class="content">
+      <div class="page" style="padding:16px">
+        <div class="twin-viewport">
+          <!-- 等距 3D 园区 -->
+          <svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(34,197,94,.10)"/><stop offset="1" stop-color="rgba(30,144,255,.05)"/></linearGradient>
+              <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(30,144,255,.5)"/><stop offset="1" stop-color="rgba(30,144,255,.15)"/></linearGradient>
+              <linearGradient id="roofR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(230,57,70,.5)"/><stop offset="1" stop-color="rgba(230,57,70,.15)"/></linearGradient>
+            </defs>
+            <!-- 地面网格（等距）-->
+            <g stroke="rgba(30,144,255,.12)" stroke-width="1">
+              <path d="M200 200 L 800 200 L 900 260 L 300 260 Z" fill="url(#ground)"/>
+              <path d="M300 140 L 900 140 M400 80 L 1000 80" stroke="rgba(30,144,255,.08)"/>
+            </g>
+            <!-- 大棚（等距盒）4 个 -->
+            <g>
+              <!-- 1号棚 绿 -->
+              <g><path d="M250 320 L 400 320 L 450 295 L 300 295 Z" fill="rgba(34,197,94,.15)" stroke="rgba(34,197,94,.6)"/><path d="M250 320 L 250 380 L 400 380 L 400 320 Z" fill="rgba(14,34,54,.6)" stroke="rgba(30,144,255,.3)"/><path d="M400 320 L 400 380 L 450 355 L 450 295 Z" fill="rgba(14,34,54,.8)" stroke="rgba(30,144,255,.3)"/><path d="M250 320 L 300 295 L 450 295 L 400 320" fill="url(#roof)" stroke="rgba(34,197,94,.6)"/><text x="345" y="365" text-anchor="middle" font-size="11" fill="#22C55E" font-family="var(--font-num)">1号棚 26.1℃</text></g>
+              <!-- 2号棚 绿 -->
+              <g transform="translate(220,0)"><path d="M250 320 L 400 320 L 450 295 L 300 295 Z" fill="rgba(34,197,94,.15)" stroke="rgba(34,197,94,.6)"/><path d="M250 320 L 250 380 L 400 380 L 400 320 Z" fill="rgba(14,34,54,.6)" stroke="rgba(30,144,255,.3)"/><path d="M400 320 L 400 380 L 450 355 L 450 295 Z" fill="rgba(14,34,54,.8)" stroke="rgba(30,144,255,.3)"/><path d="M250 320 L 300 295 L 450 295 L 400 320" fill="url(#roof)" stroke="rgba(34,197,94,.6)"/><text x="345" y="365" text-anchor="middle" font-size="11" fill="#22C55E" font-family="var(--font-num)">2号棚 25.8℃</text></g>
+              <!-- 3号棚 红 预警 -->
+              <g transform="translate(440,0)"><path d="M250 320 L 400 320 L 450 295 L 300 295 Z" fill="rgba(230,57,70,.18)" stroke="rgba(230,57,70,.8)"/><path d="M250 320 L 250 380 L 400 380 L 400 320 Z" fill="rgba(14,34,54,.6)" stroke="rgba(230,57,70,.4)"/><path d="M400 320 L 400 380 L 450 355 L 450 295 Z" fill="rgba(14,34,54,.8)" stroke="rgba(230,57,70,.4)"/><path d="M250 320 L 300 295 L 450 295 L 400 320" fill="url(#roofR)" stroke="rgba(230,57,70,.8)"/><text x="345" y="365" text-anchor="middle" font-size="11" fill="#E63946" font-family="var(--font-num)" font-weight="700">3号棚 32.0℃ ⚠</text><circle cx="350" cy="312" r="6" fill="#E63946"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.3;1" dur="1.5s" repeatCount="indefinite"/></circle></g>
+              <!-- 4号棚 绿 -->
+              <g transform="translate(660,0)"><path d="M250 320 L 400 320 L 450 295 L 300 295 Z" fill="rgba(34,197,94,.15)" stroke="rgba(34,197,94,.6)"/><path d="M250 320 L 250 380 L 400 380 L 400 320 Z" fill="rgba(14,34,54,.6)" stroke="rgba(30,144,255,.3)"/><path d="M400 320 L 400 380 L 450 355 L 450 295 Z" fill="rgba(14,34,54,.8)" stroke="rgba(30,144,255,.3)"/><path d="M250 320 L 300 295 L 450 295 L 400 320" fill="url(#roof)" stroke="rgba(34,197,94,.6)"/><text x="345" y="365" text-anchor="middle" font-size="11" fill="#22C55E" font-family="var(--font-num)">4号棚 26.4℃</text></g>
+            </g>
+            <!-- 道路 -->
+            <path d="M150 440 L 850 440" stroke="rgba(30,144,255,.2)" stroke-width="20" stroke-linecap="round"/>
+          </svg>
+
+          <!-- HUD 右上：图层 + 视角 -->
+          <div class="hud hud--tr">
+            <h4>图层控制</h4>
+            <div class="layer-row"><span>环境监测</span><span class="sw on"></span></div>
+            <div class="layer-row"><span>水肥管网</span><span class="sw on"></span></div>
+            <div class="layer-row"><span>视频监控</span><span class="sw on"></span></div>
+            <div class="layer-row"><span>设备点位</span><span class="sw on"></span></div>
+            <div class="layer-row"><span>客流热力</span><span class="sw"></span></div>
+            <h4 style="margin-top:12px">视角控制</h4>
+            <div class="flex gap-2"><button class="ds-icon-btn" style="border:1px solid var(--dark-line);width:auto;padding:0 8px;font-size:11px;color:var(--dark-fg-2)">缩放</button><button class="ds-icon-btn" style="border:1px solid var(--dark-line);width:auto;padding:0 8px;font-size:11px;color:var(--dark-fg-2)">旋转</button><button class="ds-icon-btn" style="border:1px solid var(--dark-line);width:auto;padding:0 8px;font-size:11px;color:var(--dark-fg-2)">漫游</button></div>
+          </div>
+
+          <!-- HUD 左上：钻取面板（3号棚）-->
+          <div class="hud hud--tl">
+            <div class="flex justify-between items-center mb-3"><h4 style="margin:0">3号棚 · 钻取</h4><span class="ds-dot ds-dot--danger"></span></div>
+            <div style="font-size:12px;color:var(--dark-fg-2);margin-bottom:6px">红颜 · 膨果期</div>
+            <div class="ds-metric"><span class="ds-metric__label">设备在线</span><span class="ds-metric__val" style="font-size:16px">12/12</span></div>
+            <div class="ds-metric"><span class="ds-metric__label">温度 / 湿度</span><span class="ds-metric__val" style="font-size:16px;color:#E63946">32.0℃ / 68%</span></div>
+            <div class="ds-metric"><span class="ds-metric__label">今日农事</span><span class="ds-metric__val" style="font-size:16px">1 项</span></div>
+            <div class="ds-metric"><span class="ds-metric__label">产量预估</span><span class="ds-metric__val" style="font-size:16px">1.2 吨</span></div>
+            <div class="flex gap-2 mt-3"><button class="btn btn--sm" style="background:transparent;border:1px solid var(--dark-line);color:var(--dark-fg)">环境</button><button class="btn btn--sm" style="background:transparent;border:1px solid var(--dark-line);color:var(--dark-fg)">视频</button><button class="btn btn--sm" style="background:var(--berry);color:#fff;border-color:var(--berry)">远程控制</button></div>
+          </div>
+
+          <!-- 图例 左下 -->
+          <div class="hud hud--bl ds-legend"><span><i class="ds-dot ds-dot--ok"></i>正常</span><span><i class="ds-dot ds-dot--warn"></i>预警</span><span><i class="ds-dot ds-dot--danger"></i>故障</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

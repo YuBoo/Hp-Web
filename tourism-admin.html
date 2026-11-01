@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>农文旅销 · 中台管理后台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.view{display:none}.view.active{display:block}.sidebar .nav-item{cursor:pointer}
+.pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}.pl-row:last-child{border:none}
+.pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}.pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}.pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+.pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#E63946,#F77788);border-radius:3px}
+.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}.tbl tr:hover td{background:var(--surface-2)}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.danger{background:var(--danger-soft);color:var(--danger)}.tag.info{background:var(--berry-soft);color:var(--berry)}.tag.tech{background:#E6F2FF;color:var(--tech)}
+.ds-grid-2-3{display:grid;gap:var(--sp-4)}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-4{gap:16px}.mb-4{margin-bottom:16px}
+.text-mono{font-family:var(--font-num)}.num{text-align:right;font-family:var(--font-num)}.text-berry{color:var(--berry);cursor:pointer}
+.bar{display:inline-block;width:3px;height:14px;background:var(--berry);margin-right:6px;vertical-align:middle;border-radius:1px}
+.platform-mark--tourism{background:var(--berry-soft);color:var(--berry)}
+.mc-row{display:flex;gap:10px;padding:10px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent}.mc-row:hover{background:var(--surface-2);border-color:var(--border)}
+.mc-row .mi{width:38px;height:38px;border-radius:var(--r-sm);display:grid;place-items:center;flex-shrink:0;font-size:18px}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#E63946">管</span> 农文旅销 · 中台管理后台</div>
+    <nav class="breadcrumb"><span>农文旅销平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索订单 / 商品 / 游客"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>可视化大屏</a>
+      <a class="btn btn--ghost btn--sm" href="tourism-platform.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户首页</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">公众服务门户</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="vr"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><span>VR 全景漫游</span></a>
+        <a class="nav-item" data-v="route"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19V5M18 5v14M6 12h12"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/></svg></span><span>智能路线推荐</span></a>
+        <a class="nav-item" data-v="ticket"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v14"/></svg></span><span>预约与票务 ★</span></a>
+        <a class="nav-item" data-v="shop"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span><span>文创电商溯源 ★</span></a>
+        <a class="nav-item" data-v="community"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z"/></svg></span><span>社群互动</span></a>
+        <a class="nav-item" data-v="content"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></span><span>内容生态</span></a>
+      </div>
+      <div class="sidebar__group"><div class="sidebar__title">中台运营</div>
+        <a class="nav-item" data-v="supplier"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg></span><span>供应商入驻管理</span></a>
+        <a class="nav-item" data-v="product"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/></svg></span><span>产品与服务管理</span></a>
+        <a class="nav-item" data-v="order"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></svg></span><span>订单统一处理 ★</span></a>
+        <a class="nav-item" data-v="marketing"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8z"/></svg></span><span>营销与推广</span></a>
+        <a class="nav-item" data-v="report"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/></svg></span><span>经营分析报告</span></a>
+      </div>
+    </aside>
+    <main class="content"><div class="page">
+
+      <!-- 工作台 -->
+      <section class="view active" id="v-home">
+        <div class="page-head"><div><h1 class="page-head__title">农文旅销平台 <span class="platform-mark platform-mark--tourism">农文旅</span></h1><p class="page-head__desc">草莓采摘 · 民宿农家乐 · 研学文创 · 一站式农文旅运营</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">今日预约</div><div class="kpi__val">326<span class="unit">单</span></div><div class="kpi__trend up">↑ 较昨日 +18%</div></div>
+          <div class="kpi"><div class="kpi__label">今日客流</div><div class="kpi__val">1,082<span class="unit">人</span></div><div class="kpi__trend up">↑ 较昨日 +12%</div></div>
+          <div class="kpi"><div class="kpi__label">今日营收</div><div class="kpi__val" style="color:var(--berry)">¥28,560</div><div class="kpi__trend up">↑ 较昨日 +9%</div></div>
+          <div class="kpi"><div class="kpi__label">满意度</div><div class="kpi__val">4.7<span class="unit">/5</span></div><div class="kpi__trend">本周好评率 92%</div></div>
+        </div>
+        <div class="pl-grid mb-4">
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>热门采摘园</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#E63946"></i>木兰金秋草莓基地</span><span class="v">412 人</span></div><div class="pl-bar"><i style="width:95%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F77788"></i>草莓公社</span><span class="v">286 人</span></div><div class="pl-bar"><i style="width:66%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F3A8AE"></i>前川甜蜜农场</span><span class="v">198 人</span></div><div class="pl-bar"><i style="width:46%"></i></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>今日活动</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">草莓文化节</span><span class="v">木兰金秋 · 进行中</span></div>
+            <div class="pl-row"><span class="nm">亲子采摘季</span><span class="v">草莓公社 · 报名中</span></div>
+            <div class="pl-row"><span class="nm">研学体验日</span><span class="v">前川农场 · 待开始</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>待办</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">待核销订单</span><span class="v" style="color:var(--warn)">84</span></div>
+            <div class="pl-row"><span class="nm">待审核内容</span><span class="v" style="color:var(--warn)">8</span></div>
+            <div class="pl-row"><span class="nm">待发货订单</span><span class="v" style="color:var(--warn)">23</span></div>
+            <div class="pl-row"><span class="nm">供应商入驻待审</span><span class="v" style="color:var(--warn)">3</span></div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- VR全景漫游 -->
+      <section class="view" id="v-vr">
+        <div class="page-head"><div><h1 class="page-head__title">VR 全景内容管理<span class="platform-mark platform-mark--tourism">360°</span></h1><p class="page-head__desc">草莓园 · 景点 · 民宿 360°全景视频接入，支持云游览；上传、审核、上下架。</p></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm">+ 上传全景</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">全景数量</div><div class="kpi__val">48<span class="unit">个</span></div><div class="kpi__trend">园区12 · 景点26 · 民宿10</div></div>
+          <div class="kpi"><div class="kpi__label">累计播放</div><div class="kpi__val">12,560</div><div class="kpi__trend up">↑ 本月 +2,340</div></div>
+          <div class="kpi"><div class="kpi__label">待审核</div><div class="kpi__val" style="color:var(--warn)">3</div><div class="kpi__trend">游客上传</div></div>
+          <div class="kpi"><div class="kpi__label">平均停留</div><div class="kpi__val">2.4<span class="unit">min</span></div><div class="kpi__trend">沉浸时长</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>全景内容列表</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>全景名称</th><th>类型</th><th>状态</th><th>播放量</th><th>平均时长</th><th>更新时间</th><th>操作</th></tr></thead><tbody>
+            <tr><td>木兰金秋·智能温室群</td><td>园区</td><td><span class="tag ok">上架</span></td><td class="num">3,260</td><td class="num">3.2min</td><td>2026-07-18</td><td><a class="text-berry">预览</a> <a class="text-berry">下架</a></td></tr>
+            <tr><td>草莓公社·采摘体验</td><td>园区</td><td><span class="tag ok">上架</span></td><td class="num">2,180</td><td class="num">2.8min</td><td>2026-07-15</td><td><a class="text-berry">预览</a> <a class="text-berry">下架</a></td></tr>
+            <tr><td>木兰山·观景台</td><td>景点</td><td><span class="tag ok">上架</span></td><td class="num">1,860</td><td class="num">2.1min</td><td>2026-07-10</td><td><a class="text-berry">预览</a> <a class="text-berry">下架</a></td></tr>
+            <tr><td>云栖民宿·庭院</td><td>民宿</td><td><span class="tag warn">待审核</span></td><td class="num">—</td><td class="num">—</td><td>2026-07-19</td><td><a class="text-berry">审核</a></td></tr>
+            <tr><td>前川农场·加工参观</td><td>景点</td><td><span class="tag">下架</span></td><td class="num">980</td><td class="num">1.6min</td><td>2026-06-28</td><td><a class="text-berry">预览</a> <a class="text-berry">上架</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 智能路线推荐 -->
+      <section class="view" id="v-route">
+        <div class="page-head"><div><h1 class="page-head__title">智能路线推荐<span class="platform-mark platform-mark--tourism">个性化</span></h1><p class="page-head__desc">基于用户偏好 · 时间 · 预算 一键生成草莓主题游玩路线，集成地图导航与周边 POI。</p></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm">+ 新建路线</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">路线总数</div><div class="kpi__val">18<span class="unit">条</span></div><div class="kpi__trend">一日游10 · 两日游8</div></div>
+          <div class="kpi"><div class="kpi__label">本月使用</div><div class="kpi__val">2,340</div><div class="kpi__trend up">↑ +24%</div></div>
+          <div class="kpi"><div class="kpi__label">平均时长</div><div class="kpi__val">4.2<span class="unit">h</span></div><div class="kpi__trend">含采摘+用餐</div></div>
+          <div class="kpi"><div class="kpi__label">好评率</div><div class="kpi__val" style="color:var(--ok)">92%</div><div class="kpi__trend">推荐转化 38%</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>主题路线</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>路线名称</th><th>主题</th><th>景点数</th><th>时长</th><th>人均预算</th><th>使用量</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>草莓采摘一日游</td><td><span class="tag info">亲子</span></td><td class="num">4</td><td class="num">6h</td><td class="num">¥158</td><td class="num">986</td><td><span class="tag ok">上架</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>木兰金秋深度游</td><td><span class="tag tech">研学</span></td><td class="num">6</td><td class="num">8h</td><td class="num">¥268</td><td class="num">642</td><td><span class="tag ok">上架</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>民宿度假两日游</td><td><span class="tag warn">休闲</span></td><td class="num">5</td><td class="num">2天</td><td class="num">¥698</td><td class="num">428</td><td><span class="tag ok">上架</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>草莓文创体验线</td><td><span class="tag info">亲子</span></td><td class="num">3</td><td class="num">4h</td><td class="num">¥128</td><td class="num">284</td><td><span class="tag warn">草稿</span></td><td><a class="text-berry">编辑</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 预约与票务 -->
+      <section class="view" id="v-ticket">
+        <div class="page-head"><div><h1 class="page-head__title">预约与票务系统<span class="platform-mark platform-mark--tourism">票务</span></h1><p class="page-head__desc">整合采摘园 · 民宿 · 农家乐 · 研学基地，在线查看园况、购票预约、电子票务核销。</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">今日预约</div><div class="kpi__val">326<span class="unit">单</span></div><div class="kpi__trend up">↑ +18%</div></div>
+          <div class="kpi"><div class="kpi__label">待核销</div><div class="kpi__val" style="color:var(--warn)">84</div><div class="kpi__trend">今日到期</div></div>
+          <div class="kpi"><div class="kpi__label">已核销</div><div class="kpi__val" style="color:var(--ok)">242</div><div class="kpi__trend">核销率 74%</div></div>
+          <div class="kpi"><div class="kpi__label">退款</div><div class="kpi__val" style="color:var(--danger)">4</div><div class="kpi__trend">退款率 1.2%</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>预约订单</h3><div class="flex gap-2"><select class="select"><option>全部项目</option><option>采摘园</option><option>民宿</option><option>农家乐</option><option>研学基地</option></select><button class="btn btn--sm">导出</button></div></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>订单号</th><th>项目</th><th>类型</th><th>联系人</th><th>日期</th><th>数量</th><th>金额</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td class="text-mono">TK20260720-0326</td><td>木兰金秋·采摘券</td><td>采摘园</td><td>王女士</td><td>07-20</td><td class="num">4人</td><td class="num">¥316</td><td><span class="tag warn">待核销</span></td><td><a class="text-berry">核销</a></td></tr>
+            <tr><td class="text-mono">TK20260720-0325</td><td>云栖民宿·亲子房</td><td>民宿</td><td>李先生</td><td>07-20</td><td class="num">1间</td><td class="num">¥488</td><td><span class="tag ok">已核销</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td class="text-mono">TK20260720-0324</td><td>草莓公社·农家乐</td><td>农家乐</td><td>张女士</td><td>07-20</td><td class="num">8人</td><td class="num">¥960</td><td><span class="tag warn">待核销</span></td><td><a class="text-berry">核销</a></td></tr>
+            <tr><td class="text-mono">TK20260720-0323</td><td>前川农场·研学</td><td>研学基地</td><td>黄陂三小</td><td>07-21</td><td class="num">36人</td><td class="num">¥3,600</td><td><span class="tag info">已预约</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td class="text-mono">TK20260720-0322</td><td>木兰金秋·采摘券</td><td>采摘园</td><td>陈先生</td><td>07-19</td><td class="num">2人</td><td class="num">¥158</td><td><span class="tag danger">已退款</span></td><td><a class="text-berry">详情</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 文创电商溯源 -->
+      <section class="view" id="v-shop">
+        <div class="page-head"><div><h1 class="page-head__title">文创电商与溯源直购<span class="platform-mark platform-mark--tourism">溯源直购</span></h1><p class="page-head__desc">鲜果 · 深加工（草莓酱/酒/干）· 文创衍生品 在线销售，支持产品溯源查询。</p></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm">+ 上架商品</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">商品总数</div><div class="kpi__val">86<span class="unit">款</span></div><div class="kpi__trend">鲜果24 · 加工38 · 文创24</div></div>
+          <div class="kpi"><div class="kpi__label">在售</div><div class="kpi__val" style="color:var(--ok)">72</div><div class="kpi__trend">下架 14</div></div>
+          <div class="kpi"><div class="kpi__label">今日订单</div><div class="kpi__val">158</div><div class="kpi__trend up">↑ +22%</div></div>
+          <div class="kpi"><div class="kpi__label">待发货</div><div class="kpi__val" style="color:var(--warn)">23</div><div class="kpi__trend">48h 内发出</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>商品管理</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>商品</th><th>分类</th><th>价格</th><th>库存</th><th>月销</th><th>溯源码</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>木兰金秋·红颜草莓礼盒</td><td><span class="tag danger">鲜果</span></td><td class="num">¥88</td><td class="num">420</td><td class="num">1,860</td><td class="text-mono">HP-2026-08</td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>手作草莓酱(无添加)</td><td><span class="tag info">深加工</span></td><td class="num">¥38</td><td class="num">1,260</td><td class="num">980</td><td class="text-mono">HP-2026-12</td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>草莓果酒·甜酿</td><td><span class="tag info">深加工</span></td><td class="num">¥128</td><td class="num">320</td><td class="num">426</td><td class="text-mono">HP-2026-15</td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>草莓文创玩偶</td><td><span class="tag warn">文创</span></td><td class="num">¥58</td><td class="num">86</td><td class="num">312</td><td class="text-mono">—</td><td><span class="tag warn">低库存</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>草莓冻干</td><td><span class="tag info">深加工</span></td><td class="num">¥48</td><td class="num">0</td><td class="num">680</td><td class="text-mono">HP-2026-19</td><td><span class="tag danger">缺货</span></td><td><a class="text-berry">补货</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 社群互动 -->
+      <section class="view" id="v-community">
+        <div class="page-head"><div><h1 class="page-head__title">社群互动<span class="platform-mark platform-mark--tourism">UGC</span></h1><p class="page-head__desc">用户发布图文 · 短视频游记，分享游玩体验；内容审核与推荐。</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">今日发布</div><div class="kpi__val">56</div><div class="kpi__trend up">↑ 周末高峰</div></div>
+          <div class="kpi"><div class="kpi__label">待审核</div><div class="kpi__val" style="color:var(--warn)">8</div><div class="kpi__trend">含 2 举报</div></div>
+          <div class="kpi"><div class="kpi__label">已推荐</div><div class="kpi__val">12</div><div class="kpi__trend">首页精选</div></div>
+          <div class="kpi"><div class="kpi__label">互动量</div><div class="kpi__val">3,860</div><div class="kpi__trend">点赞+评论</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>内容审核</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>作者</th><th>类型</th><th>内容</th><th>点赞</th><th>评论</th><th>发布时间</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>草莓控小王</td><td><span class="tag tech">视频</span></td><td>木兰金秋采摘vlog</td><td class="num">1,286</td><td class="num">86</td><td>10分钟前</td><td><span class="tag warn">待审核</span></td><td><a class="text-berry">通过</a> <a class="text-berry">拒绝</a></td></tr>
+            <tr><td>溜娃达人</td><td><span class="tag info">图文</span></td><td>亲子采摘一日游攻略</td><td class="num">862</td><td class="num">54</td><td>1小时前</td><td><span class="tag ok">已推荐</span></td><td><a class="text-berry">取消推荐</a></td></tr>
+            <tr><td>民宿体验官</td><td><span class="tag tech">视频</span></td><td>云栖民宿一镜到底</td><td class="num">426</td><td class="num">28</td><td>3小时前</td><td><span class="tag ok">已通过</span></td><td><a class="text-berry">推荐</a></td></tr>
+            <tr><td>匿名用户</td><td><span class="tag info">图文</span></td><td>含不当言论内容…</td><td class="num">12</td><td class="num">3</td><td>5小时前</td><td><span class="tag danger">被举报</span></td><td><a class="text-berry">下架</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 内容生态 -->
+      <section class="view" id="v-content">
+        <div class="page-head"><div><h1 class="page-head__title">内容生态<span class="platform-mark platform-mark--tourism">活动</span></h1><p class="page-head__desc">官方发布活动预告 · 报名通知等，运营内容矩阵。</p></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm">+ 发布活动</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">进行中活动</div><div class="kpi__val" style="color:var(--ok)">6</div><div class="kpi__trend">含 2 个热门</div></div>
+          <div class="kpi"><div class="kpi__label">本月报名</div><div class="kpi__val">1,240</div><div class="kpi__trend up">↑ +30%</div></div>
+          <div class="kpi"><div class="kpi__label">待发布</div><div class="kpi__val">2</div><div class="kpi__trend">草稿</div></div>
+          <div class="kpi"><div class="kpi__label">触达用户</div><div class="kpi__val">28,640</div><div class="kpi__trend">推送+banner</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>活动管理</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>活动名称</th><th>类型</th><th>时间</th><th>地点</th><th>报名/容量</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>2026 黄陂草莓文化节</td><td><span class="tag danger">大型</span></td><td>07-26 ~ 08-03</td><td>木兰金秋</td><td class="num">860/1200</td><td><span class="tag ok">报名中</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td>亲子采摘季·第三期</td><td><span class="tag info">常规</span></td><td>07-22 周六</td><td>草莓公社</td><td class="num">120/150</td><td><span class="tag ok">报名中</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td>草莓研学体验日</td><td><span class="tag tech">研学</span></td><td>07-21 周五</td><td>前川农场</td><td class="num">36/40</td><td><span class="tag warn">即将满员</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td>七夕草莓之恋主题</td><td><span class="tag warn">主题</span></td><td>08-09</td><td>云栖民宿</td><td class="num">8/60</td><td><span class="tag">待发布</span></td><td><a class="text-berry">发布</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 供应商入驻管理 -->
+      <section class="view" id="v-supplier">
+        <div class="page-head"><div><h1 class="page-head__title">供应商入驻与管理<span class="platform-mark platform-mark--tourism">中台</span></h1><p class="page-head__desc">草莓园 · 民宿 · 旅行社 标准化入驻，管理基本信息、资质、服务项目与库存。</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">入驻供应商</div><div class="kpi__val">48<span class="unit">家</span></div><div class="kpi__trend">草莓园22 · 民宿18 · 旅行社8</div></div>
+          <div class="kpi"><div class="kpi__label">待审核</div><div class="kpi__val" style="color:var(--warn)">3</div><div class="kpi__trend">资质核验中</div></div>
+          <div class="kpi"><div class="kpi__label">本月新增</div><div class="kpi__val" style="color:var(--ok)">5</div><div class="kpi__trend up">↑ 旺季扩容</div></div>
+          <div class="kpi"><div class="kpi__label">平均评分</div><div class="kpi__val">4.6</div><div class="kpi__trend">游客评价</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>供应商列表</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>供应商</th><th>类型</th><th>资质</th><th>服务项目</th><th>容量/日</th><th>评分</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>木兰金秋草莓基地</td><td><span class="tag danger">草莓园</span></td><td><span class="tag ok">已认证</span></td><td>采摘·研学·餐饮</td><td class="num">500人</td><td class="num">4.8</td><td><span class="tag ok">营业</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td>云栖民宿</td><td><span class="tag info">民宿</span></td><td><span class="tag ok">已认证</span></td><td>住宿·庭院·早餐</td><td class="num">28间</td><td class="num">4.7</td><td><span class="tag ok">营业</span></td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td>黄陂文旅旅行社</td><td><span class="tag warn">旅行社</span></td><td><span class="tag warn">审核中</span></td><td>跟团·包车·导游</td><td class="num">—</td><td class="num">—</td><td><span class="tag warn">待审核</span></td><td><a class="text-berry">审核</a></td></tr>
+            <tr><td>草莓公社</td><td><span class="tag danger">草莓园</span></td><td><span class="tag ok">已认证</span></td><td>采摘·亲子·文创</td><td class="num">300人</td><td class="num">4.6</td><td><span class="tag ok">营业</span></td><td><a class="text-berry">详情</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 产品与服务管理 -->
+      <section class="view" id="v-product">
+        <div class="page-head"><div><h1 class="page-head__title">产品与服务管理<span class="platform-mark platform-mark--tourism">中台</span></h1><p class="page-head__desc">统一管理上线门票 · 套餐 · 商品，配置价格、上下架与营销活动。</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">产品总数</div><div class="kpi__val">124</div><div class="kpi__trend">门票42 · 套餐36 · 商品46</div></div>
+          <div class="kpi"><div class="kpi__label">在售</div><div class="kpi__val" style="color:var(--ok)">108</div><div class="kpi__trend">上下架动态</div></div>
+          <div class="kpi"><div class="kpi__label">参与营销</div><div class="kpi__val" style="color:var(--berry)">18</div><div class="kpi__trend">满减/团购</div></div>
+          <div class="kpi"><div class="kpi__label">已下架</div><div class="kpi__val">16</div><div class="kpi__trend">季节性</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>产品列表</h3></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>产品</th><th>分类</th><th>价格</th><th>库存</th><th>月销</th><th>营销</th><th>状态</th><th>操作</th></tr></thead><tbody>
+            <tr><td>采摘券(成人)</td><td><span class="tag tech">门票</span></td><td class="num">¥58</td><td class="num">不限</td><td class="num">2,860</td><td><span class="tag info">满2减10</span></td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>亲子采摘套餐</td><td><span class="tag warn">套餐</span></td><td class="num">¥158</td><td class="num">不限</td><td class="num">1,240</td><td><span class="tag info">团购9折</span></td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>研学体验营(全天)</td><td><span class="tag warn">套餐</span></td><td class="num">¥268</td><td class="num">40/场</td><td class="num">386</td><td>—</td><td><span class="tag ok">在售</span></td><td><a class="text-berry">编辑</a></td></tr>
+            <tr><td>草莓礼盒·精装</td><td><span class="tag danger">商品</span></td><td class="num">¥128</td><td class="num">280</td><td class="num">620</td><td>—</td><td><span class="tag warn">低库存</span></td><td><a class="text-berry">编辑</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 订单统一处理 -->
+      <section class="view" id="v-order">
+        <div class="page-head"><div><h1 class="page-head__title">订单统一处理<span class="platform-mark platform-mark--tourism">全渠道</span></h1><p class="page-head__desc">汇集全渠道订单，统一管理 · 对账 · 结算。</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">今日订单</div><div class="kpi__val">482</div><div class="kpi__trend up">↑ 含预约+电商</div></div>
+          <div class="kpi"><div class="kpi__label">待处理</div><div class="kpi__val" style="color:var(--warn)">56</div><div class="kpi__trend">待发货/核销</div></div>
+          <div class="kpi"><div class="kpi__label">已完成</div><div class="kpi__val" style="color:var(--ok)">410</div><div class="kpi__trend">完成率 85%</div></div>
+          <div class="kpi"><div class="kpi__label">今日退款</div><div class="kpi__val" style="color:var(--danger)">16</div><div class="kpi__trend">退款率 3.3%</div></div>
+        </div>
+        <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>订单流水</h3><div class="flex gap-2"><select class="select"><option>全部渠道</option><option>小程序</option><option>APP</option><option>OTA</option></select><select class="select"><option>全部状态</option><option>待处理</option><option>已完成</option><option>退款</option></select><button class="btn btn--sm">对账导出</button></div></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>订单号</th><th>渠道</th><th>客户</th><th>项目</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>
+            <tr><td class="text-mono">ORD20260720-4820</td><td><span class="tag tech">小程序</span></td><td>王女士</td><td>采摘券×4</td><td class="num">¥316</td><td><span class="tag warn">待核销</span></td><td>14:26</td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td class="text-mono">ORD20260720-4819</td><td><span class="tag info">APP</span></td><td>李先生</td><td>草莓酱×3</td><td class="num">¥114</td><td><span class="tag warn">待发货</span></td><td>13:42</td><td><a class="text-berry">发货</a></td></tr>
+            <tr><td class="text-mono">ORD20260720-4818</td><td><span class="tag warn">OTA</span></td><td>张女士</td><td>民宿×1</td><td class="num">¥488</td><td><span class="tag ok">已完成</span></td><td>11:08</td><td><a class="text-berry">详情</a></td></tr>
+            <tr><td class="text-mono">ORD20260720-4817</td><td><span class="tag tech">小程序</span></td><td>陈先生</td><td>采摘券×2</td><td class="num">¥158</td><td><span class="tag danger">退款</span></td><td>09:56</td><td><a class="text-berry">详情</a></td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 营销与推广 -->
+      <section class="view" id="v-marketing">
+        <div class="page-head"><div><h1 class="page-head__title">营销与推广<span class="platform-mark platform-mark--tourism">中台</span></h1><p class="page-head__desc">用户画像 · 精准营销 · 优惠券（满减/折扣/团购）发放与核销。</p></div>
+          <div class="page-head__actions"><button class="btn btn--primary btn--sm">+ 新建券</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">活动券</div><div class="kpi__val">12<span class="unit">个</span></div><div class="kpi__trend">进行中 8</div></div>
+          <div class="kpi"><div class="kpi__label">已发放</div><div class="kpi__val">8,640</div><div class="kpi__trend up">↑ 旺季</div></div>
+          <div class="kpi"><div class="kpi__label">核销率</div><div class="kpi__val" style="color:var(--ok)">64%</div><div class="kpi__trend">5,530 已用</div></div>
+          <div class="kpi"><div class="kpi__label">ROI</div><div class="kpi__val" style="color:var(--berry)">3.2</div><div class="kpi__trend">带来营收 ¥86k</div></div>
+        </div>
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1.6fr 1fr">
+          <div class="card card--flush"><div class="card__head"><h3><span class="bar"></span>优惠券</h3></div>
+            <div class="table-wrap"><table class="tbl"><thead><tr><th>券名</th><th>类型</th><th>面额</th><th>已发</th><th>已用</th><th>ROI</th><th>状态</th></tr></thead><tbody>
+              <tr><td>采摘满200减30</td><td><span class="tag info">满减</span></td><td class="num">¥30</td><td class="num">3,200</td><td class="num">2,180</td><td class="num">3.6</td><td><span class="tag ok">进行中</span></td></tr>
+              <tr><td>草莓酱9折券</td><td><span class="tag warn">折扣</span></td><td class="num">9折</td><td class="num">2,860</td><td class="num">1,860</td><td class="num">2.8</td><td><span class="tag ok">进行中</span></td></tr>
+              <tr><td>亲子套餐团购券</td><td><span class="tag danger">团购</span></td><td class="num">¥40</td><td class="num">2,580</td><td class="num">1,490</td><td class="num">3.4</td><td><span class="tag ok">进行中</span></td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>用户画像</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#E63946"></i>新客首单</span><span class="v">32%</span></div><div class="pl-bar"><i style="width:32%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F77788"></i>亲子家庭</span><span class="v">38%</span></div><div class="pl-bar"><i style="width:38%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F3A8AE"></i>回头客</span><span class="v">22%</span></div><div class="pl-bar"><i style="width:22%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F8C7CB"></i>团客/研学</span><span class="v">8%</span></div><div class="pl-bar"><i style="width:8%"></i></div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 经营分析报告 -->
+      <section class="view" id="v-report">
+        <div class="page-head"><div><h1 class="page-head__title">经营分析报告<span class="platform-mark platform-mark--tourism">中台</span></h1><p class="page-head__desc">为入驻商户提供客流 · 收入 · 用户反馈分析，优化经营。</p></div>
+          <div class="page-head__actions"><button class="btn btn--sm">导出 PDF</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">本月营收</div><div class="kpi__val" style="color:var(--berry)">¥862,400</div><div class="kpi__trend up">↑ 环比 +24%</div></div>
+          <div class="kpi"><div class="kpi__label">本月客流</div><div class="kpi__val">28,560</div><div class="kpi__trend up">↑ +18%</div></div>
+          <div class="kpi"><div class="kpi__label">客单价</div><div class="kpi__val">¥98</div><div class="kpi__trend">含门票+消费</div></div>
+          <div class="kpi"><div class="kpi__label">复购率</div><div class="kpi__val" style="color:var(--ok)">38%</div><div class="kpi__trend">会员复购</div></div>
+        </div>
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1.6fr 1fr">
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>营收趋势（近 12 月）</h3></div><div class="card__body">
+            <svg viewBox="0 0 600 200" style="width:100%;height:200px">
+              <g font-size="10" fill="#9CA3AF"><text x="0" y="30">¥100万</text><text x="0" y="100">¥60万</text><text x="0" y="170">¥20万</text></g>
+              <g stroke="var(--border)"><line x1="48" y1="30" x2="590" y2="30"/><line x1="48" y1="100" x2="590" y2="100"/><line x1="48" y1="170" x2="590" y2="170"/></g>
+              <polyline fill="none" stroke="#E63946" stroke-width="2.5" points="60,150 105,140 150,130 195,120 240,110 285,95 330,80 375,70 420,60 465,75 510,55 555,40"/>
+              <g fill="#E63946"><circle cx="60" cy="150" r="3"/><circle cx="195" cy="120" r="3"/><circle cx="330" cy="80" r="3"/><circle cx="465" cy="75" r="3"/><circle cx="555" cy="40" r="4"/></g>
+              <g font-size="9" fill="#6B7280" text-anchor="middle"><text x="60" y="190">8月</text><text x="195" y="190">10月</text><text x="330" y="190">12月</text><text x="465" y="190">2月</text><text x="555" y="190">7月</text></g>
+            </svg>
+          </div></div>
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>热门园区排行</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#E63946"></i>木兰金秋</span><span class="v">¥286k</span></div><div class="pl-bar"><i style="width:95%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F77788"></i>草莓公社</span><span class="v">¥186k</span></div><div class="pl-bar"><i style="width:62%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F3A8AE"></i>前川农场</span><span class="v">¥126k</span></div><div class="pl-bar"><i style="width:42%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#F8C7CB"></i>云栖民宿</span><span class="v">¥98k</span></div><div class="pl-bar"><i style="width:32%"></i></div>
+          </div></div>
+        </div>
+      </section>
+
+    </div></main>
+  </div>
+</div>
+<script>(function(){var items=document.querySelectorAll('.sidebar .nav-item[data-v]'),views=document.querySelectorAll('.view'),crumb=document.getElementById('crumb'),titles={home:'工作台',vr:'VR 全景漫游',route:'智能路线推荐',ticket:'预约与票务',shop:'文创电商溯源',community:'社群互动',content:'内容生态',supplier:'供应商入驻管理',product:'产品与服务管理',order:'订单统一处理',marketing:'营销与推广',report:'经营分析报告'};items.forEach(function(it){it.addEventListener('click',function(e){e.preventDefault();var v=this.getAttribute('data-v');items.forEach(function(n){n.classList.remove('active')});this.classList.add('active');views.forEach(function(s){s.classList.remove('active')});var t=document.getElementById('v-'+v);if(t)t.classList.add('active');if(crumb)crumb.textContent=titles[v]||'';document.querySelector('.content').scrollTop=0})})})();</script>
+</body>
+</html>

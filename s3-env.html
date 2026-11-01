@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>环境监测一张图 · 数据专题</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+/* ===== 本页专用：可点击大棚 / 视频监控 / 设备列表 ===== */
+.gh{cursor:pointer;transition:filter .2s}
+.gh rect{transition:all .2s}
+.gh:hover rect{filter:brightness(1.25)}
+.gh.active rect{stroke-width:2.4;filter:drop-shadow(0 0 10px currentColor)}
+.gh-lock{stroke:#00B0FF;stroke-width:1.2;stroke-dasharray:4 3;fill:none;opacity:0;animation:dash 6s linear infinite}
+.gh.active .gh-lock{opacity:.9}
+@keyframes dash{to{stroke-dashoffset:-40}}
+
+/* GIS 卫星底图 + 棚区色块（园区态势 · 木兰金秋基地，与门户基地情况一致） */
+.gis-map{position:absolute;inset:0;border-radius:var(--r-xs);overflow:hidden}
+.gis-map__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.92) brightness(.82)}
+.gis-map__mask{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 38%,rgba(6,16,28,.55) 100%);pointer-events:none}
+.gis-compass{position:absolute;top:12px;right:14px;display:flex;flex-direction:column;align-items:center;color:#1E90FF;font-size:11px;font-weight:700;font-family:var(--font-num);text-shadow:0 0 6px rgba(30,144,255,.6);z-index:6}
+.gis-compass span{width:2px;height:18px;background:linear-gradient(180deg,#1E90FF,transparent);margin-top:2px;border-radius:1px}
+.gis-scale{position:absolute;top:14px;left:14px;font-size:9px;color:var(--dark-fg-2);font-family:var(--font-num);letter-spacing:.08em;z-index:6}
+.gis-scale::before{content:"";display:block;width:64px;height:6px;border:1px solid rgba(30,144,255,.5);background:repeating-linear-gradient(90deg,rgba(30,144,255,.35) 0 12px,transparent 12px 24px);margin-bottom:2px}
+.gis-plot{position:absolute;border:1.5px solid var(--c,#22C55E);border-radius:3px;background:var(--bg,rgba(34,197,94,.22));box-shadow:0 0 10px color-mix(in srgb,var(--c,#22C55E) 40%,transparent),inset 0 0 12px color-mix(in srgb,var(--c,#22C55E) 18%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;transition:transform .25s,box-shadow .25s,background .25s;z-index:3}
+.gis-plot b{font-family:var(--font-num);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);line-height:1}
+.gis-plot span{font-size:9px;color:#fff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.9);line-height:1.1}
+.gis-plot i{font-style:normal;font-size:8px;color:#E6F0FA;background:rgba(0,0,0,.6);padding:1px 4px;border-radius:2px;margin-top:2px;font-family:var(--font-num)}
+.gis-plot.danger{animation:gisPulse 1.6s ease-in-out infinite}
+.gis-plot:hover{transform:scale(1.06);background:rgba(30,144,255,.32);border-color:#1E90FF;box-shadow:0 0 20px rgba(30,144,255,.55),inset 0 0 16px rgba(30,144,255,.22);z-index:7}
+.gis-plot.active{transform:scale(1.1);background:rgba(0,176,255,.4);border-color:#00B0FF;box-shadow:0 0 26px rgba(0,176,255,.75),inset 0 0 18px rgba(0,176,255,.32);z-index:8}
+.gis-plot.active::after{content:"";position:absolute;inset:-3px;border:1px dashed rgba(0,176,255,.85);border-radius:4px;animation:dash 6s linear infinite;pointer-events:none}
+@keyframes gisPulse{0%,100%{opacity:1;box-shadow:0 0 10px rgba(239,68,68,.4),inset 0 0 12px rgba(239,68,68,.18)}50%{opacity:.72;box-shadow:0 0 24px rgba(239,68,68,.75),inset 0 0 16px rgba(239,68,68,.3)}}
+.gis-plot.sh-a{clip-path:polygon(8% 0,100% 14%,92% 100%,0 86%)}
+.gis-plot.sh-b{clip-path:polygon(0 12%,90% 0,100% 88%,12% 100%)}
+.gis-plot.sh-c{clip-path:polygon(14% 6%,100% 0,86% 96%,0 100%)}
+.gis-tip{position:absolute;left:14px;bottom:10px;font-size:10.5px;color:#A7C6DE;font-family:var(--font-zh);text-shadow:0 1px 4px rgba(0,0,0,.9);z-index:6;opacity:.85}
+
+/* 设备分组头 */
+.dev-grp-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 10px 5px;margin-top:2px}
+.dev-grp-hd:first-child{margin-top:0}
+.dev-grp-hd .gt{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--dark-fg);letter-spacing:.04em}
+.dev-grp-hd .gt::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--tech);box-shadow:0 0 6px var(--tech)}
+.dev-grp-hd.soil .gt::before{background:#22C55E;box-shadow:0 0 6px #22C55E}
+.dev-grp-hd .gcnt{font-family:var(--font-num);font-size:10.5px;color:var(--dark-fg-3)}
+
+/* 设备采集行 */
+.dev-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed var(--dark-line)}
+.dev-grp:last-child .dev-row:last-child{border-bottom:none}
+.dev-ico{width:30px;height:30px;border-radius:var(--r-xs);display:grid;place-items:center;flex-shrink:0;background:rgba(30,144,255,.10);color:var(--tech);border:1px solid var(--dark-line)}
+.dev-grp.soil .dev-row .dev-ico{background:rgba(34,197,94,.10);color:#22C55E;border-color:rgba(34,197,94,.3)}
+.dev-row.warn .dev-ico{background:rgba(245,158,11,.12);color:var(--warn);border-color:rgba(245,158,11,.4)}
+.dev-row.danger .dev-ico{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.4)}
+.dev-row.off .dev-ico{background:rgba(148,163,184,.10);color:var(--offline);border-color:rgba(148,163,184,.3)}
+.dev-main{flex:1;min-width:0}
+.dev-name{font-size:12.5px;color:var(--dark-fg);line-height:1.3}
+.dev-id{font-size:10.5px;color:var(--dark-fg-3);font-family:var(--font-num);letter-spacing:.02em}
+.dev-val{font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--dark-fg);text-align:right;line-height:1.1;font-variant-numeric:tabular-nums}
+.dev-val small{font-size:10px;color:var(--dark-fg-2);font-weight:400}
+.dev-st{font-size:10px;color:var(--ok);display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px}
+.dev-st.warn{color:var(--warn)} .dev-st.danger{color:var(--danger)} .dev-st.off{color:var(--offline)}
+
+/* 视频监控取景器 */
+.cam{position:relative;width:100%;height:200px;background:#000;overflow:hidden;border-radius:var(--r-xs);border:1px solid var(--dark-line)}
+.cam__feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.05) contrast(1.05) brightness(.92)}
+.cam--alert{border-color:rgba(239,68,68,.75);box-shadow:0 0 0 1px rgba(239,68,68,.5),inset 0 0 22px rgba(239,68,68,.4)}
+.cam--warn{border-color:rgba(245,158,11,.7);box-shadow:0 0 0 1px rgba(245,158,11,.4),inset 0 0 18px rgba(245,158,11,.3)}
+.cam__grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+.cam__scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.18) 2px 4px);pointer-events:none}
+.cam__beam{position:absolute;left:0;right:0;height:70px;background:linear-gradient(180deg,transparent,rgba(30,144,255,.14),transparent);animation:camBeam 5s linear infinite;pointer-events:none}
+@keyframes camBeam{0%{transform:translateY(-70px)}100%{transform:translateY(200px)}}
+.cam__vignette{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 50%,transparent 55%,rgba(0,0,0,.55));pointer-events:none}
+.cam__osd{position:absolute;inset:0;color:#E6F0FA;font-family:var(--font-num);font-size:11px;pointer-events:none;letter-spacing:.04em}
+.cam__osd .tl{position:absolute;top:8px;left:10px;display:flex;align-items:center;gap:6px}
+.cam__osd .tr{position:absolute;top:8px;right:10px;display:flex;align-items:center;gap:6px}
+.cam__osd .bl{position:absolute;bottom:8px;left:10px;font-family:var(--font-zh);font-size:11.5px}
+.cam__osd .br{position:absolute;bottom:8px;right:10px}
+.cam__rec{width:8px;height:8px;border-radius:50%;background:#E63946;box-shadow:0 0 8px #E63946;animation:blink 1.2s infinite;display:inline-block}
+.cam__cross{position:absolute;top:50%;left:50%;width:28px;height:28px;transform:translate(-50%,-50%);opacity:.35}
+.cam__cross::before,.cam__cross::after{content:"";position:absolute;background:#E6F0FA}
+.cam__cross::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%)}
+.cam__cross::after{top:50%;left:0;right:0;height:1px;transform:translateY(-50%)}
+.cam-ctrl{display:flex;gap:6px;margin-top:8px}
+.cam-ctrl button{flex:1;height:26px;border:1px solid var(--dark-line);border-radius:var(--r-xs);color:var(--dark-fg-2);font-size:11px;background:rgba(14,34,54,.5)}
+.cam-ctrl button:hover{color:var(--tech);border-color:var(--dark-line-strong)}
+.cam-ctrl button.on{color:var(--tech);border-color:var(--tech);background:rgba(30,144,255,.12)}
+
+/* 联动控制格 */
+.ctl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ctl-cell{border:1px solid var(--dark-line);border-radius:var(--r-xs);padding:9px 10px;display:flex;align-items:center;justify-content:space-between}
+.ctl-cell .lbl{font-size:11.5px;color:var(--dark-fg-2)}
+.ctl-cell .val{font-family:var(--font-num);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.ctl-cell .val.on{color:var(--tech)} .ctl-cell .val.off{color:var(--dark-fg-3)} .ctl-cell .val.warn{color:var(--warn)} .ctl-cell .val.danger{color:var(--danger)}
+
+/* 周/月/年 tab（大屏态） */
+.period-tabs{display:flex;gap:4px;margin-bottom:8px}
+.period-tabs .ptab{flex:1;text-align:center;padding:5px 0;font-size:12px;color:var(--dark-fg-2);border:1px solid var(--dark-line);border-radius:var(--r-xs);cursor:pointer;background:rgba(14,34,54,.4);transition:all .15s}
+.period-tabs .ptab:hover{color:var(--dark-fg)}
+.period-tabs .ptab.active{color:#fff;background:linear-gradient(180deg,rgba(30,144,255,.28),rgba(30,144,255,.10));border-color:var(--dark-line-strong);box-shadow:0 0 10px rgba(30,144,255,.25) inset}
+
+/* 当前选中标识 */
+.cur-pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--r-xs);font-size:12px;font-weight:600;background:rgba(30,144,255,.14);color:#9bd2ff;border:1px solid var(--dark-line-strong)}
+.cur-pill .ring{width:8px;height:8px;border-radius:50%;background:var(--tech);box-shadow:0 0 8px var(--tech)}
+.map-reset{height:24px;padding:0 10px;border:1px solid var(--dark-line);border-radius:var(--r-xs);color:var(--dark-fg-2);font-size:11.5px}
+.map-reset:hover{color:var(--tech);border-color:var(--dark-line-strong)}
+.map-reset.on{color:#9bd2ff;border-color:var(--dark-line-strong);background:rgba(30,144,255,.12)}
+
+/* 6 格 KPI（本页局部覆盖 shared 的 5 格） */
+.kpi-band-6{grid-template-columns:repeat(6,1fr) !important}
+.ds-kpi.soil::before{background:#22C55E;box-shadow:0 0 12px #22C55E}
+.ds-kpi.soil .ds-kpi__val{color:#5BD68A;text-shadow:0 0 14px rgba(34,197,94,.45)}
+</style>
+</head>
+<body class="screen">
+<div class="screen-app">
+  <header class="ds-top">
+    <div class="ds-top__side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg><span>数据专题 · 03</span></div>
+    <div class="ds-top__title">环境监测<span class="accent">一张图</span></div>
+    <div class="ds-top__actions"><a class="ds-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a><span class="ds-top__side" style="min-width:auto"><span class="ds-dot ds-dot--ok"></span>实时</span></div>
+  </header>
+
+  <section class="ds-kpi-band kpi-band-6" style="position:relative">
+    <div id="cur-pill" class="cur-pill" style="position:absolute;left:24px;top:-14px;z-index:5"><span class="ring"></span><span id="cur-zone">全园区</span></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">在线设备</div><div class="ds-kpi__val breath" id="kpi-dev">124<span class="ds-kpi__unit">/128</span></div><div class="ds-kpi__trend up">▲ 2.1%</div></div>
+    <div class="ds-kpi ds-kpi--berry"><div class="ds-kpi__label">今日预警</div><div class="ds-kpi__val breath" id="kpi-alert">6<span class="ds-kpi__unit">起</span></div><div class="ds-kpi__trend down" id="kpi-alert-sub">待处理 2</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">棚内均温 · 气</div><div class="ds-kpi__val breath" id="kpi-temp">26.8<span class="ds-kpi__unit">℃</span></div><div class="ds-kpi__trend" id="kpi-temp-sub">正常</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">棚内均湿 · 气</div><div class="ds-kpi__val breath" id="kpi-hum">67<span class="ds-kpi__unit">%</span></div><div class="ds-kpi__trend" id="kpi-hum-sub">适宜</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">CO₂ 均值 · 气</div><div class="ds-kpi__val breath" id="kpi-co2">795<span class="ds-kpi__unit">ppm</span></div><div class="ds-kpi__trend" id="kpi-co2-sub">正常</div></div>
+    <div class="ds-kpi soil"><div class="ds-kpi__label">土壤含水量 · 土</div><div class="ds-kpi__val breath" id="kpi-soil">56<span class="ds-kpi__unit">%</span></div><div class="ds-kpi__trend" id="kpi-soil-sub">适宜</div></div>
+  </section>
+
+  <section class="ds-main">
+    <!-- ===== 左栏：设备采集数据（气象/土壤两组） + 报警趋势 ===== -->
+    <div class="ds-col ds-col--left">
+      <div class="ds-panel" style="flex:1;min-height:0">
+        <div class="ds-panel__head">
+          <h3>设备采集数据</h3>
+          <div class="flex gap-3" style="align-items:center">
+            <span style="font-size:11px;color:var(--dark-fg-3)">传感器 · 棚内部署</span>
+            <span class="live"><span class="ds-dot ds-dot--ok"></span><span id="dev-online">8/8</span></span>
+          </div>
+        </div>
+        <div class="ds-panel__body" id="dev-list" style="padding:4px 8px">
+          <!-- 静态默认（全园区）预渲染 -->
+          <div class="dev-grp">
+            <div class="dev-grp-hd"><span class="gt">气象监测</span><span class="gcnt">4 路传感器</span></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg></div><div class="dev-main"><div class="dev-name">空气温度</div><div class="dev-id">AT-ALL-01 · 棚内均值</div></div><div><div class="dev-val">26.8<small>℃</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13a3 3 0 0 1 0-6 4 4 0 0 1 8 0 3 3 0 0 1 0 6z"/><path d="M9 16l-1 3M13 16l-1 3M17 16l-1 3"/></svg></div><div class="dev-main"><div class="dev-name">空气湿度</div><div class="dev-id">AH-ALL-01 · 棚内均值</div></div><div><div class="dev-val">67<small>%</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="dev-main"><div class="dev-name">CO₂ 浓度</div><div class="dev-id">CO2-ALL-01</div></div><div><div class="dev-val">795<small>ppm</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div><div class="dev-main"><div class="dev-name">光照度</div><div class="dev-id">LUX-ALL-01</div></div><div><div class="dev-val">37.5<small>klux</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+          </div>
+          <div class="dev-grp soil">
+            <div class="dev-grp-hd soil"><span class="gt">土壤监测</span><span class="gcnt">4 路传感器</span></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13.5a3.5 3.5 0 1 1 2-6.3"/><path d="M14 4v9.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M3 18h18M3 21h18"/></svg></div><div class="dev-main"><div class="dev-name">土壤温度</div><div class="dev-id">ST-ALL-01 · 10cm 层</div></div><div><div class="dev-val">24.2<small>℃</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3C8 8 6 11 6 14a6 6 0 0 0 12 0c0-3-2-6-6-11z"/></svg></div><div class="dev-main"><div class="dev-name">土壤含水量</div><div class="dev-id">SM-ALL-01 · 10cm 层</div></div><div><div class="dev-val">56<small>%</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>适宜</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 4v16M16 4v16M4 8h16M4 16h16"/></svg></div><div class="dev-main"><div class="dev-name">土壤 EC</div><div class="dev-id">EC-ALL-01 · 电导率</div></div><div><div class="dev-val">1.8<small>mS/cm</small></div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>正常</div></div></div>
+            <div class="dev-row"><div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M7 8h10"/></svg></div><div class="dev-main"><div class="dev-name">土壤 pH</div><div class="dev-id">PH-ALL-01</div></div><div><div class="dev-val">6.3</div><div class="dev-st"><span class="ds-dot ds-dot--ok"></span>适宜</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-panel">
+        <div class="ds-panel__head"><h3>报警趋势（近 7 天）</h3></div>
+        <div class="ds-panel__body">
+          <svg viewBox="0 0 260 100" style="width:100%;height:80px">
+            <path d="M10,72 L50,64 L90,68 L130,46 L170,52 L210,34 L250,40" fill="none" stroke="#E63946" stroke-width="2.4"/>
+            <path d="M10,72 L50,64 L90,68 L130,46 L170,52 L210,34 L250,40 L250,95 L10,95 Z" fill="rgba(230,57,70,.12)"/>
+            <g font-size="8" fill="#5A7A99"><text x="6" y="93" class="zh">一</text><text x="46" y="93" class="zh">二</text><text x="86" y="93" class="zh">三</text><text x="126" y="93" class="zh">四</text><text x="166" y="93" class="zh">五</text><text x="206" y="93" class="zh">六</text><text x="244" y="93" class="zh">日</text></g>
+          </svg>
+          <div class="ds-metric"><span class="ds-metric__label">温度类</span><span class="ds-metric__val" id="al-t" style="color:var(--danger);font-size:18px">4</span></div>
+          <div class="ds-metric"><span class="ds-metric__label">CO₂ 类</span><span class="ds-metric__val" id="al-c" style="font-size:18px">1</span></div>
+          <div class="ds-metric"><span class="ds-metric__label">湿度类</span><span class="ds-metric__val" id="al-h" style="font-size:18px">1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 中栏：分区大棚图 + 视频监控 ===== -->
+    <div class="ds-col ds-col--center">
+      <div class="ds-panel" style="flex:1;min-height:0">
+        <div class="ds-panel__head">
+          <h3>分区大棚 · 监测设备点位</h3>
+          <div class="flex gap-2" style="align-items:center">
+            <span class="ds-legend" style="font-size:11px"><span><i class="ds-dot ds-dot--ok"></i>正常</span><span><i class="ds-dot ds-dot--warn"></i>预警</span><span><i class="ds-dot ds-dot--danger"></i>超限</span></span>
+            <button id="map-reset" class="map-reset on">⌖ 全园区</button>
+          </div>
+        </div>
+        <div class="ds-panel__body ds-panel--flush" style="position:relative">
+          <div id="map" class="gis-map">
+            <img src="mrrqj1wz-image.png" class="gis-map__bg" alt="木兰金秋基地 GIS 卫星地图">
+            <div class="gis-map__mask"></div>
+            <div class="gis-compass">N<span></span></div>
+            <div class="gis-scale">0 ─ 100m</div>
+            <div class="gis-plot sh-a" data-zone="g1" style="--c:#22C55E;--bg:rgba(34,197,94,.22);left:2%;top:11%;width:10%;height:22%"><b>1#</b><span>红颜</span><i>26.1℃</i></div>
+            <div class="gis-plot sh-b" data-zone="g2" style="--c:#22C55E;--bg:rgba(34,197,94,.22);left:14%;top:13%;width:10%;height:20%"><b>2#</b><span>章姬</span><i>25.8℃</i></div>
+            <div class="gis-plot sh-c danger" data-zone="g3" style="--c:#EF4444;--bg:rgba(239,68,68,.25);left:26%;top:10%;width:10%;height:24%"><b>3#</b><span>红颜</span><i>32.0℃</i></div>
+            <div class="gis-plot sh-a" data-zone="g4" style="--c:#22C55E;--bg:rgba(34,197,94,.22);left:38%;top:12%;width:10%;height:21%"><b>4#</b><span>淡雪</span><i>26.4℃</i></div>
+            <div class="gis-plot sh-b" data-zone="g5" style="--c:#F59E0B;--bg:rgba(245,158,11,.22);left:2%;top:52%;width:10%;height:20%"><b>5#</b><span>白草莓</span><i>CO₂↑</i></div>
+            <div class="gis-plot sh-c" data-zone="g6" style="--c:#F59E0B;--bg:rgba(245,158,11,.20);left:14%;top:51%;width:10%;height:22%"><b>6#</b><span>红颜</span><i>土48%</i></div>
+            <div class="gis-plot sh-a" data-zone="g7" style="--c:#7B2CBF;--bg:rgba(123,44,191,.20);left:26%;top:50%;width:10%;height:24%"><b>育苗</b><span>组培</span><i>24.5℃</i></div>
+            <div class="gis-plot sh-b" data-zone="g8" style="--c:#1E90FF;--bg:rgba(30,144,255,.20);left:38%;top:52%;width:10%;height:20%"><b>水肥</b><span>首部</span><i>EC1.8</i></div>
+            <div class="gis-tip">点击棚位查看该棚土壤/气象实时数据 · 视频 · 历史曲线</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 视频监控接入 -->
+      <div class="ds-panel">
+        <div class="ds-panel__head">
+          <h3>视频监控接入</h3>
+          <div class="flex gap-2" style="align-items:center">
+            <span class="live"><span class="ds-dot ds-dot--danger"></span>LIVE</span>
+            <span class="cur-pill" style="height:22px;font-size:11px"><span id="cam-id">CAM-ALL</span></span>
+          </div>
+        </div>
+        <div class="ds-panel__body" style="padding:10px">
+          <div class="cam" id="cam">
+            <img src="mrtfh2ww-image.png" class="cam__feed" alt="大棚视频监控实时画面">
+            <div class="cam__grid"></div>
+            <div class="cam__beam"></div>
+            <div class="cam__vignette"></div>
+            <div class="cam__scan"></div>
+            <div class="cam__cross"></div>
+            <div class="cam__osd">
+              <div class="tl"><span class="cam__rec"></span>REC</div>
+              <div class="tr"><span id="cam-time">--:--:--</span></div>
+              <div class="bl" id="cam-name">园区全景 · 制高点球机</div>
+              <div class="br">CH01 · 1080P</div>
+            </div>
+          </div>
+          <div class="cam-ctrl">
+            <button class="on" data-cam="main">主画面</button>
+            <button data-cam="a">入口</button>
+            <button data-cam="b">通道</button>
+            <button data-cam="c">全景</button>
+            <button>回放</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 右栏：土壤·气象趋势 + 联动控制 + 达标率 ===== -->
+    <div class="ds-col ds-col--right">
+      <div class="ds-panel">
+        <div class="ds-panel__head"><h3>土壤 · 气象 趋势</h3></div>
+        <div class="ds-panel__body">
+          <div class="period-tabs">
+            <div class="ptab active" data-period="week">周</div>
+            <div class="ptab" data-period="month">月</div>
+            <div class="ptab" data-period="year">年</div>
+          </div>
+          <div id="chart-box">
+            <!-- 静态默认（全园区·周）预渲染：温度(气象)+土壤含水量(土壤) -->
+            <svg viewBox="0 0 320 150" style="width:100%;height:130px">
+              <line x1="12" y1="46" x2="308" y2="46" stroke="rgba(239,68,68,.4)" stroke-dasharray="3 3"/>
+              <path d="M12,82 L59,76 L106,68 L153,58 L200,50 L247,54 L294,62 L294,120 L12,120 Z" fill="rgba(230,57,70,.09)"/>
+              <path d="M12,82 L59,76 L106,68 L153,58 L200,50 L247,54 L294,62" fill="none" stroke="#E63946" stroke-width="2.2"/>
+              <path d="M12,74 L59,70 L106,66 L153,62 L200,58 L247,64 L294,60" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-dasharray="0"/>
+              <g font-size="9" fill="#5A7A99"><text x="12" y="134" text-anchor="middle" class="zh">一</text><text x="59" y="134" text-anchor="middle" class="zh">二</text><text x="106" y="134" text-anchor="middle" class="zh">三</text><text x="153" y="134" text-anchor="middle" class="zh">四</text><text x="200" y="134" text-anchor="middle" class="zh">五</text><text x="247" y="134" text-anchor="middle" class="zh">六</text><text x="294" y="134" text-anchor="middle" class="zh">日</text></g>
+            </svg>
+          </div>
+          <div class="ds-legend mt-2" style="font-size:11px;justify-content:space-between">
+            <span><i class="ds-dot" style="background:var(--berry)"></i>温度℃ (气象)</span>
+            <span><i class="ds-dot" style="background:#22C55E"></i>土壤含水量% (土壤)</span>
+            <span style="color:var(--danger)"><i class="ds-dot ds-dot--danger"></i>30℃</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-panel">
+        <div class="ds-panel__head"><h3>联动控制</h3><span id="ctl-zone" class="cur-pill" style="height:22px;font-size:11px">全园区</span></div>
+        <div class="ds-panel__body">
+          <div class="ctl-grid">
+            <div class="ctl-cell"><span class="lbl">顶风机</span><span class="val off" id="ctl-fan">关</span></div>
+            <div class="ctl-cell"><span class="lbl">外遮阳</span><span class="val off" id="ctl-shade">0%</span></div>
+            <div class="ctl-cell"><span class="lbl">卷帘</span><span class="val off" id="ctl-curtain">关</span></div>
+            <div class="ctl-cell"><span class="lbl">补光灯</span><span class="val off" id="ctl-light">关</span></div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="btn btn--sm btn--primary flex-1" id="btn-cool">一键降温</button>
+            <button class="btn btn--sm flex-1" style="border-color:var(--dark-line);color:var(--dark-fg-2)">智能策略</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-panel">
+        <div class="ds-panel__head"><h3>指标达标率</h3></div>
+        <div class="ds-panel__body">
+          <div class="ds-metric"><span class="ds-metric__label">气象 · 温度达标</span><span class="ds-metric__val" id="pass-t-v" style="font-size:18px;color:var(--warn)">82%</span></div>
+          <div class="progress" style="background:var(--dark-panel-2)"><div class="progress__bar progress__bar--warn" id="pass-t-b" style="width:82%"></div></div>
+          <div class="ds-metric mt-3"><span class="ds-metric__label">气象 · 湿度达标</span><span class="ds-metric__val" id="pass-h-v" style="font-size:18px;color:var(--ok)">96%</span></div>
+          <div class="progress" style="background:var(--dark-panel-2)"><div class="progress__bar progress__bar--ok" id="pass-h-b" style="width:96%"></div></div>
+          <div class="ds-metric mt-3"><span class="ds-metric__label">土壤 · 含水达标</span><span class="ds-metric__val" id="pass-c-v" style="font-size:18px;color:var(--ok)">91%</span></div>
+          <div class="progress" style="background:var(--dark-panel-2)"><div class="progress__bar progress__bar--ok" id="pass-c-b" style="width:91%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ds-marquee"><span class="ds-marquee__tag">环境动态</span><div class="ds-marquee__track"><div class="ds-marquee__items">
+    <span class="mk"><i class="ds-dot ds-dot--danger"></i>3号棚空气温度 <b>32.0℃</b> 超限</span>
+    <span class="mk"><i class="ds-dot ds-dot--warn"></i>5号棚 CO₂ <b>980ppm</b> 偏高</span>
+    <span class="mk"><i class="ds-dot ds-dot--warn"></i>6号棚土壤含水量 <b>48%</b> 偏低</span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>4号棚滴灌已启动 <b>08:12</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>育苗棚补光开启 <b>06:30</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--danger"></i>3号棚空气温度 <b>32.0℃</b> 超限</span>
+    <span class="mk"><i class="ds-dot ds-dot--warn"></i>6号棚土壤含水量 <b>48%</b> 偏低</span>
+  </div></div></footer>
+</div>
+
+<script>
+/* ===================== 数据模型：8 棚 + 全园区（气象 wx / 土壤 soil 两组） ===================== */
+/* 传感器统一部署于棚内；wx=气象监测(空气温湿/CO₂/光照)  soil=土壤监测(土温/含水/EC/pH) */
+var ZONES = {
+  all:{ name:'全园区', devTotal:128, devOnline:124, alerts:6, alertT:4, alertC:1, alertH:1, alertSub:'待处理 2',
+    temp:26.8, hum:67, co2:795, soilH:56, wxTitle:'气象监测（园区均值）', soilTitle:'土壤监测（园区均值）',
+    wx:[
+      {n:'空气温度',id:'AT-ALL-01 · 棚内均值',v:'26.8℃',st:'ok'},
+      {n:'空气湿度',id:'AH-ALL-01 · 棚内均值',v:'67%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-ALL-01',v:'795ppm',st:'ok'},
+      {n:'光照度',id:'LUX-ALL-01',v:'37.5klux',st:'ok'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-ALL-01 · 10cm 层',v:'24.2℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-ALL-01 · 10cm 层',v:'56%',st:'ok'},
+      {n:'土壤 EC',id:'EC-ALL-01 · 电导率',v:'1.8mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-ALL-01',v:'6.3',st:'ok'}
+    ],
+    cam:{id:'CAM-ALL',name:'园区全景 · 制高点球机',scene:'radial-gradient(120% 100% at 30% 20%,rgba(34,197,94,.22),transparent 60%),radial-gradient(100% 100% at 80% 90%,rgba(30,144,255,.18),transparent 55%),linear-gradient(160deg,#06140c,#0a1a14)'},
+    t7:[25.5,26.0,26.4,26.8,27.1,26.9,26.8], s7:[54,55,56,57,56,55,56],
+    ctl:{fan:'off',shade:'0%',curtain:'off',light:'off'}, passT:82, passH:96, passC:91
+  },
+  g1:{ name:'1号棚 · 红颜', devTotal:14, devOnline:14, alerts:0, alertT:0, alertC:0, alertH:0, alertSub:'运行正常',
+    temp:26.1, hum:68, co2:812, soilH:54,
+    wx:[
+      {n:'空气温度',id:'AT-A01-01',v:'26.1℃',st:'ok'},
+      {n:'空气湿度',id:'AH-A01-01',v:'68%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-A01-01',v:'812ppm',st:'ok'},
+      {n:'光照度',id:'LUX-A01-01',v:'38.2klux',st:'ok'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A01-01 · 10cm',v:'24.1℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-A01-01 · 10cm',v:'54%',st:'ok'},
+      {n:'土壤 EC',id:'EC-A01-01',v:'1.8mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A01-01',v:'6.3',st:'ok'}
+    ],
+    cam:{id:'CAM-A01',name:'1号棚 · 东侧入口球机',scene:'radial-gradient(120% 100% at 40% 10%,rgba(34,197,94,.28),transparent 60%),linear-gradient(160deg,#06150d,#0c1f15)'},
+    t7:[25.6,25.9,26.2,26.0,26.4,25.8,26.1], s7:[52,53,54,55,54,53,54],
+    ctl:{fan:'off',shade:'30%',curtain:'off',light:'off'}, passT:96, passH:98, passC:95
+  },
+  g2:{ name:'2号棚 · 章姬', devTotal:14, devOnline:13, alerts:0, alertT:0, alertC:0, alertH:0, alertSub:'1 台离线',
+    temp:25.8, hum:66, co2:788, soilH:55,
+    wx:[
+      {n:'空气温度',id:'AT-A02-01',v:'25.8℃',st:'ok'},
+      {n:'空气湿度',id:'AH-A02-01',v:'66%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-A02-01',v:'788ppm',st:'ok'},
+      {n:'光照度',id:'LUX-A02-02 · 离线',v:'— klux',st:'off'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A02-01 · 10cm',v:'23.9℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-A02-01 · 10cm',v:'55%',st:'ok'},
+      {n:'土壤 EC',id:'EC-A02-01',v:'1.7mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A02-01',v:'6.4',st:'ok'}
+    ],
+    cam:{id:'CAM-A02',name:'2号棚 · 西侧通道枪机',scene:'radial-gradient(120% 100% at 50% 15%,rgba(34,197,94,.24),transparent 60%),linear-gradient(160deg,#06140c,#0b1d14)'},
+    t7:[25.3,25.6,25.9,25.7,26.0,25.5,25.8], s7:[53,54,55,56,55,54,55],
+    ctl:{fan:'off',shade:'20%',curtain:'off',light:'off'}, passT:97, passH:97, passC:96
+  },
+  g3:{ name:'3号棚 · 红颜', devTotal:14, devOnline:14, alerts:3, alertT:3, alertC:0, alertH:0, alertSub:'空气温度超限',
+    temp:32.0, hum:72, co2:845, soilH:61,
+    wx:[
+      {n:'空气温度',id:'AT-A03-01',v:'32.0℃',st:'danger'},
+      {n:'空气湿度',id:'AH-A03-01',v:'72%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-A03-01',v:'845ppm',st:'ok'},
+      {n:'光照度',id:'LUX-A03-01',v:'41.2klux',st:'warn'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A03-01 · 10cm',v:'25.8℃',st:'warn'},
+      {n:'土壤含水量',id:'SM-A03-01 · 10cm',v:'61%',st:'ok'},
+      {n:'土壤 EC',id:'EC-A03-01',v:'2.1mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A03-01',v:'6.2',st:'ok'}
+    ],
+    cam:{id:'CAM-A03',name:'3号棚 · 超温告警 · 顶视',scene:'radial-gradient(120% 100% at 50% 20%,rgba(239,68,68,.30),transparent 60%),radial-gradient(80% 80% at 80% 80%,rgba(245,158,11,.18),transparent 55%),linear-gradient(160deg,#1a0a08,#1f0e08)'},
+    t7:[27.1,28.4,29.8,31.2,32.5,32.0,32.0], s7:[58,59,60,61,62,61,61],
+    ctl:{fan:'on',shade:'80%',curtain:'on',light:'off'}, passT:42, passH:88, passC:90
+  },
+  g4:{ name:'4号棚 · 淡雪', devTotal:14, devOnline:14, alerts:0, alertT:0, alertC:0, alertH:0, alertSub:'运行正常',
+    temp:26.4, hum:70, co2:820, soilH:57,
+    wx:[
+      {n:'空气温度',id:'AT-A04-01',v:'26.4℃',st:'ok'},
+      {n:'空气湿度',id:'AH-A04-01',v:'70%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-A04-01',v:'820ppm',st:'ok'},
+      {n:'光照度',id:'LUX-A04-01',v:'37.5klux',st:'ok'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A04-01 · 10cm',v:'24.3℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-A04-01 · 10cm',v:'57%',st:'ok'},
+      {n:'土壤 EC',id:'EC-A04-01',v:'1.9mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A04-01',v:'6.3',st:'ok'}
+    ],
+    cam:{id:'CAM-A04',name:'4号棚 · 中庭球机',scene:'radial-gradient(120% 100% at 45% 15%,rgba(34,197,94,.26),transparent 60%),linear-gradient(160deg,#06150d,#0c1e14)'},
+    t7:[25.8,26.1,26.5,26.3,26.7,26.2,26.4], s7:[55,56,57,58,57,56,57],
+    ctl:{fan:'off',shade:'35%',curtain:'off',light:'off'}, passT:95, passH:98, passC:94
+  },
+  g5:{ name:'5号棚 · 白草莓', devTotal:14, devOnline:14, alerts:2, alertT:0, alertC:2, alertH:0, alertSub:'CO₂ 偏高',
+    temp:27.5, hum:69, co2:980, soilH:58,
+    wx:[
+      {n:'空气温度',id:'AT-A05-01',v:'27.5℃',st:'ok'},
+      {n:'空气湿度',id:'AH-A05-01',v:'69%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-A05-01',v:'980ppm',st:'warn'},
+      {n:'光照度',id:'LUX-A05-01',v:'39.0klux',st:'ok'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A05-01 · 10cm',v:'24.8℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-A05-01 · 10cm',v:'58%',st:'ok'},
+      {n:'土壤 EC',id:'EC-A05-01',v:'2.0mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A05-01',v:'6.5',st:'ok'}
+    ],
+    cam:{id:'CAM-A05',name:'5号棚 · 气肥机位 · 近景',scene:'radial-gradient(120% 100% at 60% 25%,rgba(245,158,11,.26),transparent 60%),linear-gradient(160deg,#15100a,#1d160c)'},
+    t7:[26.4,26.8,27.1,27.4,27.8,27.6,27.5], s7:[56,57,58,59,58,57,58],
+    ctl:{fan:'on',shade:'45%',curtain:'off',light:'off'}, passT:90, passH:95, passC:93
+  },
+  g6:{ name:'6号棚 · 红颜', devTotal:14, devOnline:14, alerts:1, alertT:0, alertC:0, alertH:1, alertSub:'土壤偏干',
+    temp:26.2, hum:58, co2:805, soilH:48,
+    wx:[
+      {n:'空气温度',id:'AT-A06-01',v:'26.2℃',st:'ok'},
+      {n:'空气湿度',id:'AH-A06-01',v:'58%',st:'warn'},
+      {n:'CO₂ 浓度',id:'CO2-A06-01',v:'805ppm',st:'ok'},
+      {n:'光照度',id:'LUX-A06-01',v:'37.8klux',st:'ok'}
+    ],
+    soil:[
+      {n:'土壤温度',id:'ST-A06-01 · 10cm',v:'24.0℃',st:'ok'},
+      {n:'土壤含水量',id:'SM-A06-01 · 10cm',v:'48%',st:'warn'},
+      {n:'土壤 EC',id:'EC-A06-01',v:'1.8mS/cm',st:'ok'},
+      {n:'土壤 pH',id:'PH-A06-01',v:'6.1',st:'ok'}
+    ],
+    cam:{id:'CAM-A06',name:'6号棚 · 东侧入口球机',scene:'radial-gradient(120% 100% at 40% 20%,rgba(245,158,11,.20),transparent 60%),linear-gradient(160deg,#15110a,#1c160c)'},
+    t7:[25.7,26.0,26.3,26.1,26.5,26.0,26.2], s7:[52,51,50,49,48,48,48],
+    ctl:{fan:'off',shade:'25%',curtain:'off',light:'off'}, passT:94, passH:78, passC:62
+  },
+  g7:{ name:'育苗棚 · 组培', devTotal:12, devOnline:12, alerts:0, alertT:0, alertC:0, alertH:0, alertSub:'运行正常',
+    temp:24.5, hum:75, co2:760, soilH:64,
+    wx:[
+      {n:'空气温度',id:'AT-B07-01',v:'24.5℃',st:'ok'},
+      {n:'空气湿度',id:'AH-B07-01',v:'75%',st:'ok'},
+      {n:'CO₂ 浓度',id:'CO2-B07-01',v:'760ppm',st:'ok'},
+      {n:'光照度',id:'LUX-B07-01',v:'22.5klux',st:'ok'}
+    ],
+    soil:[
+      {n:'基质温度',id:'ST-B07-01 · 穴盘',v:'23.6℃',st:'ok'},
+      {n:'基质含水量',id:'SM-B07-01 · 穴盘',v:'64%',st:'ok'},
+      {n:'基质 EC',id:'EC-B07-01',v:'1.5mS/cm',st:'ok'},
+      {n:'基质 pH',id:'PH-B07-01',v:'5.9',st:'ok'}
+    ],
+    cam:{id:'CAM-B07',name:'育苗棚 · 组培架 · 补光中',scene:'radial-gradient(120% 100% at 50% 30%,rgba(123,44,191,.40),transparent 60%),radial-gradient(60% 60% at 20% 80%,rgba(99,102,241,.22),transparent 55%),linear-gradient(160deg,#0c0618,#140a24)'},
+    t7:[23.8,24.1,24.4,24.6,24.8,24.5,24.5], s7:[62,63,64,65,64,63,64],
+    ctl:{fan:'off',shade:'0%',curtain:'off',light:'on'}, passT:98, passH:96, passC:97
+  },
+  g8:{ name:'水肥首部 · 灌溉站', devTotal:18, devOnline:18, alerts:0, alertT:0, alertC:0, alertH:0, alertSub:'运行正常',
+    temp:25.2, hum:0, co2:0, soilH:0, wxTitle:'营养液监测', soilTitle:'管网状态',
+    wx:[
+      {n:'营养液温度',id:'WT-C08-01',v:'23.8℃',st:'ok'},
+      {n:'营养液 pH',id:'PH-C08-01',v:'6.4',st:'ok'},
+      {n:'营养液 EC',id:'EC-C08-01',v:'1.8mS/cm',st:'ok'},
+      {n:'溶氧量',id:'DO-C08-01',v:'7.2mg/L',st:'ok'}
+    ],
+    soil:[
+      {n:'主管流量',id:'FLOW-C08-01',v:'12.6m³/h',st:'ok'},
+      {n:'主管压力',id:'PRS-C08-01',v:'0.28MPa',st:'ok'},
+      {n:'肥液余量 A',id:'TANK-C08-A',v:'76%',st:'ok'},
+      {n:'肥液余量 B',id:'TANK-C08-B',v:'82%',st:'ok'}
+    ],
+    cam:{id:'CAM-C08',name:'水肥首部 · 机房球机',scene:'radial-gradient(120% 100% at 50% 25%,rgba(30,144,255,.30),transparent 60%),radial-gradient(70% 70% at 80% 80%,rgba(14,165,233,.18),transparent 55%),linear-gradient(160deg,#04101c,#08182a)'},
+    t7:[24.8,25.0,25.2,25.4,25.5,25.3,25.2], s7:[0,0,0,0,0,0,0],
+    ctl:{fan:'on',shade:'0%',curtain:'off',light:'off'}, passT:99, passH:100, passC:100
+  }
+};
+
+/* 图标 path（按传感器名匹配） */
+var ICO = {
+  th:'<path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/>',
+  ah:'<path d="M7 13a3 3 0 0 1 0-6 4 4 0 0 1 8 0 3 3 0 0 1 0 6z"/><path d="M9 16l-1 3M13 16l-1 3M17 16l-1 3"/>',
+  co2:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  lux:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+  st:'<path d="M10 13.5a3.5 3.5 0 1 1 2-6.3"/><path d="M14 4v9.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M3 18h18M3 21h18"/>',
+  soil:'<path d="M12 3C8 8 6 11 6 14a6 6 0 0 0 12 0c0-3-2-6-6-11z"/>',
+  ec:'<path d="M4 4h16v16H4z"/><path d="M8 4v16M16 4v16M4 8h16M4 16h16"/>',
+  ph:'<path d="M12 3v18M7 8h10"/>',
+  wt:'<path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/>',
+  flow:'<path d="M3 12c3-4 6-4 9 0s6 4 9 0"/><path d="M3 18c3-4 6-4 9 0s6 4 9 0"/>',
+  prs:'<circle cx="12" cy="12" r="8"/><path d="M12 12l4-3"/>',
+  tank:'<path d="M6 3h12v18H6z"/><path d="M6 14h12"/><path d="M9 6h6"/>',
+  do:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>'
+};
+function icoFor(n){
+  if(/空气温度/.test(n)) return ICO.th;
+  if(/土壤温度|基质温度/.test(n)) return ICO.st;
+  if(/营养液温度/.test(n)) return ICO.wt;
+  if(/空气湿度/.test(n)) return ICO.ah;
+  if(/CO₂/.test(n)) return ICO.co2;
+  if(/光照/.test(n)) return ICO.lux;
+  if(/含水量|基质含水量/.test(n)) return ICO.soil;
+  if(/EC/.test(n)) return ICO.ec;
+  if(/pH/.test(n)) return ICO.ph;
+  if(/溶氧/.test(n)) return ICO.do;
+  if(/流量/.test(n)) return ICO.flow;
+  if(/压力/.test(n)) return ICO.prs;
+  if(/余量/.test(n)) return ICO.tank;
+  return ICO.th;
+}
+
+var state = { zone:'all', period:'week' };
+
+/* ===================== 图表：温度(气象) + 土壤含水量(土壤) ===================== */
+function resample(arr,n){
+  var o=[];for(var i=0;i<n;i++){var t=i/(n-1)*(arr.length-1);var a=Math.floor(t),f=t-a,b=Math.min(a+1,arr.length-1);o.push(+(arr[a]*(1-f)+arr[b]*f).toFixed(1));}return o;
+}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function dataset(z,period){
+  var WK=['一','二','三','四','五','六','日'], LM=['1','5','10','15','20','25','30'], MO=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  if(period==='week') return {labels:WK, temp:z.t7, soil:z.s7};
+  if(period==='month') return {labels:LM, temp:resample(z.t7,7), soil:resample(z.s7,7)};
+  var sT=[-12,-10,-6,-1,5,10,12,11,7,2,-4,-9];   // 气象温度季节
+  var sS=[-8,-6,-2,3,8,10,9,7,3,-1,-4,-6];          // 土壤含水量季节
+  return {labels:MO,
+    temp: sT.map(function(d){return +(z.temp+d).toFixed(1);}),
+    soil: z.soilH? sS.map(function(d){return clamp(Math.round(z.soilH+d),20,95);}):[]};
+}
+function buildChart(z,period){
+  var d=dataset(z,period), W=320,H=150,x0=12,x1=308,y0=16,y1=120;
+  var n=d.temp.length;
+  var tx=function(i){return x0+(i/(n-1))*(x1-x0);};
+  var ty=function(v){return y1-((v-10)/30)*(y1-y0);};   // 温度 10..40
+  var sy=function(v){return y1-((v-20)/60)*(y1-y0);};    // 土壤含水量 20..80
+  var tp=d.temp.map(function(v,i){return (i?'L':'M')+tx(i).toFixed(1)+','+ty(v).toFixed(1);}).join(' ');
+  var sp=d.soil.length? d.soil.map(function(v,i){return (i?'L':'M')+tx(i).toFixed(1)+','+sy(v).toFixed(1);}).join(' '):'';
+  var area=tp+(' L'+x1.toFixed(1)+','+y1+' L'+x0.toFixed(1)+','+y1+' Z');
+  var xl=d.labels.map(function(l,i){return '<text x="'+tx(i).toFixed(1)+'" y="'+(y1+14)+'" text-anchor="middle" class="zh" fill="#5A7A99" font-size="9">'+l+'</text>';}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:130px">'+
+    '<line x1="'+x0+'" y1="'+ty(30).toFixed(1)+'" x2="'+x1+'" y2="'+ty(30).toFixed(1)+'" stroke="rgba(239,68,68,.4)" stroke-dasharray="3 3"/>'+
+    '<path d="'+area+'" fill="rgba(230,57,70,.09)"/>'+
+    '<path d="'+tp+'" fill="none" stroke="#E63946" stroke-width="2.2"/>'+
+    (sp?'<path d="'+sp+'" fill="none" stroke="#22C55E" stroke-width="1.8"/>':'')+
+    xl+'</svg>';
+}
+
+/* ===================== 渲染 ===================== */
+function $(id){return document.getElementById(id);}
+function stText(st){return st==='ok'?'正常':st==='warn'?'预警':st==='danger'?'超限':'离线';}
+function fmtVal(v){
+  // 加粗数值、缩小单位
+  return v.replace(/^(\D*)(\d+\.?\d*)(.*)$/, function(_,a,num,c){
+    return a+'<b style="font-weight:700">'+num+'</b><small>'+c+'</small>';
+  });
+}
+function devRow(s){
+  return '<div class="dev-row '+(s.st!=='ok'?s.st:'')+'">'+
+    '<div class="dev-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+icoFor(s.n)+'</svg></div>'+
+    '<div class="dev-main"><div class="dev-name">'+s.n+'</div><div class="dev-id">'+s.id+'</div></div>'+
+    '<div><div class="dev-val">'+fmtVal(s.v)+'</div>'+
+    '<div class="dev-st '+(s.st!=='ok'?s.st:'')+'"><span class="ds-dot ds-dot--'+(s.st==='ok'?'ok':s.st)+'"></span>'+stText(s.st)+'</div></div>'+
+  '</div>';
+}
+function devGroup(cls,title,arr){
+  return '<div class="dev-grp '+cls+'"><div class="dev-grp-hd '+cls+'"><span class="gt">'+title+'</span><span class="gcnt">'+arr.length+' 路</span></div>'+arr.map(devRow).join('')+'</div>';
+}
+
+function render(zoneKey){
+  var z=ZONES[zoneKey]; state.zone=zoneKey;
+  // 当前标识
+  $('cur-zone').textContent = z.name;
+  // KPI（6 格）
+  $('kpi-dev').innerHTML = (zoneKey==='all'? z.devOnline+'<span class="ds-kpi__unit">/'+z.devTotal+'</span>' : z.devOnline+'<span class="ds-kpi__unit">/'+z.devTotal+'</span>');
+  $('kpi-alert').innerHTML = z.alerts+'<span class="ds-kpi__unit">起</span>';
+  $('kpi-alert-sub').textContent = z.alertSub;
+  $('kpi-temp').innerHTML = z.temp+'<span class="ds-kpi__unit">℃</span>';
+  $('kpi-temp-sub').textContent = z.temp>=30?'超限':(z.temp>=28?'偏高':'正常');
+  $('kpi-hum').innerHTML = (z.hum||'—')+'<span class="ds-kpi__unit">'+(z.hum?'%':'')+'</span>';
+  $('kpi-hum-sub').textContent = z.hum? (z.hum<55?'偏低':z.hum>80?'偏高':'适宜') : '—';
+  $('kpi-co2').innerHTML = (z.co2||'—')+'<span class="ds-kpi__unit">'+(z.co2?'ppm':'')+'</span>';
+  $('kpi-co2-sub').textContent = z.co2? (z.co2>=900?'偏高':z.co2<600?'偏低':'正常') : '—';
+  $('kpi-soil').innerHTML = (z.soilH||'—')+'<span class="ds-kpi__unit">'+(z.soilH?'%':'')+'</span>';
+  $('kpi-soil-sub').textContent = z.soilH? (z.soilH<50?'偏干':z.soilH>70?'偏湿':'适宜') : '—';
+
+  // 设备列表：气象 + 土壤 两组
+  var total = z.wx.length + z.soil.length;
+  $('dev-online').textContent = total+'/'+total;
+  $('dev-list').innerHTML =
+    devGroup('', z.wxTitle||'气象监测', z.wx) +
+    devGroup('soil', z.soilTitle||'土壤监测', z.soil);
+
+  // 地图高亮
+  var ghs=document.querySelectorAll('#map .gis-plot');
+  for(var i=0;i<ghs.length;i++){ ghs[i].classList.toggle('active', ghs[i].getAttribute('data-zone')===zoneKey); }
+  $('map-reset').classList.toggle('on', zoneKey==='all');
+
+  // 视频：OSD 随棚切换 + 告警态边框（超限红 / 预警黄）
+  $('cam-id').textContent = z.cam.id;
+  $('cam-name').textContent = z.cam.name;
+  var lvl = z.temp>=30 ? 'alert' : ((z.co2>=900||z.soilH<50) ? 'warn' : '');
+  var cam=$('cam'); cam.classList.toggle('cam--alert', lvl==='alert'); cam.classList.toggle('cam--warn', lvl==='warn');
+
+  // 趋势图
+  $('chart-box').innerHTML = buildChart(z,state.period);
+
+  // 联动控制
+  $('ctl-zone').textContent = z.name;
+  setCtl('ctl-fan', z.ctl.fan==='on'?'on':'off', z.ctl.fan==='on'?'开':'关');
+  setCtl('ctl-shade', 'off', z.ctl.shade);
+  setCtl('ctl-curtain', z.ctl.curtain==='on'?'on':'off', z.ctl.curtain==='on'?'开':'关');
+  setCtl('ctl-light', z.ctl.light==='on'?'on':'off', z.ctl.light==='on'?'开':'关');
+
+  // 达标率
+  setPass('t', z.passT); setPass('h', z.passH); setPass('c', z.passC);
+
+  // 报警计数
+  $('al-t').textContent = z.alertT; $('al-c').textContent = z.alertC; $('al-h').textContent = z.alertH;
+}
+function setCtl(id,kind,label){var el=$(id);el.textContent=label;el.className='val '+kind;}
+function passColor(v){return v>=90?'var(--ok)':v>=70?'var(--warn)':'var(--danger)';}
+function passKind(v){return v>=90?'ok':v>=70?'warn':'danger';}
+function setPass(k,v){
+  $('pass-'+k+'-v').textContent=v+'%';
+  $('pass-'+k+'-v').style.color=passColor(v);
+  var b=$('pass-'+k+'-b'); b.style.width=v+'%';
+  b.className='progress__bar progress__bar--'+passKind(v);
+}
+
+/* ===================== 事件绑定 ===================== */
+document.querySelectorAll('#map .gis-plot').forEach(function(g){
+  g.addEventListener('click',function(){ render(g.getAttribute('data-zone')); });
+});
+$('map-reset').addEventListener('click',function(){ render('all'); });
+document.querySelectorAll('.period-tabs .ptab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.period-tabs .ptab').forEach(function(x){x.classList.remove('active');});
+    t.classList.add('active');
+    state.period=t.getAttribute('data-period');
+    $('chart-box').innerHTML=buildChart(ZONES[state.zone],state.period);
+  });
+});
+document.querySelectorAll('.cam-ctrl button[data-cam]').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.cam-ctrl button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+  });
+});
+$('btn-cool').addEventListener('click',function(){
+  if(state.zone==='all'){alert('请先在地图上点选一个大棚，再执行一键降温。');return;}
+  var z=ZONES[state.zone]; z.ctl.fan='on'; z.ctl.shade='80%'; z.ctl.curtain='on';
+  render(state.zone);
+});
+
+/* OSD 时间走秒 */
+function tick(){
+  var d=new Date(), p=function(n){return (n<10?'0':'')+n;};
+  var el=$('cam-time'); if(el) el.textContent=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+tick(); setInterval(tick,1000);
+
+/* 初始：默认全园区（已静态预渲染，这里同步一次状态确保一致） */
+render('all');
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>农机监管平台 · 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.view{display:none}.view.active{display:block}.sidebar .nav-item{cursor:pointer}
+.pl-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}.pl-row:last-child{border:none}
+.pl-row .nm{color:var(--fg);display:flex;align-items:center;gap:8px}.pl-row .nm i{width:8px;height:8px;border-radius:2px;display:inline-block}.pl-row .v{color:var(--fg-2);font-family:var(--font-num)}
+.pl-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px}.pl-bar i{display:block;height:100%;background:linear-gradient(90deg,#7B1FA2,#9C27B0);border-radius:3px}
+.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{text-align:left;font-weight:600;color:var(--fg-2);padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface-2);font-size:12px}.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}.tbl tr:hover td{background:var(--surface-2)}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--r-xs);font-size:11px;font-weight:600}.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.danger{background:var(--danger-soft);color:var(--danger)}.tag.info{background:#F3E5F5;color:#7B1FA2}
+.map-wrap{position:relative;height:420px;background:radial-gradient(circle at 40% 40%,rgba(123,31,162,.04),transparent 60%),var(--surface-2);border-radius:0 0 var(--r-sm) var(--r-sm);overflow:hidden}
+.map-wrap svg{width:100%;height:100%}
+.mc-row{display:flex;gap:10px;padding:10px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent}.mc-row:hover,.mc-row.active{background:var(--surface-2);border-color:var(--border)}
+.mc-row .mi{width:36px;height:36px;border-radius:var(--r-sm);display:grid;place-items:center;flex-shrink:0}
+.ds-grid-2-3{display:grid;gap:var(--sp-4)}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-4{gap:16px}.mb-4{margin-bottom:16px}
+.text-mono{font-family:var(--font-num)}.num{text-align:right;font-family:var(--font-num)}.text-berry{color:#7B1FA2}
+.bar{display:inline-block;width:3px;height:14px;background:var(--accent);margin-right:6px;vertical-align:middle;border-radius:1px}
+/* 轨迹回放 */
+.traj-wrap{position:relative;height:340px;background:var(--surface-2);border-radius:var(--r-sm);overflow:hidden}
+.traj-wrap svg{width:100%;height:100%;display:block}
+.traj-controls{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:10px}
+.traj-btn{width:36px;height:36px;border-radius:50%;border:none;background:#7B1FA2;color:#fff;display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.traj-btn:hover{background:#9C27B0;transform:scale(1.05)}
+.traj-btn svg{width:16px;height:16px}
+.traj-info{font-size:13px;color:var(--fg-2);white-space:nowrap}
+.traj-info b{font-family:var(--font-num);color:var(--fg)}
+.traj-progress{flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.traj-progress i{display:block;height:100%;background:#7B1FA2;border-radius:2px;width:0;transition:width .1s linear}
+.traj-path{fill:none;stroke:#7B1FA2;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.traj-path-bg{fill:none;stroke:rgba(123,31,162,.15);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+/* 农机实时监控 GIS版 */
+.mon-area{position:relative;height:calc(100vh - 180px);min-height:500px;background:#0a1929;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
+.mon-area .gis-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.55) saturate(.9)}
+.mon-area .gis-mask{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 30%,rgba(6,16,28,.65))}
+.mon-tb{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(10,25,41,.85);border-bottom:1px solid rgba(30,144,255,.2);flex-wrap:wrap;font-size:12px;color:#E6F0FA}
+.mon-tb-lbl{color:#8FA8C2;font-size:11px;white-space:nowrap}
+.mon-tb-btn{padding:3px 10px;border-radius:4px;border:1px solid rgba(30,144,255,.2);background:transparent;color:#8FA8C2;cursor:pointer;font-size:11px;transition:all .15s}
+.mon-tb-btn:hover{color:#E6F0FA;border-color:rgba(30,144,255,.4)}
+.mon-tb-btn.active{background:rgba(123,31,162,.35);border-color:rgba(123,31,162,.5);color:#fff}
+.mon-tb-sel{height:26px;padding:0 8px;background:rgba(14,34,54,.6);border:1px solid rgba(30,144,255,.2);border-radius:4px;color:#E6F0FA;font-size:11px;outline:none}
+.mon-tb-sep{width:1px;height:16px;background:rgba(30,144,255,.15)}
+.mon-mark{position:absolute;z-index:5;cursor:pointer;transform:translate(-50%,-50%);text-align:center}
+.mon-mark .mm-dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(0,0,0,.4);transition:transform .2s}
+.mon-mark:hover .mm-dot{transform:scale(1.15)}
+.mon-mark.active .mm-dot{box-shadow:0 0 0 3px rgba(255,255,255,.3),0 2px 12px rgba(0,0,0,.5)}
+.mon-mark .mm-lbl{font-size:9px;color:#fff;margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,.9);font-family:var(--font-num)}
+.mon-mark.online .mm-dot{background:#22C55E}
+.mon-mark.idle .mm-dot{background:#F59E0B}
+.mon-mark.offline .mm-dot{background:#6B7280}
+.mon-popup{position:absolute;z-index:20;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;background:rgba(14,34,54,.95);border:1px solid rgba(30,144,255,.3);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.mon-popup__head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(30,144,255,.15)}
+.mon-popup__head .ph-t{font-size:13px;font-weight:600;color:#9BD2FF}
+.mon-popup__head .ph-id{font-family:var(--font-num);font-size:14px;color:#fff;font-weight:700;margin-left:6px}
+.mon-popup__close{width:22px;height:22px;border-radius:4px;display:grid;place-items:center;color:#8FA8C2;cursor:pointer;font-size:16px;line-height:1}
+.mon-popup__close:hover{color:#fff;background:rgba(255,255,255,.1)}
+.mon-popup__tags{display:flex;gap:5px;padding:6px 14px}
+.mon-popup__tag{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.mon-popup__tag.gps{background:rgba(34,197,94,.2);color:#4ADE80}
+.mon-popup__tag.acc-on{background:rgba(34,197,94,.2);color:#4ADE80}
+.mon-popup__tag.acc-off{background:rgba(239,68,68,.2);color:#F87171}
+.mon-popup__tag.st-on{background:rgba(123,31,162,.25);color:#CE93D8}
+.mon-popup__tag.st-idle{background:rgba(245,158,11,.2);color:#FCD34D}
+.mon-popup__tag.st-off{background:rgba(107,114,128,.2);color:#9CA3AF}
+.mon-popup__grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(30,144,255,.08);margin:0 14px 10px;border-radius:6px;overflow:hidden}
+.mon-popup__cell{padding:7px 10px;background:rgba(14,34,54,.9)}
+.mon-popup__cell .mc-l{font-size:10px;color:#8FA8C2;margin-bottom:1px}
+.mon-popup__cell .mc-v{font-size:13px;color:#fff;font-family:var(--font-num);font-weight:600}
+.mon-popup__foot{display:flex;gap:6px;padding:0 14px 10px;align-items:center}
+.mon-popup__btn{padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:600}
+.mon-popup__btn.snap{background:rgba(123,31,162,.3);color:#CE93D8;border:1px solid rgba(123,31,162,.4)}
+.mon-popup__btn.track{background:rgba(30,144,255,.2);color:#9BD2FF;border:1px solid rgba(30,144,255,.3)}
+.mon-popup__btn:hover{filter:brightness(1.25)}
+.mon-popup__refresh{margin-left:auto;font-size:10px;color:#8FA8C2;display:flex;align-items:center;gap:3px}
+.mon-popup__refresh .dot{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:blink 1.2s infinite}
+.mon-legend{position:absolute;bottom:10px;left:12px;z-index:10;display:flex;gap:10px;font-size:11px;color:#8FA8C2;background:rgba(10,25,41,.7);padding:5px 10px;border-radius:4px}
+.mon-legend i{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+.mon-list{position:absolute;top:48px;left:10px;z-index:10;width:230px;max-height:calc(100% - 70px);overflow-y:auto;background:rgba(10,25,41,.82);border:1px solid rgba(30,144,255,.15);border-radius:6px;padding:6px;scrollbar-width:thin}
+.mon-list::-webkit-scrollbar{width:4px}.mon-list::-webkit-scrollbar-thumb{background:rgba(30,144,255,.3);border-radius:2px}
+.mon-list__hd{font-size:11px;color:#8FA8C2;padding:4px 6px 6px;border-bottom:1px solid rgba(30,144,255,.1);display:flex;align-items:center;justify-content:space-between}
+.mon-list__hd b{color:#E6F0FA;font-family:var(--font-num)}
+.mon-lrow{display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:4px;cursor:pointer;transition:background .15s}
+.mon-lrow:hover{background:rgba(30,144,255,.08)}
+.mon-lrow.active{background:rgba(123,31,162,.18)}
+.mon-lrow .ml-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mon-lrow .ml-info{flex:1;min-width:0}
+.mon-lrow .ml-name{font-size:12px;color:#E6F0FA;font-weight:500}
+.mon-lrow .ml-sub{font-size:10px;color:#8FA8C2;margin-top:1px}
+.mon-lrow .ml-tag{font-size:9px;padding:1px 5px;border-radius:2px;flex-shrink:0;font-weight:600}
+.mon-lrow .ml-tag.on{background:rgba(34,197,94,.2);color:#4ADE80}
+.mon-lrow .ml-tag.idle{background:rgba(245,158,11,.2);color:#FCD34D}
+.mon-lrow .ml-tag.off{background:rgba(107,114,128,.2);color:#9CA3AF}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#7B1FA2">机</span> 农机监管平台</div>
+    <nav class="breadcrumb"><span>农机监管平台</span> <i>/</i> <b id="crumb">工作台</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索农机 / 车主"></div>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost btn--sm" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">农机监管</div>
+        <a class="nav-item active" data-v="home"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" data-v="monitor"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>实时监控 ★</span></a>
+        <a class="nav-item" data-v="stat"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计 ★</span></a>
+        <a class="nav-item" data-v="track"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7 8-13a8 8 0 0 0-16 0c0 6 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>历史轨迹</span></a>
+        <a class="nav-item" data-v="fleet"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></span><span>农机档案</span></a>
+        <a class="nav-item" href="operation-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>作业查询</span></a>
+      </div>
+    </aside>
+    <main class="content"><div class="page">
+
+      <!-- 工作台 -->
+      <section class="view active" id="v-home">
+        <div class="page-head"><div><h1 class="page-head__title">农机监管平台 <span class="platform-mark platform-mark--machine">北斗终端</span></h1><p class="page-head__desc">在册 24 台 · 今日作业 18 台 · 86 亩 · 北斗在线 23/24</p></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">在册农机</div><div class="kpi__val">24<span class="unit">台</span></div><div class="kpi__trend">拖拉机12/植保机8</div></div>
+          <div class="kpi"><div class="kpi__label">今日作业</div><div class="kpi__val">18<span class="unit">台</span></div><div class="kpi__trend up">↑ 出勤75%</div></div>
+          <div class="kpi"><div class="kpi__label">作业面积</div><div class="kpi__val">86<span class="unit">亩</span></div><div class="kpi__trend up">本周420亩</div></div>
+          <div class="kpi"><div class="kpi__label">北斗在线</div><div class="kpi__val" style="color:var(--ok)">23<span class="unit">/24</span></div><div class="kpi__trend warn">1台离线</div></div>
+        </div>
+        <div class="pl-grid">
+          <div class="card"><div class="card__head"><h3>农机类型</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm"><i style="background:#7B1FA2"></i>拖拉机</span><span class="v">12 台</span></div><div class="pl-bar"><i style="width:80%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#9C27B0"></i>植保无人机</span><span class="v">8 台</span></div><div class="pl-bar"><i style="width:55%"></i></div>
+            <div class="pl-row"><span class="nm"><i style="background:#BA68C8"></i>采收机</span><span class="v">4 台</span></div><div class="pl-bar"><i style="width:28%"></i></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>今日作业</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">植保·5#棚</span><span class="v">无人机·65%</span></div>
+            <div class="pl-row"><span class="nm">翻地·A区</span><span class="v">拖拉机·完成</span></div>
+            <div class="pl-row"><span class="nm">运输·采收</span><span class="v">3台·进行</span></div>
+          </div></div>
+          <div class="card"><div class="card__head"><h3>维保</h3></div><div class="card__body">
+            <div class="pl-row"><span class="nm">待保养</span><span class="v" style="color:var(--warn)">3 台</span></div>
+            <div class="pl-row"><span class="nm">已年检</span><span class="v" style="color:var(--ok)">22 台</span></div>
+            <div class="pl-row"><span class="nm">保险到期</span><span class="v" style="color:var(--danger)">1台·7天内</span></div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 农机实时监控（GIS版） -->
+      <section class="view" id="v-monitor">
+        <div class="mon-area" id="monArea">
+          <img src="mrus5uqk-image.png" class="gis-bg" alt="木兰金秋基地 GIS">
+          <div class="gis-mask"></div>
+          <div class="mon-tb">
+            <span class="mon-tb-lbl">展示方式</span>
+            <button class="mon-tb-btn active">点聚合</button><button class="mon-tb-btn">热力图</button><button class="mon-tb-btn">农机类型</button>
+            <div class="mon-tb-sep"></div>
+            <select class="mon-tb-sel"><option>全部类型</option><option>旋耕机</option><option>植保无人机</option><option>除草机</option></select>
+            <select class="mon-tb-sel"><option>全部状态(24)</option><option>作业中(3)</option><option>空闲(2)</option><option>离线(1)</option></select>
+            <div class="mon-tb-sep"></div>
+            <span class="mon-tb-lbl">轨迹</span>
+            <button class="mon-tb-btn active">线模式</button><button class="mon-tb-btn">点模式</button>
+          </div>
+          <div class="mon-list" id="monList">
+            <div class="mon-list__hd"><span>农机列表</span><b>5 台在线</b></div>
+            <div class="mon-lrow active" data-id="NJ-01" onclick="monSelect('NJ-01')"><span class="ml-dot" style="background:#22C55E"></span><div class="ml-info"><div class="ml-name">NJ-01 旋耕机</div><div class="ml-sub">5.2km/h · 旋耕 · 张师傅</div></div><span class="ml-tag on">作业</span></div>
+            <div class="mon-lrow" data-id="WR-03" onclick="monSelect('WR-03')"><span class="ml-dot" style="background:#F59E0B"></span><div class="ml-info"><div class="ml-name">WR-03 植保无人机</div><div class="ml-sub">悬停 · 电量82% · 李飞手</div></div><span class="ml-tag idle">空闲</span></div>
+            <div class="mon-lrow" data-id="WD-02" onclick="monSelect('WD-02')"><span class="ml-dot" style="background:#22C55E"></span><div class="ml-info"><div class="ml-name">WD-02 除草机</div><div class="ml-sub">3.8km/h · 除草 · 王师傅</div></div><span class="ml-tag on">作业</span></div>
+            <div class="mon-lrow" data-id="NJ-04" onclick="monSelect('NJ-04')"><span class="ml-dot" style="background:#6B7280"></span><div class="ml-info"><div class="ml-name">NJ-04 旋耕机</div><div class="ml-sub">最后在线 2 小时前</div></div><span class="ml-tag off">离线</span></div>
+            <div class="mon-lrow" data-id="TC-05" onclick="monSelect('TC-05')"><span class="ml-dot" style="background:#F59E0B"></span><div class="ml-info"><div class="ml-name">TC-05 运输车</div><div class="ml-sub">驻车 · 园区门口 · 陈师傅</div></div><span class="ml-tag idle">空闲</span></div>
+          </div>
+          <div class="mon-mark online" data-id="NJ-01" style="left:25%;top:35%" onclick="monSelect('NJ-01')"><div class="mm-dot">旋</div><div class="mm-lbl">NJ-01</div></div>
+          <div class="mon-mark idle" data-id="WR-03" style="left:58%;top:28%" onclick="monSelect('WR-03')"><div class="mm-dot">植</div><div class="mm-lbl">WR-03</div></div>
+          <div class="mon-mark online" data-id="WD-02" style="left:38%;top:62%" onclick="monSelect('WD-02')"><div class="mm-dot">除</div><div class="mm-lbl">WD-02</div></div>
+          <div class="mon-mark offline" data-id="NJ-04" style="left:68%;top:55%" onclick="monSelect('NJ-04')"><div class="mm-dot">停</div><div class="mm-lbl">NJ-04</div></div>
+          <div class="mon-mark idle" data-id="TC-05" style="left:48%;top:48%" onclick="monSelect('TC-05')"><div class="mm-dot">运</div><div class="mm-lbl">TC-05</div></div>
+          <div class="mon-popup" id="monPopup"></div>
+          <div class="mon-legend"><span><i style="background:#22C55E"></i>作业中</span><span><i style="background:#F59E0B"></i>空闲</span><span><i style="background:#6B7280"></i>离线</span></div>
+        </div>
+      </section>
+
+      <!-- 标书项142-143：作业统计 ★（复刻 p64） -->
+      <section class="view" id="v-stat">
+        <div class="page-head">
+          <div><h1 class="page-head__title">农机作业统计<span class="platform-mark platform-mark--machine">2026 年度</span></h1><p class="page-head__desc">作业面积 / 达标率 / 重叠率 / 状态分布 · 支持按农机类别、作业类型、时间筛选。</p></div>
+          <div class="page-head__actions"><div class="field"><label>类型</label><select class="select"><option>全部农机</option><option>旋耕机</option><option>植保无人机</option><option>除草机</option></select></div><button class="btn">导出</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">年度作业面积</div><div class="kpi__val">1,860<span class="unit">亩</span></div><div class="kpi__trend up">达标率 96.2%</div></div>
+          <div class="kpi"><div class="kpi__label">达标面积</div><div class="kpi__val" style="color:var(--ok)">1,789<span class="unit">亩</span></div><div class="kpi__trend up">占比 96.2%</div></div>
+          <div class="kpi"><div class="kpi__label">重叠面积</div><div class="kpi__val" style="color:var(--warn)">52<span class="unit">亩</span></div><div class="kpi__trend down">重叠率 2.8%</div></div>
+          <div class="kpi"><div class="kpi__label">作业总时长</div><div class="kpi__val">386<span class="unit">小时</span></div><div class="kpi__trend">里程 2,140 km</div></div>
+        </div>
+        <div class="ds-grid-2-3 mb-4" style="grid-template-columns:1.4fr 1fr">
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>各类农机作业面积对比</h3></div><div class="card__body">
+            <svg viewBox="0 0 600 220" style="width:100%;height:220px">
+              <g font-size="11" fill="#6B7280"><text x="0" y="48">植保无人机</text><text x="0" y="98">旋耕机</text><text x="0" y="148">除草机</text><text x="0" y="198">运输车</text></g>
+              <g><rect x="90" y="36" width="460" height="14" fill="var(--bg)" rx="2"/><rect x="90" y="36" width="414" height="14" fill="#22C55E" rx="2"/><text x="510" y="47" font-size="11" fill="#22C55E" font-family="var(--font-num)" font-weight="600">720 亩</text></g>
+              <g><rect x="90" y="86" width="460" height="14" fill="var(--bg)" rx="2"/><rect x="90" y="86" width="328" height="14" fill="#7B1FA2" rx="2"/><text x="424" y="97" font-size="11" fill="#7B1FA2" font-family="var(--font-num)" font-weight="600">570 亩</text></g>
+              <g><rect x="90" y="136" width="460" height="14" fill="var(--bg)" rx="2"/><rect x="90" y="136" width="246" height="14" fill="#F59E0B" rx="2"/><text x="342" y="147" font-size="11" fill="#F59E0B" font-family="var(--font-num)" font-weight="600">380 亩</text></g>
+              <g><rect x="90" y="186" width="460" height="14" fill="var(--bg)" rx="2"/><rect x="90" y="186" width="123" height="14" fill="#9C27B0" rx="2"/><text x="219" y="197" font-size="11" fill="#9C27B0" font-family="var(--font-num)" font-weight="600">190 亩</text></g>
+            </svg>
+          </div></div>
+          <div class="card"><div class="card__head"><h3><span class="bar"></span>作业状态分布</h3></div><div class="card__body">
+            <div class="flex items-center gap-4">
+              <svg width="140" height="140" viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" stroke="var(--border)" stroke-width="14"/><circle cx="55" cy="55" r="44" fill="none" stroke="#7B1FA2" stroke-width="14" stroke-dasharray="200 276" transform="rotate(-90 55 55)"/><circle cx="55" cy="55" r="44" fill="none" stroke="#F59E0B" stroke-width="14" stroke-dasharray="50 276" stroke-dashoffset="-200" transform="rotate(-90 55 55)"/><circle cx="55" cy="55" r="44" fill="none" stroke="#9CA3AF" stroke-width="14" stroke-dasharray="26 276" stroke-dashoffset="-250" transform="rotate(-90 55 55)"/><text x="55" y="52" text-anchor="middle" font-size="18" font-family="var(--font-num)" font-weight="700" fill="var(--fg)">186</text><text x="55" y="66" text-anchor="middle" font-size="9" fill="var(--fg-2)">作业次</text></svg>
+              <div style="display:flex;flex-direction:column;gap:10px;font-size:13px"><span class="flex items-center gap-2"><i style="width:8px;height:8px;border-radius:2px;background:#7B1FA2;display:inline-block"></i>达标 72.5%</span><span class="flex items-center gap-2"><i style="width:8px;height:8px;border-radius:2px;background:#F59E0B;display:inline-block"></i>部分重叠 18.1%</span><span class="flex items-center gap-2"><i style="width:8px;height:8px;border-radius:2px;background:#9CA3AF;display:inline-block"></i>未达标 9.4%</span></div>
+            </div>
+          </div></div>
+        </div>
+        <div class="card card--flush">
+          <div class="card__head"><h3><span class="bar"></span>本年度作业记录</h3><button class="btn btn--sm">导出 Excel</button></div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>编号</th><th>农机</th><th>作业类型</th><th>时间</th><th>地块</th><th>面积(亩)</th><th>时长</th><th>达标率</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td class="text-mono">OP-2026-0186</td><td>NJ-01 旋耕机</td><td>旋耕</td><td>07-18 14:20</td><td>3号棚</td><td class="num">12.5</td><td class="num">2.4h</td><td class="num" style="color:var(--ok)">98%</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">轨迹回放</a></td></tr>
+                <tr><td class="text-mono">OP-2026-0185</td><td>WR-03 植保无人机</td><td>植保</td><td>07-18 10:15</td><td>5号棚</td><td class="num">8.6</td><td class="num">1.2h</td><td class="num" style="color:var(--ok)">96%</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">轨迹回放</a></td></tr>
+                <tr><td class="text-mono">OP-2026-0184</td><td>WD-02 除草机</td><td>除草</td><td>07-17 16:30</td><td>2号棚</td><td class="num">9.2</td><td class="num">2.1h</td><td class="num" style="color:var(--warn)">88%</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">轨迹回放</a></td></tr>
+                <tr><td class="text-mono">OP-2026-0183</td><td>NJ-01 旋耕机</td><td>旋耕</td><td>07-17 09:00</td><td>1号棚</td><td class="num">11.8</td><td class="num">2.6h</td><td class="num" style="color:var(--ok)">97%</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">轨迹回放</a></td></tr>
+                <tr><td class="text-mono">OP-2026-0182</td><td>WR-03 植保无人机</td><td>植保</td><td>07-16 15:40</td><td>4号棚</td><td class="num">7.4</td><td class="num">1.0h</td><td class="num" style="color:var(--ok)">95%</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">轨迹回放</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 标书项144：历史轨迹 -->
+      <section class="view" id="v-track">
+        <div class="page-head"><div><h1 class="page-head__title">历史轨迹</h1></div>
+          <div class="page-head__actions"><select class="select"><option>NJ-01 旋耕机 · 07-18 旋耕 3#棚</option><option>WR-03 无人机 · 07-18 植保 5#棚</option><option>WD-02 除草机 · 07-17 除草 2#棚</option></select></div></div>
+        <div class="card">
+          <div class="card__head"><h3><span class="bar"></span>轨迹回放 · NJ-01 旋耕机</h3><span class="tag ok">达标 98% · 12.5 亩 · 6.2km</span></div>
+          <div class="card__body">
+            <div class="traj-wrap"><img src="mrusb1wm-image.png" alt="基地地图" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.5) saturate(.85)"><div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 30%,rgba(6,16,28,.55))"></div><svg viewBox="0 0 680 340" id="trajSvg" style="position:relative;z-index:1"><defs><pattern id="tg" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="rgba(123,31,162,.08)"/></pattern></defs><rect width="680" height="340" fill="none"/><rect x="60" y="40" width="560" height="260" fill="rgba(123,31,162,.04)" stroke="rgba(123,31,162,.2)" stroke-width="1"/><text x="340" y="30" text-anchor="middle" class="zh" fill="var(--fg-3)" font-size="11">3号棚 · 12.5 亩</text><path class="traj-path-bg" d="M100 80 L 200 80 L 200 140 L 300 140 L 300 80 L 400 80 L 400 140 L 500 140 L 500 80 L 580 80 L 580 200 L 500 200 L 500 260 L 400 260 L 400 200 L 300 200 L 300 260 L 200 260 L 200 200 L 100 200 L 100 260"/><path id="trajPath" class="traj-path" d="M100 80 L 200 80 L 200 140 L 300 140 L 300 80 L 400 80 L 400 140 L 500 140 L 500 80 L 580 80 L 580 200 L 500 200 L 500 260 L 400 260 L 400 200 L 300 200 L 300 260 L 200 260 L 200 200 L 100 200 L 100 260" stroke-dasharray="2000" stroke-dashoffset="2000"/><circle cx="100" cy="80" r="5" fill="var(--ok)"/><text x="112" y="76" font-size="9" fill="var(--ok)" class="zh">起点</text><circle cx="100" cy="260" r="5" fill="#E63946"/><text x="112" y="272" font-size="9" fill="#E63946" class="zh">终点</text><g id="trajMarker" transform="translate(100,80)"><circle r="14" fill="rgba(123,31,162,.2)"/><circle r="8" fill="#7B1FA2"/><text y="3" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">旋</text></g></svg></div>
+            <div class="traj-controls"><button class="traj-btn" id="trajPlay" onclick="trajToggle()"><svg id="trajPlayIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><div class="traj-info">进度 <b id="trajPct">0</b>% · 已行驶 <b id="trajDist">0.0</b>km · 用时 <b id="trajTime">0:00</b></div><div class="traj-progress"><i id="trajBar"></i></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>农机编号</th><th>作业类型</th><th>时间</th><th>面积</th><th>时长</th><th>里程</th><th>达标</th><th>轨迹</th></tr></thead><tbody>
+          <tr><td>NJ-001 拖拉机</td><td>翻地</td><td>07-18 08:00</td><td>12 亩</td><td>2.5h</td><td>6.2km</td><td><span class="tag ok">✓ 达标</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+          <tr><td>NJ-002 拖拉机</td><td>起垄</td><td>07-18 09:00</td><td>8 亩</td><td>1.8h</td><td>4.1km</td><td><span class="tag ok">✓ 达标</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+          <tr><td>WR-001 无人机</td><td>植保</td><td>07-18 14:00</td><td>5 亩</td><td>0.6h</td><td>—</td><td><span class="tag ok">✓ 达标</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+          <tr><td>NJ-003 拖拉机</td><td>运输</td><td>07-18 10:00</td><td>—</td><td>1.2h</td><td>8.6km</td><td><span class="tag">—</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+          <tr><td>WR-002 无人机</td><td>植保</td><td>07-17 15:00</td><td>6 亩</td><td>0.8h</td><td>—</td><td><span class="tag warn">重叠8%</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+          <tr><td>NJ-001 拖拉机</td><td>翻地</td><td>07-17 08:00</td><td>10 亩</td><td>2.2h</td><td>5.8km</td><td><span class="tag ok">✓ 达标</span></td><td><a href="javascript:;">查看轨迹</a></td></tr>
+        </tbody></table></div></div>
+      </section>
+
+      <!-- 农机档案 -->
+      <section class="view" id="v-fleet">
+        <div class="page-head"><div><h1 class="page-head__title">农机档案</h1></div>
+          <div class="page-head__actions"><button class="btn btn--sm">+ 新增农机</button> <button class="btn btn--sm">导出台账</button></div></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi__label">在册农机</div><div class="kpi__val">24<span class="unit">台</span></div><div class="kpi__trend">旋耕6/拖拉机8/无人机6/采收4</div></div>
+          <div class="kpi"><div class="kpi__label">正常运转</div><div class="kpi__val" style="color:var(--ok)">20<span class="unit">台</span></div><div class="kpi__trend up">出勤率 83%</div></div>
+          <div class="kpi"><div class="kpi__label">待保养</div><div class="kpi__val" style="color:var(--warn)">3<span class="unit">台</span></div><div class="kpi__trend">7天内</div></div>
+          <div class="kpi"><div class="kpi__label">保险到期</div><div class="kpi__val" style="color:var(--danger)">1<span class="unit">台</span></div><div class="kpi__trend danger">NJ-04 · 5天内</div></div>
+        </div>
+        <div class="card"><div class="card__body"><table class="tbl"><thead><tr><th>编号</th><th>类型</th><th>型号</th><th>购入日期</th><th>北斗终端</th><th>状态</th><th>保险到期</th><th>操作人</th><th>最近维保</th><th>操作</th></tr></thead><tbody>
+          <tr><td class="text-mono">NJ-01</td><td>旋耕机</td><td>东方红-904</td><td>2024-03-15</td><td><span class="tag ok">在线</span></td><td><span class="tag ok">运转</span></td><td>2027-03</td><td>张师傅</td><td>2026-06-20</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">NJ-02</td><td>拖拉机</td><td>雷沃-1254</td><td>2023-09-10</td><td><span class="tag ok">在线</span></td><td><span class="tag ok">运转</span></td><td>2027-09</td><td>李师傅</td><td>2026-05-18</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">WR-03</td><td>植保无人机</td><td>大疆 T50</td><td>2024-06-20</td><td><span class="tag ok">在线</span></td><td><span class="tag warn">空闲</span></td><td>2027-06</td><td>李飞手</td><td>2026-07-01</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">WD-02</td><td>除草机</td><td>久保田 1GZ</td><td>2023-11-05</td><td><span class="tag ok">在线</span></td><td><span class="tag ok">运转</span></td><td>2026-11</td><td>王师傅</td><td>2026-06-15</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">NJ-04</td><td>旋耕机</td><td>东方红-904</td><td>2022-04-20</td><td><span class="tag">离线</span></td><td><span class="tag warn">待保养</span></td><td style="color:var(--danger)">2026-07-23</td><td>—</td><td>2026-01-10</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">TC-05</td><td>运输车</td><td>五菱荣光</td><td>2024-01-08</td><td><span class="tag ok">在线</span></td><td><span class="tag warn">空闲</span></td><td>2027-01</td><td>陈师傅</td><td>2026-06-28</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">WR-06</td><td>植保无人机</td><td>极飞 P100</td><td>2024-08-15</td><td><span class="tag ok">在线</span></td><td><span class="tag ok">运转</span></td><td>2027-08</td><td>赵飞手</td><td>2026-07-05</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+          <tr><td class="text-mono">HV-07</td><td>采收机</td><td>沃得 4LZ</td><td>2023-05-12</td><td><span class="tag ok">在线</span></td><td><span class="tag warn">待保养</span></td><td>2027-05</td><td>孙师傅</td><td>2026-04-20</td><td><a class="text-berry" style="font-size:12px;cursor:pointer">详情</a></td></tr>
+        </tbody></table></div></div>
+      </section>
+    </div></main>
+  </div>
+</div>
+<script>(function(){var items=document.querySelectorAll('.sidebar .nav-item[data-v]'),views=document.querySelectorAll('.view'),crumb=document.getElementById('crumb'),titles={home:'工作台',monitor:'实时监控',stat:'作业统计',track:'历史轨迹',fleet:'农机档案'};items.forEach(function(it){it.addEventListener('click',function(e){e.preventDefault();var v=this.getAttribute('data-v');items.forEach(function(n){n.classList.remove('active')});this.classList.add('active');views.forEach(function(s){s.classList.remove('active')});var t=document.getElementById('v-'+v);if(t)t.classList.add('active');if(crumb)crumb.textContent=titles[v]||'';document.querySelector('.content')?.scrollTo?.(0,0)})})})();</script>
+<script>
+/* 轨迹动态回放 */
+var trajTimer=null,trajProg=0;
+function trajToggle(){
+  var path=document.getElementById('trajPath');if(!path)return;
+  var len=path.getTotalLength();
+  if(trajTimer){clearInterval(trajTimer);trajTimer=null;var ic=document.getElementById('trajPlayIcon');if(ic)ic.innerHTML='<path d="M8 5v14l11-7z"/>';return;}
+  if(trajProg>=100)trajProg=0;
+  path.style.strokeDasharray=len;path.style.strokeDashoffset=len-(len*trajProg/100);
+  var ic=document.getElementById('trajPlayIcon');if(ic)ic.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+  trajTimer=setInterval(function(){
+    trajProg+=1.5;if(trajProg>=100){trajProg=100;clearInterval(trajTimer);trajTimer=null;var ic2=document.getElementById('trajPlayIcon');if(ic2)ic2.innerHTML='<path d="M8 5v14l11-7z"/>';}
+    path.style.strokeDashoffset=len-(len*trajProg/100);
+    var pt=path.getPointAtLength(len*trajProg/100);
+    var mk=document.getElementById('trajMarker');if(mk)mk.setAttribute('transform','translate('+pt.x+','+pt.y+')');
+    var pct=document.getElementById('trajPct');if(pct)pct.textContent=Math.round(trajProg);
+    var dist=document.getElementById('trajDist');if(dist)dist.textContent=(6.2*trajProg/100).toFixed(1);
+    var totalSec=150,sec=Math.round(totalSec*trajProg/100);
+    var tm=document.getElementById('trajTime');if(tm)tm.textContent=Math.floor(sec/60)+':'+(sec%60<10?'0':'')+(sec%60);
+    var bar=document.getElementById('trajBar');if(bar)bar.style.width=trajProg+'%';
+  },50);
+}
+</script>
+<script>
+var MON_DATA={
+ 'NJ-01':{n:'旋耕机',st:'online',stx:'作业中',gps:'正常',acc:'开启',spd:'5.2',dir:'128.5° 东南',lng:'114.3226',lat:'30.6285',alt:'45.0',tm:'2026-07-21 14:32:08',rf:'2026-07-21 14:32:10',wk:'旋耕作业中'},
+ 'WR-03':{n:'植保无人机',st:'idle',stx:'空闲',gps:'正常',acc:'开启',spd:'0.0',dir:'0.0° 北',lng:'114.3258',lat:'30.6292',alt:'85.0',tm:'2026-07-21 14:31:50',rf:'2026-07-21 14:32:10',wk:'悬停待作业'},
+ 'WD-02':{n:'除草机',st:'online',stx:'作业中',gps:'正常',acc:'开启',spd:'3.8',dir:'215.0° 西南',lng:'114.3210',lat:'30.6270',alt:'42.0',tm:'2026-07-21 14:32:05',rf:'2026-07-21 14:32:10',wk:'除草作业中'},
+ 'NJ-04':{n:'旋耕机',st:'offline',stx:'离线',gps:'正常',acc:'关闭',spd:'0.0',dir:'0.0° 北',lng:'114.3240',lat:'30.6280',alt:'44.0',tm:'2026-07-21 12:15:30',rf:'2026-07-21 12:15:32',wk:'未作业'},
+ 'TC-05':{n:'运输车',st:'idle',stx:'空闲',gps:'正常',acc:'开启',spd:'0.0',dir:'0.0° 北',lng:'114.3235',lat:'30.6295',alt:'43.0',tm:'2026-07-21 14:30:00',rf:'2026-07-21 14:32:10',wk:'驻车'}
+};
+function monSelect(id){
+ document.querySelectorAll('#monArea .mon-mark').forEach(function(m){m.classList.toggle('active',m.getAttribute('data-id')===id);});
+ document.querySelectorAll('#monList .mon-lrow').forEach(function(r){r.classList.toggle('active',r.getAttribute('data-id')===id);});
+ var d=MON_DATA[id];if(!d)return;
+ var ac=d.acc==='开启'?'acc-on':'acc-off',sc=d.st==='online'?'st-on':d.st==='idle'?'st-idle':'st-off';
+ document.getElementById('monPopup').innerHTML=
+  '<div class="mon-popup__head"><div><span class="ph-t">北斗实时状态</span><span class="ph-id">'+id+'</span></div><div class="mon-popup__close" onclick="monClose()">×</div></div>'+
+  '<div class="mon-popup__tags"><span class="mon-popup__tag '+sc+'">'+d.stx+'</span><span class="mon-popup__tag gps">GPS '+d.gps+'</span><span class="mon-popup__tag '+ac+'">ACC '+d.acc+'</span></div>'+
+  '<div class="mon-popup__grid">'+
+   '<div class="mon-popup__cell"><div class="mc-l">定位时间</div><div class="mc-v">'+d.tm+'</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">速度</div><div class="mc-v">'+d.spd+' km/h</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">方向</div><div class="mc-v">'+d.dir+'</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">海拔</div><div class="mc-v">'+d.alt+' m</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">经度</div><div class="mc-v">'+d.lng+'</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">纬度</div><div class="mc-v">'+d.lat+'</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">作业状态</div><div class="mc-v" style="font-family:var(--font-zh);font-size:12px">'+d.wk+'</div></div>'+
+   '<div class="mon-popup__cell"><div class="mc-l">刷新时间</div><div class="mc-v">'+d.rf+'</div></div>'+
+  '</div>'+
+  '<div class="mon-popup__foot"><button class="mon-popup__btn snap">查询抓拍</button><button class="mon-popup__btn track">查询轨迹</button><div class="mon-popup__refresh"><span class="dot"></span>2秒刷新</div></div>';
+ document.getElementById('monPopup').style.display='block';
+}
+function monClose(){document.getElementById('monPopup').style.display='none';document.querySelectorAll('#monArea .mon-mark').forEach(function(m){m.classList.remove('active');});document.querySelectorAll('#monList .mon-lrow').forEach(function(r){r.classList.remove('active');});}
+document.addEventListener('DOMContentLoaded',function(){if(document.getElementById('monPopup'))monSelect('NJ-01');});
+</script>
+</body>
+</html>

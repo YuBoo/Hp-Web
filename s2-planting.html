@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>种植分布一张图 · 数据专题</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  .rank-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--dark-line)}
+  .rank-row .rk{width:18px;height:18px;border-radius:var(--r-xs);display:grid;place-items:center;font-family:var(--font-num);font-size:11px;font-weight:700;background:var(--dark-panel-2);color:var(--dark-fg-2);flex-shrink:0}
+  .rank-row .rk.t1{background:var(--ok);color:#fff}
+</style>
+</head>
+<body class="screen">
+<div class="screen-app">
+  <header class="ds-top">
+    <div class="ds-top__side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8"/><path d="M12 8c0-3 2-5 5-5 0 3-2 5-5 5z"/><path d="M12 12c0-3-2-5-5-5 0 3 2 5 5 5z"/></svg><span>数据专题 · 02</span></div>
+    <div class="ds-top__title">种植分布<span class="accent">一张图</span></div>
+    <div class="ds-top__actions"><a class="ds-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回门户</a><span class="ds-top__side" style="min-width:auto"><span class="ds-dot ds-dot--ok"></span>当季</span></div>
+  </header>
+
+  <section class="ds-kpi-band">
+    <div class="ds-kpi"><div class="ds-kpi__label">种植面积</div><div class="ds-kpi__val breath">1.2<span class="ds-kpi__unit">万亩</span></div><div class="ds-kpi__trend up">▲ 8.5%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">年产量</div><div class="ds-kpi__val breath">2.6<span class="ds-kpi__unit">万吨</span></div><div class="ds-kpi__trend up">▲ 11.2%</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">种植品种</div><div class="ds-kpi__val breath">8<span class="ds-kpi__unit">个</span></div><div class="ds-kpi__trend">红颜为主</div></div>
+    <div class="ds-kpi"><div class="ds-kpi__label">标准化大棚</div><div class="ds-kpi__val breath">1,860<span class="ds-kpi__unit">栋</span></div><div class="ds-kpi__trend up">▲ 120</div></div>
+    <div class="ds-kpi ds-kpi--berry"><div class="ds-kpi__label">优果率</div><div class="ds-kpi__val breath">86<span class="ds-kpi__unit">%</span></div><div class="ds-kpi__trend up">▲ 3.1%</div></div>
+  </section>
+
+  <section class="ds-main">
+    <!-- 左：品种分布 -->
+    <div class="ds-col ds-col--left">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>品种种植面积分布</h3></div><div class="ds-panel__body">
+        <svg viewBox="0 0 260 160" style="width:100%;height:140px">
+          <g font-size="9" fill="#8FA8C2"><text x="0" y="20">红颜</text><text x="0" y="55">章姬</text><text x="0" y="90">淡雪</text><text x="0" y="125">越心</text><text x="0" y="150">其他</text></g>
+          <g><rect x="44" y="10" width="180" height="12" fill="var(--dark-panel-2)" rx="2"/><rect x="44" y="10" width="162" height="12" fill="#E63946" rx="2"/><text x="210" y="20" font-size="9" fill="#E63946" font-family="var(--font-num">5400亩</text></g>
+          <g><rect x="44" y="45" width="180" height="12" fill="var(--dark-panel-2)" rx="2"/><rect x="44" y="45" width="72" height="12" fill="#F59E0B" rx="2"/><text x="120" y="55" font-size="9" fill="#F59E0B" font-family="var(--font-num">2400亩</text></g>
+          <g><rect x="44" y="80" width="180" height="12" fill="var(--dark-panel-2)" rx="2"/><rect x="44" y="80" width="45" height="12" fill="#1E90FF" rx="2"/><text x="93" y="90" font-size="9" fill="#1E90FF" font-family="var(--font-num">1500亩</text></g>
+          <g><rect x="44" y="115" width="180" height="12" fill="var(--dark-panel-2)" rx="2"/><rect x="44" y="115" width="30" height="12" fill="#22C55E" rx="2"/><text x="78" y="125" font-size="9" fill="#22C55E" font-family="var(--font-num">1000亩</text></g>
+          <g><rect x="44" y="140" width="180" height="10" fill="var(--dark-panel-2)" rx="2"/><rect x="44" y="140" width="51" height="10" fill="#7B2CBF" rx="2"/><text x="99" y="149" font-size="9" fill="#7B2CBF" font-family="var(--font-num">1700亩</text></g>
+        </svg>
+      </div></div>
+      <div class="ds-panel"><div class="ds-panel__head"><h3>种植方式</h3></div><div class="ds-panel__body">
+        <div class="ds-metric"><span class="ds-metric__label">设施大棚</span><span class="ds-metric__val" style="font-size:18px;color:var(--tech)">68%</span></div>
+        <div class="ds-metric"><span class="ds-metric__label">露地栽培</span><span class="ds-metric__val" style="font-size:18px">32%</span></div>
+      </div></div>
+    </div>
+
+    <!-- 中：种植基地热力 -->
+    <div class="ds-col ds-col--center">
+      <div class="ds-panel" style="flex:1"><div class="ds-panel__head"><h3>种植基地面积热力</h3><span class="ds-top__side" style="min-width:auto;font-size:12px">突出：木兰金秋</span></div>
+        <div class="ds-panel__body ds-panel--flush" style="position:relative">
+          <svg viewBox="0 0 880 380" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+            <defs><pattern id="p2g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="rgba(34,197,94,.08)"/></pattern></defs>
+            <rect width="880" height="380" fill="url(#p2g)"/>
+            <!-- 热力色块（面积越大越深绿/越红=高产）-->
+            <g opacity=".8">
+              <rect x="80" y="60" width="180" height="120" rx="6" fill="rgba(230,57,70,.18)" stroke="rgba(230,57,70,.5)"/>
+              <text x="100" y="90" font-size="12" fill="#E63946" font-weight="700">木兰金秋基地</text>
+              <text x="100" y="108" font-size="10" fill="#E63946">3000亩 · 主产红颜</text>
+              <circle cx="170" cy="140" r="8" fill="#E63946"><animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/></circle>
+              <rect x="300" y="60" width="140" height="100" rx="6" fill="rgba(245,158,11,.16)" stroke="rgba(245,158,11,.4)"/>
+              <text x="316" y="88" font-size="11" fill="#F59E0B" font-weight="600">前川示范园</text>
+              <text x="316" y="104" font-size="9" fill="#F59E0B">1800亩</text>
+              <rect x="480" y="60" width="120" height="90" rx="6" fill="rgba(34,197,94,.14)" stroke="rgba(34,197,94,.4)"/>
+              <text x="494" y="86" font-size="11" fill="#22C55E" font-weight="600">王家河农场</text>
+              <text x="494" y="102" font-size="9" fill="#22C55E">1200亩</text>
+              <rect x="640" y="60" width="110" height="80" rx="6" fill="rgba(34,197,94,.10)" stroke="rgba(34,197,94,.35)"/>
+              <text x="652" y="86" font-size="11" fill="#22C55E">李家集</text>
+              <text x="652" y="102" font-size="9" fill="#22C55E">800亩</text>
+              <rect x="80" y="220" width="130" height="90" rx="6" fill="rgba(34,197,94,.10)" stroke="rgba(34,197,94,.35)"/>
+              <text x="92" y="246" font-size="11" fill="#22C55E">蔡家榨</text>
+              <text x="92" y="262" font-size="9" fill="#22C55E">900亩</text>
+              <rect x="250" y="220" width="120" height="80" rx="6" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.3)"/>
+              <text x="262" y="246" font-size="11" fill="#8FA8C2">长岭</text>
+              <text x="262" y="262" font-size="9" fill="#8FA8C2">600亩</text>
+              <rect x="410" y="220" width="110" height="75" rx="6" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.3)"/>
+              <text x="422" y="246" font-size="11" fill="#8FA8C2">姚家集</text>
+              <text x="422" y="262" font-size="9" fill="#8FA8C2">500亩</text>
+              <rect x="560" y="220" width="100" height="70" rx="6" fill="rgba(34,197,94,.06)" stroke="rgba(34,197,94,.25)"/>
+              <text x="572" y="246" font-size="11" fill="#8FA8C2">木兰乡</text>
+              <text x="572" y="262" font-size="9" fill="#8FA8C2">400亩</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：品种占比 + 产量排行 -->
+    <div class="ds-col ds-col--right">
+      <div class="ds-panel"><div class="ds-panel__head"><h3>品种占比</h3></div><div class="ds-panel__body">
+        <svg viewBox="0 0 200 200" style="width:120px;height:120px;margin:0 auto;display:block">
+          <circle cx="100" cy="100" r="70" fill="none" stroke="var(--dark-panel-2)" stroke-width="24"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#E63946" stroke-width="24" stroke-dasharray="236 440" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#F59E0B" stroke-width="24" stroke-dasharray="105 440" stroke-dashoffset="-236" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#1E90FF" stroke-width="24" stroke-dasharray="66 440" stroke-dashoffset="-341" transform="rotate(-90 100 100)"/>
+          <text x="100" y="96" text-anchor="middle" font-size="16" font-family="var(--font-num)" font-weight="700" fill="#E63946">45%</text><text x="100" y="112" text-anchor="middle" font-size="9" fill="var(--dark-fg-2)">红颜</text>
+        </svg>
+      </div></div>
+      <div class="ds-panel"><div class="ds-panel__head"><h3>基地产量排行</h3></div><div class="ds-panel__body">
+        <div class="rank-row"><span class="rk t1">1</span><span style="flex:1;font-size:12px;color:var(--dark-fg)">木兰金秋</span><span class="text-num" style="font-size:13px;color:var(--berry)">860t</span></div>
+        <div class="rank-row"><span class="rk">2</span><span style="flex:1;font-size:12px;color:var(--dark-fg)">前川示范园</span><span class="text-num" style="font-size:13px;color:var(--dark-fg)">520t</span></div>
+        <div class="rank-row"><span class="rk">3</span><span style="flex:1;font-size:12px;color:var(--dark-fg)">王家河农场</span><span class="text-num" style="font-size:13px;color:var(--dark-fg)">340t</span></div>
+        <div class="rank-row" style="border:none"><span class="rk">4</span><span style="flex:1;font-size:12px;color:var(--dark-fg)">蔡家榨</span><span class="text-num" style="font-size:13px;color:var(--dark-fg-2)">260t</span></div>
+      </div></div>
+    </div>
+  </section>
+
+  <footer class="ds-marquee"><span class="ds-marquee__tag">种植动态</span><div class="ds-marquee__track"><div class="ds-marquee__items">
+    <span class="mk"><i class="ds-dot" style="background:var(--berry)"></i>红颜品种占比 <b>45%</b> · 主导品种</span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>标准化大棚突破 <b>1860 栋</b></span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>优果率达 <b>86%</b></span>
+    <span class="mk"><i class="ds-dot" style="background:var(--berry)"></i>红颜品种占比 <b>45%</b> · 主导品种</span>
+    <span class="mk"><i class="ds-dot ds-dot--ok"></i>标准化大棚突破 <b>1860 栋</b></span>
+  </div></div></footer>
+</div>
+</body>
+</html>

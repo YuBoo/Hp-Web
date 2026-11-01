@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作业查询 · 农机监管平台 — 黄陂草莓数字农事平台</title>
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  /* ── 作业查询（农机监管平台子页 · 外壳统一农机平台，主色农机紫 #7B1FA2）── */
+  :root{
+    --accent:#7B1FA2; --accent-bg:#F3E5F5; --accent-bg-deep:#7B1FA2;
+    /* HS-WEB 作业组件变量名 → 映射到黄陂 shared.css token，保证作业内部样式正常 */
+    --muted:var(--fg-2); --meta:var(--fg-3); --border-soft:var(--border); --success:var(--ok);
+    --space-1:var(--sp-1); --space-2:var(--sp-2); --space-3:var(--sp-3);
+    --space-4:var(--sp-4); --space-5:var(--sp-5); --space-6:var(--sp-6);
+    --text-xs:12px; --text-sm:13px; --text-base:14px; --text-lg:16px; --text-xl:18px; --text-2xl:22px;
+    --radius-sm:var(--r-sm); --radius-md:var(--r-md); --radius-pill:999px;
+    --shadow-sm:var(--shadow); --shadow-md:var(--shadow-md); --shadow-lg:var(--shadow-hover);
+    --font-body:var(--font-zh); --font-mono:var(--font-mono);
+    --motion-fast:.15s; --ease-standard:cubic-bezier(.4,0,.2,1); --focus-ring:0 0 0 2px rgba(123,31,162,.3);
+  }
+  /* 作业查询内部控件（黄陂 shared.css 未定义的 HS-WEB 作业专用类，按黄陂风格补齐）*/
+  .filter-select{height:32px;padding:0 26px 0 10px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-xs);font-size:13px;color:var(--fg);min-width:116px;outline:none;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .filter-select:focus{border-color:var(--berry)}
+  .btn-primary{background:var(--berry);border:1px solid var(--berry);color:#fff;height:32px;padding:0 var(--sp-4);border-radius:var(--r-xs);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-primary:hover{background:var(--berry-deep);border-color:var(--berry-deep)}
+  .card-header{padding:12px var(--sp-4);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .card-title{font-size:14px;font-weight:600;color:var(--fg);display:flex;align-items:center;gap:8px}
+  .card-body{padding:var(--sp-4)}
+  .tag-green{background:var(--ok-soft);color:var(--ok)}
+  .tag-blue{background:#F3E5F5;color:#7B1FA2}
+  .tag-amber{background:var(--warn-soft);color:var(--warn)}
+  .tag-red{background:var(--danger-soft);color:var(--danger)}
+  .content table{width:100%;border-collapse:collapse;font-size:13px}
+  .content th{padding:10px 12px;text-align:left;font-weight:600;color:var(--fg-2);background:var(--surface-2);border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap}
+  .content td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg)}
+  .content tbody tr:hover{background:var(--surface-2)}
+
+  /* 一级：作业类型查询网格 */
+  /* 一级：作业类型查询网格（顶部8个常用类型卡片）*/
+  .op-type-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); }
+
+  .op-type-card {
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-md);
+    padding:18px 20px; cursor:pointer; position:relative; overflow:hidden; box-shadow:var(--shadow-sm);
+    transition:all var(--motion-fast) var(--ease-standard);
+  }
+  .op-type-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); border-color:var(--c); }
+  .op-type-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--c); }
+  .op-type-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .op-type-icon { width:34px; height:34px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .op-type-name { font-size:var(--text-lg); font-weight:600; color:var(--fg); }
+  .op-type-stat-row { display:flex; justify-content:space-between; font-size:var(--text-sm); padding:2px 0; color:var(--fg-2); }
+  .op-type-stat-label { color:var(--muted); }
+  .op-type-stat-val { font-weight:600; font-variant-numeric:tabular-nums; }
+  .op-type-stat-val.accent { color:var(--c); }
+  .op-type-total { margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-soft); display:flex; justify-content:space-between; align-items:baseline; }
+  .op-type-total-label { font-size:var(--text-xs); color:var(--muted); }
+  .op-type-total-val { font-size:var(--text-xl); font-weight:700; color:var(--fg); font-variant-numeric:tabular-nums; }
+  .op-type-total-val span { font-size:var(--text-xs); color:var(--muted); font-weight:400; margin-left:2px; }
+
+  /* 全部类型展开表格 */
+  .expand-toggle {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:14px; border:1px dashed var(--border-soft); border-radius:var(--radius-md);
+    background:var(--bg); cursor:pointer; font-size:var(--text-sm); color:var(--muted);
+    font-family:var(--font-body); transition:all var(--motion-fast) var(--ease-standard);
+  }
+  .expand-toggle:hover { border-color:var(--accent); color:var(--accent); background:var(--surface); }
+  .expand-toggle.active { border-style:solid; background:var(--accent); color:#fff; border-color:var(--accent); }
+  .expand-toggle svg { width:16px; height:16px; transition:transform var(--motion-fast); }
+  .expand-toggle.active svg { transform:rotate(180deg); }
+  .expand-body { display:none; border:1px solid var(--border-soft); border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md); overflow:hidden; }
+  .expand-body.open { display:block; }
+  .expand-body .table-wrap { border-radius:0; border:none; }
+  .expand-body table { margin:0; }
+  .expand-body .filter-bar { display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px; align-items:center; border-bottom:1px solid var(--border-soft); background:var(--bg); }
+  .expand-body .filter-bar .search-input { flex:1; min-width:180px; max-width:300px; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); font-size:var(--text-sm); color:var(--fg); font-family:var(--font-body); }
+  .expand-body .filter-bar .search-input:focus { outline:none; border-color:var(--accent); box-shadow:var(--focus-ring); }
+  .expand-body .filter-bar .tag-filter { display:flex; flex-wrap:wrap; gap:4px; }
+  .expand-body .filter-bar .tag-btn { padding:4px 12px; border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--surface); cursor:pointer; font-size:12px; color:var(--fg-2); font-family:var(--font-body); transition:all var(--motion-fast); }
+  .expand-body .filter-bar .tag-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .expand-body .filter-bar .tag-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .op-table-summary { display:flex; justify-content:space-between; padding:10px 16px; font-size:var(--text-xs); color:var(--muted); background:var(--bg); border-top:1px solid var(--border-soft); }
+  .op-table-row { cursor:pointer; }
+  .op-table-row:hover { background:var(--accent-bg); }
+  .op-table-row .td-code { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--muted); }
+  .op-table-row .td-cat { font-size:var(--text-xs); color:var(--muted); }
+  .op-table-row .td-today { font-weight:600; font-variant-numeric:tabular-nums; }
+
+  /* 下钻面包屑条 */
+  .op-drilldown-bar { display:none; align-items:center; gap:10px; background:var(--accent-bg); border:1px solid var(--accent-bg-deep); border-radius:var(--radius-md); padding:10px 16px; margin-bottom:var(--space-5); font-size:var(--text-sm); }
+  .op-drilldown-bar .drill-label { color:var(--muted); }
+  .op-drilldown-bar .drill-type { color:var(--accent); font-weight:600; }
+  .op-drilldown-bar .drill-count { color:var(--fg-2); }
+  .op-drilldown-bar .drill-close { margin-left:auto; border:none; background:none; cursor:pointer; color:var(--muted); font-size:16px; line-height:1; padding:4px; border-radius:var(--radius-sm); }
+  .op-drilldown-bar .drill-close:hover { background:var(--surface); color:var(--fg); }
+
+  /* 下钻各级内联头（返回 + 标题 + 导出）*/
+  .drill-head { display:flex; align-items:center; gap:var(--space-4); margin-bottom:var(--space-5); }
+  .drill-head h2 { margin:0; font-size:var(--text-xl); font-weight:600; color:var(--fg); }
+  .drill-head .spacer { margin-left:auto; }
+
+  .crumb { font-size:var(--text-sm); color:var(--muted); margin-bottom:var(--space-4); }
+  .crumb .sep { margin:0 6px; color:var(--meta); }
+  .crumb .current { color:var(--fg); font-weight:500; }
+
+  /* 迷你统计（下钻层汇总）*/
+  .mini-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+  .mini-stat { background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:16px 18px; box-shadow:var(--shadow-sm); }
+  .mini-stat .num { font-size:var(--text-2xl); font-weight:700; font-variant-numeric:tabular-nums; color:var(--fg); line-height:1.15; }
+  .mini-stat .num.accent { color:var(--accent); }
+  .mini-stat .lbl { font-size:var(--text-xs); color:var(--muted); margin-top:4px; }
+
+  /* 表格数字列 */
+  td.num, th.num { font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+  td.num { color:var(--fg); }
+  .op-link { color:var(--accent); cursor:pointer; font-size:var(--text-sm); white-space:nowrap; background:none; border:none; padding:0; font-family:var(--font-body); }
+  .op-link:hover { text-decoration:underline; }
+
+  /* 车主信息条 */
+  .owner-info { display:flex; flex-wrap:wrap; gap:8px 28px; padding:14px 18px; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-md); margin-bottom:var(--space-5); font-size:var(--text-sm); }
+  .owner-info .k { color:var(--muted); margin-right:6px; }
+  .owner-info .v { color:var(--fg); font-variant-numeric:tabular-nums; }
+
+  /* 分页 */
+  .pager { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--border-soft); font-size:var(--text-sm); color:var(--muted); }
+  .pager-btns { display:flex; gap:6px; }
+  .pager-btns button { min-width:30px; height:30px; padding:0 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); cursor:pointer; font-size:var(--text-sm); color:var(--fg-2); font-family:var(--font-body); }
+  .pager-btns button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .pager-btns button:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+
+  /* ── 弹窗（作业详情 + 日明细）── */
+  .op-overlay { display:none; position:fixed; inset:0; z-index:1000; }
+  .op-overlay.open { display:block; }
+  .op-overlay-bg { position:absolute; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(2px); }
+  .op-dialog { position:absolute; inset:0; margin:auto; width:min(1100px,95vw); max-height:92vh; background:var(--surface); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); display:flex; flex-direction:column; overflow:hidden; }
+  .op-modal-head { display:flex; align-items:center; justify-content:space-between; padding:16px 22px; border-bottom:1px solid var(--border-soft); flex-shrink:0; }
+  .op-modal-head h2 { margin:0; font-size:var(--text-lg); font-weight:600; }
+  .op-modal-head .sub { font-size:var(--text-xs); color:var(--muted); margin-top:2px; }
+  .op-modal-close { width:32px; height:32px; border:none; background:none; cursor:pointer; border-radius:var(--radius-sm); color:var(--muted); font-size:22px; line-height:1; }
+  .op-modal-close:hover { background:var(--border-soft); color:var(--fg); }
+  .op-modal-body { flex:1; overflow:auto; padding:20px 22px; }
+  .op-modal-foot { display:flex; justify-content:flex-end; gap:10px; padding:14px 22px; border-top:1px solid var(--border-soft); flex-shrink:0; }
+
+  /* 作业详情弹窗：左右两栏 */
+  .opdetail-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-6); }
+  .opdetail-section { margin-bottom:var(--space-4); }
+  .opdetail-section h3 { font-size:var(--text-sm); font-weight:600; margin:0 0 10px; color:var(--fg); }
+  .opdetail-divider { border-top:1px solid var(--border-soft); margin:var(--space-4) 0; }
+  .op-detail-row { display:flex; justify-content:space-between; padding:4px 0; font-size:var(--text-sm); }
+  .op-detail-row .k { color:var(--muted); }
+  .op-detail-row .v { color:var(--fg); font-variant-numeric:tabular-nums; }
+  .mono { font-family:var(--font-mono); font-size:var(--text-xs); }
+
+  /* 抓拍网格 */
+  .op-photos-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .op-photo-item { position:relative; aspect-ratio:4/3; border-radius:var(--radius-sm); overflow:hidden; cursor:pointer; background:var(--border-soft); }
+  .op-photo-item img { width:100%; height:100%; object-fit:cover; display:block; }
+  .op-photo-tag { position:absolute; top:6px; left:6px; font-size:11px; padding:1px 7px; border-radius:var(--radius-pill); color:#fff; }
+  .op-photo-tag.tag-auto { background:var(--accent); }
+  .op-photo-tag.tag-manual { background:var(--warn); }
+  .op-photo-time { position:absolute; bottom:6px; left:6px; font-size:11px; padding:1px 6px; border-radius:var(--radius-sm); background:rgba(0,0,0,0.55); color:#fff; font-family:var(--font-mono); }
+
+  /* 轨迹地图 */
+  .op-map-placeholder { height:400px; background:var(--bg); border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--muted); gap:12px; text-align:center; font-size:var(--text-sm); }
+  .op-map-container { height:400px; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-sm); overflow:hidden; position:relative; }
+  .op-map-container svg { width:100%; height:100%; display:block; }
+  .track-info { position:absolute; left:0; right:0; bottom:0; display:flex; gap:20px; padding:6px 12px; background:rgba(255,255,255,0.92); font-size:var(--text-xs); color:var(--muted); }
+  .track-info strong { margin-left:4px; color:var(--fg); font-variant-numeric:tabular-nums; }
+  .track-btn { margin-top:14px; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); cursor:pointer; font-size:var(--text-sm); display:flex; align-items:center; justify-content:center; gap:6px; color:var(--fg-2); font-family:var(--font-body); }
+  .track-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .track-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* 日明细弹窗 */
+  .day-info-bar { display:flex; flex-wrap:wrap; gap:8px 24px; padding:12px 0; font-size:var(--text-sm); color:var(--fg-2); border-bottom:1px solid var(--border-soft); margin-bottom:var(--space-4); }
+  .day-info-bar .k { color:var(--muted); margin-right:6px; }
+  .day-modal-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:var(--space-5); }
+  .day-photos-strip { display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding-bottom:4px; }
+  .day-photos-strip .op-photo-item { min-width:120px; width:120px; }
+
+  /* 大图灯箱 */
+  .photo-viewer { display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; }
+  .photo-viewer.open { display:flex; }
+  .photo-viewer img { max-width:88vw; max-height:80vh; border-radius:var(--radius-md); object-fit:contain; }
+  .photo-viewer .pv-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#fff; font-size:34px; cursor:pointer; line-height:1; }
+  .photo-viewer .pv-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.12); border:none; color:#fff; font-size:36px; width:48px; height:48px; border-radius:50%; cursor:pointer; }
+  .photo-viewer .pv-nav.prev { left:24px; } .photo-viewer .pv-nav.next { right:24px; }
+  .photo-viewer .pv-cap { position:absolute; bottom:24px; left:0; right:0; text-align:center; color:#fff; font-size:var(--text-sm); }
+
+  /* 响应式 */
+  @media (max-width:1280px){ .op-type-grid{grid-template-columns:repeat(2,1fr);} .mini-stats{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:1024px){ .opdetail-grid,.day-modal-grid{grid-template-columns:1fr;} .op-map-placeholder,.op-map-container{height:300px;} }
+  @media (max-width:640px){ .op-type-grid{grid-template-columns:1fr;} .mini-stats{grid-template-columns:1fr 1fr;} .drill-head{flex-wrap:wrap;} .drill-head .spacer{margin-left:0; width:100%;} }
+  .table-scroll{overflow-x:auto;}
+
+  /* SVG 轨迹配色（CSS 驱动：var() 不适用于 SVG 表现属性，必须走 CSS）*/
+  #opGrid path,#dayGrid path{stroke:var(--border);}
+  #opTrajectoryLine,#dayTrackLine{stroke:var(--accent);}
+  #opTrajectoryGlow,#dayTrackGlow{stroke:rgba(255,77,79,0.25);}
+  #opAreaPolygon,#dayAreaPoly{fill:rgba(24,144,255,0.12);stroke:rgba(255,77,79,0.2);}
+  .op-wp{fill:var(--accent);opacity:.6;}
+  .op-mk-start{fill:var(--success);} .op-mk-end{fill:var(--danger);} .op-mk-end.live{fill:var(--warn);}
+  .op-mk-rim{stroke:var(--surface);stroke-width:2;}
+  .op-lbl-start{fill:var(--success);} .op-lbl-end{fill:var(--danger);} .op-lbl-end.live{fill:var(--warn);}
+  /* 统计卡（补齐裸类定义 · 黄陂 admin 风格） */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-5)}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+  .stat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--stat-accent,var(--accent))}
+  .stat-label{font-size:13px;color:var(--fg-2);display:flex;align-items:center;gap:6px}
+  .stat-label-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+  .stat-value{font-size:28px;font-weight:700;color:var(--fg);font-family:var(--font-num);line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+  .stat-value span{font-size:14px;color:var(--fg-2);font-weight:400;margin-left:2px}
+</style>
+</head>
+<body>
+<div class="admin" id="admin">
+  <header class="topbar">
+    <button class="topbar__collapse" onclick="document.getElementById('admin').classList.toggle('collapsed')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <div class="topbar__brand"><span class="logo" style="background:#7B1FA2">机</span> 农机监管平台</div>
+    <nav class="breadcrumb"><span>农机监管平台</span> <i>/</i> <b>作业查询</b></nav>
+    <div class="topbar__spacer"></div>
+    <div class="topbar__actions">
+      <button class="btn btn--ghost btn--sm" id="exportBtn" onclick="exportReport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>导出报表</button>
+      <a class="btn btn--ghost btn--sm" href="machine-platform.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>返回工作台</a>
+      <div class="topbar__avatar"><span class="ava">管</span><span class="name">管理员 ▾</span></div>
+    </div>
+  </header>
+  <div class="admin__body">
+    <aside class="sidebar">
+      <div class="sidebar__group"><div class="sidebar__title">农机监管</div>
+        <a class="nav-item" href="machine-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span>工作台</span></a>
+        <a class="nav-item" href="machine-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18M5 17V9l4-3h6l4 3v8"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>实时监控</span></a>
+        <a class="nav-item" href="machine-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/></svg></span><span>作业统计</span></a>
+        <a class="nav-item" href="machine-platform.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7 8-13a8 8 0 0 0-16 0c0 6 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>历史轨迹</span></a>
+        <a class="nav-item active" href="operation-query.html"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><span>作业查询</span></a>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page">
+      <!-- ══ 一级 · 查询 ══ -->
+      <section id="op-overview">
+        <div class="stats-row">
+          <div class="stat-card" style="--stat-accent:#1890ff">
+            <div class="stat-label"><span class="stat-label-dot" style="background:#1890ff"></span>今日作业面积</div>
+            <div class="stat-value" style="color:#1890ff">8,362<span style="font-size:var(--text-lg);color:var(--muted)"> 亩</span></div>
+            <div class="stat-sub">北斗终端实时回传</div>
+          </div>
+          <div class="stat-card" style="--stat-accent:#52c41a">
+            <div class="stat-label"><span class="stat-label-dot" style="background:#52c41a"></span>今日作业记录</div>
+            <div class="stat-value">1,204<span style="font-size:var(--text-lg);color:var(--muted)"> 条</span></div>
+            <div class="stat-sub">较昨日 ↑ 6.4%</div>
+          </div>
+          <div class="stat-card" style="--stat-accent:#faad14">
+            <div class="stat-label"><span class="stat-label-dot" style="background:#faad14"></span>活跃作业组</div>
+            <div class="stat-value">312<span style="font-size:var(--text-lg);color:var(--muted)"> 个</span></div>
+            <div class="stat-sub">在线农机合作社</div>
+          </div>
+          <div class="stat-card" style="--stat-accent:#13c2c2">
+            <div class="stat-label"><span class="stat-label-dot" style="background:#13c2c2"></span>质量合格率</div>
+            <div class="stat-value" style="color:#13c2c2">96.8<span style="font-size:var(--text-lg);color:var(--muted)"> %</span></div>
+            <div class="stat-sub">达标面积 / 作业面积</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--space-6)">
+          <div style="padding:14px 18px;display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+            <span style="font-size:var(--text-sm);color:var(--muted);font-weight:500;">行政区划</span>
+            <select class="filter-select"><option>选择省份</option><option selected>湖南省</option></select>
+            <select class="filter-select"><option>选择城市</option><option selected>长沙市</option></select>
+            <select class="filter-select"><option>选择区县</option><option selected>望城区</option></select>
+            <select class="filter-select"><option>选择乡镇</option><option>高塘岭镇</option><option>桥驿镇</option><option>丁字镇</option><option>茶亭镇</option><option>东城镇</option><option>铜官镇</option><option>靖港镇</option><option>乔口镇</option></select>
+            <button class="btn btn-primary" style="margin-left:auto;">查询</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+              <span class="card-title">各类型作业查询</span>
+            </div>
+            <span style="font-size:var(--text-xs);color:var(--muted);">点击卡片下钻筛选</span>
+          </div>
+          <div class="card-body"><div id="op-type-grid" class="op-type-grid"></div></div>
+          <!-- 全部类型展开 -->
+          <div style="border-top:1px solid var(--border-soft);"></div>
+          <button class="expand-toggle" id="expandAllBtn" onclick="toggleAllTypesTable()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="expandAllLabel">查看全部 58 种作业类型</span>
+          </button>
+          <div class="expand-body" id="expandTableBody">
+            <div class="filter-bar">
+              <input class="search-input" id="typeSearchInput" placeholder="搜索类型名称或码值…" oninput="filterTypeTable()">
+              <div class="tag-filter" id="catFilterBar">
+                <button class="tag-btn active" data-cat="all" onclick="setCatFilter('all',this)">全部</button>
+              </div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>码值</th><th>类型名称</th><th>大类</th><th class="num" style="text-align:right;">今日作业</th></tr></thead><tbody id="allTypeTbody"></tbody></table></div>
+            <div class="op-table-summary" id="allTypeSummary"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 下钻面包屑条 -->
+      <div class="op-drilldown-bar" id="op-drilldown-bar">
+        <span class="drill-label">当前筛选：</span>
+        <span class="drill-type" id="drill-type-name"></span>
+        <span class="drill-count" id="drill-type-count"></span>
+        <button class="drill-close" onclick="closeOpDrillPage()" aria-label="返回查询">✕</button>
+      </div>
+
+      <!-- ══ 二级 · 区域统计 ══ -->
+      <section id="op-drill-page" style="display:none;">
+        <div class="drill-head">
+          <button class="btn" onclick="closeOpDrillPage()">← 返回作业查询</button>
+          <h2 id="op-drill-title"></h2>
+          <div class="spacer"><button class="btn" onclick="exportReport()">导出报表</button></div>
+        </div>
+        <div id="op-drill-stats" class="mini-stats"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>地区</th><th>作业类型</th><th class="num" style="text-align:right;">作业面积(亩)</th>
+              <th class="num" style="text-align:right;">达标面积(亩)</th><th class="num" style="text-align:right;">存疑面积(亩)</th>
+              <th class="num" style="text-align:right;">重复面积(亩)</th><th>作业时长</th><th>操作</th>
+            </tr></thead>
+            <tbody id="op-drill-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- ══ 三级 · 设备明细 ══ -->
+        <div id="op-device-page" style="display:none; margin-top:var(--space-6);">
+          <div class="drill-head">
+            <button class="btn" onclick="closeOpDevicePage()">← 返回区域列表</button>
+            <h2 id="op-device-title"></h2>
+            <div class="spacer"><button class="btn">导出明细</button></div>
+          </div>
+          <div id="op-device-breadcrumb" class="crumb"></div>
+          <div id="op-device-stats" class="mini-stats"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>车主</th><th>车牌号</th><th>地区</th><th>合作社</th><th>设备号</th>
+                <th class="num" style="text-align:right;">作业面积(亩)</th><th>作业时长</th><th>操作</th>
+              </tr></thead>
+              <tbody id="op-device-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- ══ 四级 · 车主作业清单 ══ -->
+          <div id="op-owner-page" style="display:none; margin-top:var(--space-6);">
+            <div class="drill-head">
+              <button class="btn" onclick="closeOpOwnerPage()">← 返回设备列表</button>
+              <h2 id="op-owner-title"></h2>
+              <div class="spacer"><button class="btn">导出清单</button></div>
+            </div>
+            <div id="op-owner-breadcrumb" class="crumb"></div>
+            <div id="op-owner-info" class="owner-info"></div>
+            <div id="op-owner-stats" class="mini-stats"></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>作业日期</th><th class="num" style="text-align:right;">作业面积(亩)</th>
+                  <th class="num" style="text-align:right;">达标面积</th><th class="num" style="text-align:right;">存疑面积</th>
+                  <th class="num" style="text-align:right;">重复面积</th><th class="num" style="text-align:right;">跨区面积</th>
+                  <th>作业时长</th><th>操作</th>
+                </tr></thead>
+                <tbody id="op-owner-tbody"></tbody>
+              </table>
+              <div class="pager" id="op-owner-pager"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+  <!-- ══ 弹窗 · 作业明细 / 作业详情（单弹层，双视图切换）══ -->
+  <div class="op-overlay" id="dayDetailModal">
+    <div class="op-overlay-bg" onclick="if(event.target===this)closeDayModal()"></div>
+    <div class="op-dialog" style="width:min(1200px,95vw);">
+      <div class="op-modal-head">
+        <div><h2 id="dayModalTitle">作业明细</h2><div class="sub" id="dayModalSub"></div></div>
+        <button class="op-modal-close" onclick="closeDayModal()" aria-label="关闭">×</button>
+      </div>
+      <div class="op-modal-body">
+        <!-- 视图 1：作业明细（时段表+抓拍条+轨迹）-->
+        <div id="dayListView">
+          <div class="day-info-bar" id="dayInfoBar"></div>
+          <div class="day-modal-grid">
+            <div>
+              <div style="max-height:340px; overflow:auto; border:1px solid var(--border-soft); border-radius:var(--radius-md);">
+                <table>
+                  <thead><tr>
+                    <th>#</th><th>开始</th><th>结束</th><th class="num" style="text-align:right;">面积(亩)</th>
+                    <th class="num" style="text-align:right;">达标(亩)</th><th class="num" style="text-align:right;">重复(亩)</th><th>地点</th><th>深度</th><th>操作</th>
+                  </tr></thead>
+                  <tbody id="dayTbody"></tbody>
+                </table>
+              </div>
+              <div class="day-photos-strip" id="dayPhotosStrip"></div>
+            </div>
+            <div>
+              <div class="op-map-placeholder" id="dayMapPlaceholder" style="height:340px;padding:0;">
+                <img src="mrutzfuj-image.png" alt="当日作业轨迹" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+              </div>
+              <div class="op-map-container" id="dayMapContainer" style="display:none;height:340px;">
+                <img src="mrutzfuj-image.png" alt="当日作业轨迹" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                <svg viewBox="0 0 640 420" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
+                  <polygon id="dayAreaPoly" points=""/>
+                  <polyline id="dayTrackGlow" points=""/>
+                  <polyline id="dayTrackLine" points=""/>
+                  <g id="dayWaypoints"></g><g id="dayMarkers"></g>
+                </svg>
+                <div class="track-info" style="position:relative;z-index:1;background:rgba(10,25,41,.75);"><span>轨迹点数<strong id="dayTrackCount">0</strong></span><span>总里程<strong id="dayTrackDist">0m</strong></span><span>覆盖面积<strong id="dayTrackArea">0亩</strong></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 视图 2：作业详情（在当前弹层内切换，不再另开弹层）-->
+        <div id="dayOpView" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <button class="btn" onclick="backToDayList()">← 返回作业明细</button>
+            <h3 id="opModalTitle" style="margin:0;font-size:var(--text-lg);font-weight:600;">作业详情</h3>
+          </div>
+          <div class="opdetail-grid">
+            <div>
+              <div class="opdetail-section">
+                <h3>车辆信息</h3>
+                <div class="op-detail-row"><span class="k">车主</span><span class="v" id="opOwner">—</span></div>
+                <div class="op-detail-row"><span class="k">车牌号</span><span class="v mono" id="opPlate">—</span></div>
+                <div class="op-detail-row"><span class="k">终端编号(VMEID)</span><span class="v mono" id="opTerminal">—</span></div>
+                <div class="op-detail-row"><span class="k">终端型号</span><span class="v mono" id="opVmeModel">—</span></div>
+                <div class="op-detail-row"><span class="k">农机类型</span><span class="v" id="opMachType">—</span></div>
+                <div class="op-detail-row"><span class="k">品牌/型号</span><span class="v" id="opBrandModel">—</span></div>
+                <div class="op-detail-row"><span class="k">车架号/引擎号</span><span class="v mono" id="opChassisEngine">—</span></div>
+              </div>
+              <div class="opdetail-divider"></div>
+              <div class="opdetail-section">
+                <h3>作业数据</h3>
+                <div class="op-detail-row"><span class="k">作业类型</span><span class="v" id="opType" style="color:var(--accent);font-weight:600;">—</span></div>
+                <div class="op-detail-row"><span class="k">作业类型码</span><span class="v mono" id="opTypeCode">—</span></div>
+                <div class="op-detail-row"><span class="k">作物类型</span><span class="v" id="opCrop">—</span></div>
+                <div class="op-detail-row"><span class="k">作业编号(JobID)</span><span class="v mono" id="opId">—</span></div>
+                <div class="op-detail-row"><span class="k">开始时间</span><span class="v mono" id="opStartTime">—</span></div>
+                <div class="op-detail-row"><span class="k">结束时间</span><span class="v mono" id="opEndTime">—</span></div>
+                <div class="op-detail-row"><span class="k">作业面积(亩)</span><span class="v" id="opArea">—</span></div>
+                <div class="op-detail-row"><span class="k">达标面积(亩)</span><span class="v" id="opQualified" style="color:var(--success);">—</span></div>
+                <div class="op-detail-row"><span class="k">不合格面积(亩)</span><span class="v" id="opAreaNG" style="color:var(--danger);">—</span></div>
+                <div class="op-detail-row"><span class="k">作业时间(小时)</span><span class="v" id="opJobHour">—</span></div>
+                <div class="op-detail-row"><span class="k">平均深度(mm)</span><span class="v" id="opDepth">—</span></div>
+                <div class="op-detail-row"><span class="k">作业幅宽(m)</span><span class="v" id="opJobWidth">—</span></div>
+                <div class="op-detail-row"><span class="k">作业里程(m)</span><span class="v" id="opWorkDist">—</span></div>
+                <div class="op-detail-row"><span class="k">作业速度(节)</span><span class="v" id="opSpeed">—</span></div>
+              </div>
+              <div class="opdetail-divider"></div>
+              <div class="opdetail-section">
+                <h3>地块与质控</h3>
+                <div class="op-detail-row"><span class="k">地块面积(亩)</span><span class="v" id="opPlotArea">—</span></div>
+                <div class="op-detail-row"><span class="k">当天重叠(亩)</span><span class="v" id="opOverlap" style="color:var(--warn);">—</span></div>
+                <div class="op-detail-row"><span class="k">历史重叠(亩)</span><span class="v" id="opHistOverlap">—</span></div>
+                <div class="op-detail-row"><span class="k">当天遗漏(亩)</span><span class="v" id="opLeakArea" style="color:var(--warn);">—</span></div>
+                <div class="op-detail-row"><span class="k">是否跨区</span><span class="v" id="opAcross">—</span></div>
+                <div class="op-detail-row"><span class="k">存疑状态</span><span class="v" id="opImpeach">—</span></div>
+                <div class="op-detail-row"><span class="k">存疑原因</span><span class="v" id="opCause" style="color:var(--warn);">—</span></div>
+                <div class="op-detail-row"><span class="k">作业地点</span><span class="v" id="opLocation">—</span></div>
+                <div class="op-detail-row"><span class="k">数据来源</span><span class="v mono" id="opDataSource">—</span></div>
+              </div>
+              <div class="opdetail-divider"></div>
+              <div class="opdetail-section">
+                <h3>实时位置信息 <span id="opPosTime" style="font-weight:400;color:var(--muted);font-size:var(--text-xs);"></span></h3>
+                <div id="opPosCard" style="display:none;background:var(--bg);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 14px;font-size:var(--text-sm);">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
+                    <div class="op-detail-row"><span class="k">经度(Lon)</span><span class="v mono" id="opPosLon">—</span></div>
+                    <div class="op-detail-row"><span class="k">纬度(Lat)</span><span class="v mono" id="opPosLat">—</span></div>
+                    <div class="op-detail-row"><span class="k">高程(m)</span><span class="v mono" id="opPosElev">—</span></div>
+                    <div class="op-detail-row"><span class="k">速度(节)</span><span class="v mono" id="opPosSpeed">—</span></div>
+                    <div class="op-detail-row"><span class="k">航向(°)</span><span class="v mono" id="opPosCourse">—</span></div>
+                    <div class="op-detail-row"><span class="k">在线状态</span><span class="v" id="opPosOnline">—</span></div>
+                  </div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft);" id="opAlertRow">
+                    <span style="color:var(--muted);font-size:12px;">报警信息：</span><span id="opAlertText" style="font-weight:500;">无</span>
+                  </div>
+                </div>
+                <div id="opPosEmpty" style="padding:16px;text-align:center;color:var(--muted);font-size:var(--text-sm);">
+                   暂无实时位置数据（终端未在线）
+                </div>
+              </div>
+              <div class="opdetail-divider"></div>
+              <div class="opdetail-section">
+                <h3>作业抓拍 <span id="opPhotoCount" style="font-weight:400;color:var(--muted);font-size:var(--text-xs);">0 张</span></h3>
+                <div id="opPhotosGrid" class="op-photos-grid"></div>
+              </div>
+              <button class="track-btn" id="opTrackBtn" onclick="toggleOpTrack()"><span>查看定位轨迹</span></button>
+            </div>
+            <div>
+              <div class="op-map-placeholder" id="opMapPlaceholder" style="padding:0;">
+                <img src="mrutzfuj-image.png" alt="农机作业轨迹" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+              </div>
+              <div class="op-map-container" id="opMapContainer" style="display:none;">
+                <img src="mrutzfuj-image.png" alt="农机作业轨迹" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                <svg viewBox="0 0 640 420" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
+                  <polygon id="opAreaPolygon" points=""/>
+                  <polyline id="opTrajectoryGlow" points=""/>
+                  <polyline id="opTrajectoryLine" points=""/>
+                  <g id="opWaypoints"></g><g id="opMarkers"></g>
+                </svg>
+                <div class="track-info" style="position:relative;z-index:1;background:rgba(10,25,41,.75);"><span>轨迹点数<strong id="opTrackCount">0</strong></span><span>总里程<strong id="opTrackDist">0m</strong></span><span>覆盖面积<strong id="opTrackArea">0亩</strong></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="op-modal-foot"><button class="btn" onclick="closeDayModal()">关闭</button></div>
+    </div>
+  </div>
+
+  <!-- 大图灯箱 -->
+  <div class="photo-viewer" id="photoViewer" onclick="if(event.target===this)closePhotoViewer()">
+    <button class="pv-close" onclick="closePhotoViewer()" aria-label="关闭">×</button>
+    <button class="pv-nav prev" onclick="event.stopPropagation();prevPhoto()" aria-label="上一张">‹</button>
+    <img id="viewerImg" src="" alt="抓拍预览">
+    <button class="pv-nav next" onclick="event.stopPropagation();nextPhoto()" aria-label="下一张">›</button>
+    <div class="pv-cap" id="viewerCap"></div>
+  </div>
+
+  <script src="js/operation-data.js"></script>
+  <script>
+  /* ════════ 作业类型图标（SVG 线条，按类型着色；非 emoji）════════ */
+  var OP_ICONS = {
+    '旋耕':'M4.5 12a7.5 7.5 0 0 0 7.5 7.5m7.5-7.5a7.5 7.5 0 0 0-7.5-7.5M4.5 12l3-3m-3 3l3 3m12-3l-3-3m3 3l-3 3',
+    '插秧':'M12 5c0 4-3 7-7 7 0-4 3-7 7-7zm0 0c0 4 3 7 7 7 0-4-3-7-7-7zm0 0v15',
+    '植保喷洒':'M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z',
+    '施肥':'M9 3h6M9 3v6l-4.5 8.5A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.8-3.5L15 9V3M8 14h8',
+    '播种':'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-4v2m0 14v2m9-9h-2M5 12H3m15.4-6.4l-1.4 1.4M7 17l-1.4 1.4m12.8 0L17 17M7 7L5.6 5.6',
+    '收割':'M12 22V8m0 0a3 3 0 1 0-3-3m3 3a3 3 0 1 1 3-3M12 12c-2 0-4-1.5-4-1.5M12 12c2 0 4-1.5 4-1.5',
+    '巡检':'M12 21s-6-4.5-6-10a6 6 0 1 1 12 0c0 5.5-6 10-6 10zm0-8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+    '灌溉':'M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 13c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0'
+  };
+
+  /* ════════ 状态 ════════ */
+  var _opType='', _region='', _ownerInfo={}, _ownerRecords=[], _ownerPage=1, _ownerPageSize=8;
+  var _curPhotoList=[], _curPhotoIdx=0, _opTrackVisible=false;
+
+  /* ════════ 工具 ════════ */
+  function p2(n){ return (n<10?'0':'')+n; }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s).replace(/'/g,'\\\''); }
+
+  /* ════════ 一级：顶部8个常用类型 + 展开全部类型表格 ════════ */
+  function initTopCards(){
+    var grid=$('op-type-grid'); if(!grid) return;
+    /* 只渲染 OP_TYPES 中的8个有完整数据的类型卡片 */
+    grid.innerHTML = OP_TYPES.map(function(t){
+      var icon = OP_ICONS[t.name] || OP_ICONS['巡检'];
+      return '<div class="op-type-card" style="--c:'+t.color+'" onclick="openOpDrillPage(\''+esc(t.name)+'\')">'
+        + '<div class="op-type-head"><div class="op-type-icon" style="background:'+t.color+'1a;">'
+        + '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="'+t.color+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+icon+'"/></svg></div>'
+        + '<div class="op-type-name">'+t.name+'</div></div>'
+        + '<div class="op-type-stat-row"><span class="op-type-stat-label">今日作业</span><span class="op-type-stat-val accent">'+t.today.toLocaleString()+' 亩</span></div>'
+        + '<div class="op-type-stat-row"><span class="op-type-stat-label">昨日作业</span><span class="op-type-stat-val">'+t.yesterday.toLocaleString()+' 亩</span></div>'
+        + '<div class="op-type-total"><span class="op-type-total-label">累计总面积</span><span class="op-type-total-val">'+t.total.toLocaleString()+'<span>亩</span></span></div>'
+        + '</div>';
+    }).join('');
+    /* 初始化全部类型表格（默认不展开）*/
+    /* 构建分类筛选按钮 */
+    if(window.OP_CATEGORIES && $('catFilterBar')){
+      var bar=$('catFilterBar');
+      window.OP_CATEGORIES.forEach(function(cat){
+        var btn=document.createElement('button');
+        btn.className='tag-btn';
+        btn.setAttribute('data-cat',cat.id);
+        btn.textContent=cat.name;
+        btn.onclick=function(){ setCatFilter(cat.id,btn); };
+        bar.appendChild(btn);
+      });
+    }
+    renderAllTypesTable();
+  }
+
+  var _catFilter = 'all'; var _searchTerm = '';
+
+  function renderAllTypesTable(){
+    var tbody=$('allTypeTbody'); if(!tbody) return;
+    /* 用 JOB_TYPE_MAP 的 58 种码构建完整列表 */
+    var allTypes = [];
+    Object.keys(window.JOB_TYPE_MAP).forEach(function(code){
+      allTypes.push({ code:code, name:window.JOB_TYPE_MAP[code] });
+    });
+    /* 从 OP_CATEGORIES 构建反向索引 */
+    var nameToCat = {};
+    if(window.OP_CATEGORIES){
+      window.OP_CATEGORIES.forEach(function(cat){
+        cat.types.forEach(function(tn){ nameToCat[tn] = cat; });
+      });
+    }
+    /* 从 OP_TYPES 构建快速统计数据 */
+    var typeStats = {};
+    if(window.OP_TYPES){
+      OP_TYPES.forEach(function(t){ typeStats[t.name] = t; });
+    }
+    /* 渲染过滤后的表格 */
+    var filtered = allTypes.filter(function(item){
+      if(_catFilter !== 'all' && _catFilter !== ''){
+        var cat = nameToCat[item.name];
+        if(!cat || cat.id !== _catFilter) return false;
+      }
+      if(_searchTerm){
+        var q = _searchTerm.toLowerCase();
+        if(item.name.indexOf(q)===-1 && item.code.indexOf(q)===-1) return false;
+      }
+      return true;
+    });
+    if(filtered.length===0){
+      tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);">无匹配结果</td></tr>';
+      $('allTypeSummary').innerHTML='';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(item){
+      var cat = nameToCat[item.name];
+      var catName = cat ? cat.name : '其他类';
+      var stat = typeStats[item.name];
+      var todayStr = stat ? '<span style="color:'+stat.color+'">'+stat.today.toLocaleString()+' 亩</span>' : '<span style="color:var(--muted);">N/A</span>';
+      var rowClass = stat ? 'op-table-row' : '';
+      var onclick = stat ? ' onclick="openOpDrillPage(\''+esc(item.name)+'\')"' : '';
+      return '<tr class="'+rowClass+'"'+onclick+'><td class="td-code">'+item.code+'</td><td>'+item.name+'</td><td class="td-cat">'+catName+'</td><td class="num" style="text-align:right;">'+todayStr+'</td></tr>';
+    }).join('');
+    var total = filtered.length;
+    var hasData = filtered.filter(function(i){ return typeStats[i.name]; }).length;
+    $('allTypeSummary').innerHTML = '<span>显示 '+(total)+' 种类型</span><span>其中 '+(hasData)+' 种有今日作业数据</span>';
+  }
+
+  function toggleAllTypesTable(){
+    var body=$('expandTableBody'); var btn=$('expandAllBtn');
+    if(!body || !btn) return;
+    body.classList.toggle('open'); btn.classList.toggle('active');
+    $('expandAllLabel').textContent = body.classList.contains('open') ? '收起全部类型' : '查看全部 58 种作业类型';
+    if(body.classList.contains('open')) renderAllTypesTable();
+  }
+
+  function filterTypeTable(){
+    _searchTerm = ($('typeSearchInput')||{}).value || '';
+    renderAllTypesTable();
+  }
+
+  function setCatFilter(catId, el){
+    _catFilter = catId;
+    var parent=$('catFilterBar');
+    if(parent) parent.querySelectorAll('.tag-btn').forEach(function(b){ b.classList.remove('active'); });
+    if(el) el.classList.add('active');
+    renderAllTypesTable();
+  }
+
+  /* ════════ 二级 · 区域统计 ════════ */
+  function openOpDrillPage(typeName){
+    _opType=typeName;
+    var data = OP_REGION_DATA[typeName]; if(!data) return;
+    $('op-overview').style.display='none';
+    $('op-drilldown-bar').style.display='flex';
+    $('drill-type-name').textContent = typeName;
+    $('drill-type-count').textContent = ' · ' + data.length + ' 个区域';
+    $('op-drill-page').style.display='block';
+    $('op-drill-title').textContent = typeName + ' — 各区域作业数据统计';
+
+    var totalArea=data.reduce(function(s,d){return s+d.area;},0);
+    var totalQ=data.reduce(function(s,d){return s+d.qualified;},0);
+    var totalD=data.reduce(function(s,d){return s+d.doubtful;},0);
+    var totalO=data.reduce(function(s,d){return s+d.overlap;},0);
+    var rate = totalArea>0 ? (totalQ/totalArea*100).toFixed(1) : '0';
+    $('op-drill-stats').innerHTML =
+      ms(totalArea.toLocaleString(),'作业总面积(亩)','accent') +
+      ms(rate+'%','达标率','') +
+      ms(totalD.toLocaleString(),'存疑面积(亩)','') +
+      ms(totalO.toLocaleString(),'重复面积(亩)','');
+
+    $('op-drill-tbody').innerHTML = data.map(function(d){
+      var dRate = d.area>0 ? (d.qualified/d.area*100).toFixed(1) : '0';
+      return '<tr>'
+        +'<td>'+d.region+'</td><td>'+typeName+'</td>'
+        +'<td class="num" style="text-align:right;">'+d.area.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;color:var(--success);">'+d.qualified.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;color:var(--warn);">'+d.doubtful.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;">'+d.overlap.toLocaleString()+'</td>'
+        +'<td class="mono">'+d.duration+'</td>'
+        +'<td><button class="op-link" onclick="openOpDevicePage(\''+esc(typeName)+'\',\''+esc(d.region)+'\')">查看详情</button></td>'
+        +'</tr>';
+    }).join('');
+    window.scrollTo(0,0);
+  }
+  function closeOpDrillPage(){
+    $('op-drill-page').style.display='none';
+    $('op-device-page').style.display='none';
+    $('op-owner-page').style.display='none';
+    $('op-drilldown-bar').style.display='none';
+    $('op-overview').style.display='';
+    window.scrollTo(0,0);
+  }
+  function ms(num,lbl,cls){ return '<div class="mini-stat"><div class="num '+(cls||'')+'">'+num+'</div><div class="lbl">'+lbl+'</div></div>'; }
+
+  /* ════════ 三级 · 设备明细 ════════ */
+  function openOpDevicePage(typeName, region){
+    _opType=typeName; _region=region;
+    $('op-drill-page').querySelector('.drill-head').style.display='none';
+    $('op-drill-stats').style.display='none';
+    $('op-drill-page').querySelector('.table-wrap').style.display='none';
+    $('op-device-page').style.display='block';
+    $('op-device-title').textContent = region + ' — ' + typeName + ' 设备作业明细';
+    $('op-device-breadcrumb').innerHTML = '<span>作业综合查询</span><span class="sep">›</span><span>'+typeName+'</span><span class="sep">›</span><span class="current">'+region+'</span>';
+
+    var data = (OP_DEVICE_DATA[region] && OP_DEVICE_DATA[region][typeName]) || [];
+    var totalArea=data.reduce(function(s,d){return s+d.area;},0);
+    var coops=[]; data.forEach(function(d){ if(coops.indexOf(d.coop)<0) coops.push(d.coop); });
+    var totalDur=data.reduce(function(s,d){return s+parseFloat(d.duration);},0).toFixed(1);
+    $('op-device-stats').innerHTML =
+      ms(totalArea.toLocaleString(),'作业总面积(亩)','accent') +
+      ms(data.length+'','作业设备数','') +
+      ms(coops.length+'','合作社数','') +
+      ms(totalDur+'h','总作业时长','');
+    $('op-owner-page').style.display='none';
+
+    $('op-device-tbody').innerHTML = data.map(function(d){
+      return '<tr>'
+        +'<td>'+d.owner+'</td><td class="mono">'+d.plate+'</td><td>'+d.region+'</td><td>'+d.coop+'</td><td class="mono">'+d.device+'</td>'
+        +'<td class="num" style="text-align:right;">'+d.area.toLocaleString()+'</td><td class="mono">'+d.duration+'</td>'
+        +'<td><button class="op-link" onclick="openOpOwnerPage(\''+esc(d.owner)+'\',\''+esc(d.plate)+'\',\''+esc(d.coop)+'\',\''+esc(d.device)+'\')">查看详情</button></td>'
+        +'</tr>';
+    }).join('');
+    window.scrollTo(0,0);
+  }
+  function closeOpDevicePage(){
+    $('op-device-page').style.display='none';
+    $('op-owner-page').style.display='none';
+    $('op-drill-page').querySelector('.drill-head').style.display='';
+    $('op-drill-stats').style.display='';
+    $('op-drill-page').querySelector('.table-wrap').style.display='';
+    window.scrollTo(0,0);
+  }
+
+  /* ════════ 四级 · 车主作业清单 ════════ */
+  function openOpOwnerPage(owner, plate, coop, device){
+    _ownerInfo={owner:owner,plate:plate,coop:coop,device:device};
+    _ownerRecords = generateOwnerRecords(owner, plate, coop, device);
+    _ownerPage=1;
+    $('op-device-page').querySelector('.drill-head').style.display='none';
+    $('op-device-breadcrumb').style.display='none';
+    $('op-device-stats').style.display='none';
+    $('op-device-page').querySelector('.table-wrap').style.display='none';
+    $('op-owner-page').style.display='block';
+    $('op-owner-title').textContent = owner + ' — 近 30 天作业清单';
+    $('op-owner-breadcrumb').innerHTML = '<span>作业综合查询</span><span class="sep">›</span><span>'+_opType+'</span><span class="sep">›</span><span>'+_region+'</span><span class="sep">›</span><span class="current">'+owner+'</span>';
+    $('op-owner-info').innerHTML =
+      '<div><span class="k">车主</span><span class="v">'+owner+'</span></div>'+
+      '<div><span class="k">车牌号</span><span class="v mono">'+plate+'</span></div>'+
+      '<div><span class="k">北斗设备号</span><span class="v mono">'+device+'</span></div>'+
+      '<div><span class="k">所属合作社</span><span class="v">'+coop+'</span></div>';
+
+    var ta=_ownerRecords.reduce(function(s,r){return s+r.area;},0);
+    var tq=_ownerRecords.reduce(function(s,r){return s+r.qualified;},0);
+    var td=_ownerRecords.reduce(function(s,r){return s+r.doubtful;},0);
+    var tc=_ownerRecords.reduce(function(s,r){return s+r.cross;},0);
+    var rate= ta>0?(tq/ta*100).toFixed(1):'0';
+    $('op-owner-stats').innerHTML =
+      ms(_ownerRecords.length+'','作业记录数','accent') + ms(ta.toLocaleString(),'作业总面积(亩)','') +
+      ms(rate+'%','达标率','') + ms(tc.toLocaleString(),'跨区面积(亩)','');
+    renderOwnerTable();
+    window.scrollTo(0,0);
+  }
+  function closeOpOwnerPage(){
+    $('op-owner-page').style.display='none';
+    $('op-device-page').querySelector('.drill-head').style.display='';
+    $('op-device-breadcrumb').style.display='';
+    $('op-device-stats').style.display='';
+    $('op-device-page').querySelector('.table-wrap').style.display='';
+    window.scrollTo(0,0);
+  }
+  function renderOwnerTable(){
+    var total=_ownerRecords.length;
+    var pages=Math.max(1, Math.ceil(total/_ownerPageSize));
+    if(_ownerPage>pages) _ownerPage=pages;
+    var start=(_ownerPage-1)*_ownerPageSize;
+    var slice=_ownerRecords.slice(start, start+_ownerPageSize);
+    $('op-owner-tbody').innerHTML = slice.map(function(r){
+      return '<tr>'
+        +'<td>'+r.date+'</td>'
+        +'<td class="num" style="text-align:right;">'+r.area.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;color:var(--success);">'+r.qualified.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;color:var(--warn);">'+r.doubtful.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;">'+r.overlap.toLocaleString()+'</td>'
+        +'<td class="num" style="text-align:right;">'+r.cross.toLocaleString()+'</td>'
+        +'<td class="mono">'+r.duration+'</td>'
+        +'<td><button class="op-link" onclick="openDayModal(\''+r.date+'\')">查看详情</button></td>'
+        +'</tr>';
+    }).join('');
+    /* 分页 */
+    var btns='';
+    for(var i=1;i<=pages;i++){ btns += '<button class="'+(i===_ownerPage?'active':'')+'" onclick="goOwnerPage('+i+')">'+i+'</button>'; }
+    $('op-owner-pager').innerHTML =
+      '<span>共 '+total+' 条 · 第 '+_ownerPage+' / '+pages+' 页</span>'+
+      '<div class="pager-btns"><button onclick="goOwnerPage('+(_ownerPage-1)+')" '+(_ownerPage<=1?'disabled':'')+'>上一页</button>'+btns+'<button onclick="goOwnerPage('+(_ownerPage+1)+')" '+(_ownerPage>=pages?'disabled':'')+'>下一页</button></div>';
+  }
+  function goOwnerPage(p){ var pages=Math.max(1,Math.ceil(_ownerRecords.length/_ownerPageSize)); if(p<1||p>pages)return; _ownerPage=p; renderOwnerTable(); }
+
+  function generateOwnerRecords(owner, plate, coop, device){
+    var recs=[]; var base=new Date(Date.UTC(2026,5,3));
+    var dc=device.charCodeAt(device.length-1);
+    var days=15+(dc%16);
+    for(var i=0;i<days;i++){
+      var d=new Date(base); d.setUTCDate(d.getUTCDate()-i);
+      var ds=d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate());
+      var seed=(i*7+owner.charCodeAt(0)*3+device.charCodeAt(device.length-2))%100;
+      var area=20+(seed%60);
+      var qualified=Math.round(area*(0.82+(seed%18)/100));
+      var doubtful=Math.round(area*(0.02+(seed%5)/100));
+      var overlap=Math.round(area*(0.01+(seed%4)/100));
+      var cross=Math.round(area*(0.005+(seed%3)/100));
+      var dur=(area*0.06+(seed%30)/10).toFixed(1);
+      recs.push({date:ds,area:area,qualified:qualified,doubtful:doubtful,overlap:overlap,cross:cross,duration:dur+'h',seed:seed});
+    }
+    return recs;
+  }
+
+  /* ════════ 弹窗 B · 日明细 ════════ */
+  function openDayModal(dateStr){
+    var rec=_ownerRecords.filter(function(r){return r.date===dateStr;})[0];
+    if(!rec) return;
+    var isUAV=_ownerInfo.device.indexOf('UAV')>=0;
+    $('dayModalTitle').textContent='作业明细 · '+dateStr;
+    $('dayModalSub').textContent=_ownerInfo.owner+' · '+_ownerInfo.plate+' · '+_ownerInfo.coop;
+    $('dayInfoBar').innerHTML=
+      '<div><span class="k">作业面积</span>'+rec.area+' 亩</div>'+
+      '<div><span class="k">达标</span>'+rec.qualified+' 亩</div>'+
+      '<div><span class="k">存疑</span>'+rec.doubtful+' 亩</div>'+
+      '<div><span class="k">重复</span>'+rec.overlap+' 亩</div>'+
+      '<div><span class="k">跨区</span>'+rec.cross+' 亩</div>'+
+      '<div><span class="k">作业时长</span>'+rec.duration+'</div>';
+    /* 时段 */
+    var slots=genDaySlots(rec,_ownerInfo.device);
+    $('dayTbody').innerHTML=slots.map(function(s,i){
+      return '<tr><td>'+(i+1)+'</td><td>'+s.start+'</td><td>'+s.end+'</td>'
+        +'<td class="num" style="text-align:right;">'+s.area+'</td>'
+        +'<td class="num" style="text-align:right;color:var(--success);">'+s.qualified+'</td>'
+        +'<td class="num" style="text-align:right;">'+s.overlap+'</td>'
+        +'<td>'+s.loc+'</td><td>'+s.depth+'</td>'
+        +'<td><button class="op-link" onclick="showOpInDay(\''+esc(_opType)+'\')">作业详情</button></td></tr>';
+    }).join('');
+    /* 抓拍条 */
+    $('dayPhotosStrip').innerHTML='';
+    for(var k=0;k<6;k++){
+      (function(kk){
+        var it=document.createElement('div'); it.className='op-photo-item';
+        var url=getPhotoUrl(rec.seed*3+kk*7);
+        it.innerHTML='<img src="'+url+'" alt="抓拍"><span class="op-photo-tag tag-auto">自动</span><span class="op-photo-time">'+p2(6+kk*2)+':00</span>';
+        it.onclick=function(){ openPhotoViewerFromList(buildDayPhotos(rec), kk); };
+        $('dayPhotosStrip').appendChild(it);
+      })(k);
+    }
+    /* 轨迹 */
+    renderDayTrack(rec, isUAV);
+    $('dayMapPlaceholder').style.display='none';
+    $('dayMapContainer').style.display='block';
+    openOverlay('dayDetailModal');
+  }
+  function closeDayModal(){ closeOverlay('dayDetailModal'); $('dayOpView').style.display='none'; $('dayListView').style.display='block'; }
+  function genDaySlots(rec, device){
+    var slots=[]; var seed=rec.seed; var n=4+(seed%3); var startH=6; var left=rec.area;
+    for(var s=0;s<n;s++){
+      var sh=startH+s*2;
+      var sa = s<n-1 ? Math.max(5,Math.round(rec.area*(0.16+(s+seed)%5*0.02))) : Math.max(0,left);
+      left-=sa;
+      slots.push({start:p2(sh)+':00', end:p2(sh+2)+':00', area:sa, qualified:Math.round(sa*0.95), overlap:Math.max(0,Math.round(sa*0.03)), loc:'PLOT-'+(100+seed+s), depth:(device.indexOf('UAV')>=0?'—':(10+seed%15)+'cm')});
+    }
+    return slots;
+  }
+  function buildDayPhotos(rec){ var arr=[]; for(var i=0;i<6;i++){ arr.push({time:p2(6+i*2)+':00',label:'作业抓拍',location:_region+' PLOT-'+(100+rec.seed),seed:rec.seed*3+i*7}); } return arr; }
+
+  /* ════════ 作业详情（在作业明细弹层内切换视图，不再另开弹层）════════ */
+  var _dayListTitle='';
+  function showOpInDay(typeName){
+    var keys=Object.keys(opDetailData);
+    var pick=null;
+    for(var i=0;i<keys.length;i++){ if(opDetailData[keys[i]].type===typeName){ pick=keys[i]; break; } }
+    if(!pick) pick=keys[0];
+    fillOpDetail(pick);
+    _dayListTitle = $('dayModalTitle').textContent;
+    $('dayModalTitle').textContent = '作业详情 · ' + pick;
+    $('dayListView').style.display = 'none';
+    $('dayOpView').style.display = 'block';
+    $('dayOpView').scrollTop = 0;
+  }
+  function backToDayList(){
+    $('dayOpView').style.display = 'none';
+    $('dayListView').style.display = 'block';
+    if(_dayListTitle){ $('dayModalTitle').textContent = _dayListTitle; }
+  }
+  function fillOpDetail(opId){
+    var d=opDetailData[opId]; if(!d) return;
+    $('opOwner').textContent=d.owner;
+    $('opPlate').textContent=d.plate;
+    $('opTerminal').textContent=d.terminal;
+    $('opType').textContent=d.type;
+    $('opStartTime').textContent=d.startTime;
+    $('opEndTime').textContent=d.endTime;
+    $('opArea').textContent=d.area+' 亩';
+    $('opQualified').textContent=d.qualified?d.qualified+' 亩':'—';
+    $('opOverlap').textContent=d.overlap?d.overlap+' 亩':'—';
+    $('opDepth').textContent=d.depth;
+    $('opLocation').textContent=d.location;
+    $('opId').textContent=d.id;
+    /* 新增字段 */
+    $('opTypeCode').textContent=d.JobTypeCode+' ('+JOB_TYPE_MAP[d.JobTypeCode]+')';
+    $('opCrop').textContent=d.CropsName+' (码'+d.CropsTypeCode+')';
+    $('opAreaNG').textContent=(d.JobAreaNG||0)+' 亩';
+    $('opJobHour').textContent=d.JobHour?d.JobHour+'h':'0h';
+    $('opJobWidth').textContent='2.0 m';
+    $('opWorkDist').textContent=(d.workDist||0).toLocaleString()+' m';
+    $('opSpeed').textContent=d.status==='进行中'?'5.2 节':'—';
+    $('opPlotArea').textContent=(d.PlotArea||d.area)+' 亩';
+    $('opHistOverlap').textContent=(d.HistOverlapArea||0)+' 亩';
+    $('opLeakArea').textContent=(d.LeakArea||0)+' 亩';
+    $('opAcross').textContent=d.AcrossDistrict===1?'是 (跨区)':'否 (本地)';
+    var impeachTxt={0:'存疑',1:'不存疑',[-1]:'未审核'};
+    var impeachCls={0:'color:var(--warn)',1:'color:var(--success)',[-1]:'color:var(--muted)'};
+    var ipv = d.impeach!==undefined?d.impeach:1;
+    $('opImpeach').textContent=impeachTxt[ipv]||'—';
+    $('opImpeach').style=impeachCls[ipv]||'';
+    $('opCause').textContent=d.cause||'—';
+    $('opDataSource').textContent='北斗终端实时回传';
+    /* 车辆终端信息 */
+    var ti = window.TERMINAL_INFO && TERMINAL_INFO[d.terminal];
+    if(ti){
+      $('opVmeModel').textContent=ti.VMEModel;
+      $('opMachType').textContent=window.MACHINE_TYPE_MAP[ti.AmType]||ti.AmType;
+      $('opBrandModel').textContent=ti.brand+' / '+ti.VehicleNum;
+      $('opChassisEngine').textContent=ti.Chassis+' / '+ti.Engine;
+    } else {
+      $('opVmeModel').textContent='—';
+      $('opMachType').textContent='—';
+      $('opBrandModel').textContent='—';
+      $('opChassisEngine').textContent='—';
+    }
+    /* 实时位置 */
+    var pos = window.getVehiclePos && getVehiclePos(d.terminal);
+    var posCard=$('opPosCard'), posEmpty=$('opPosEmpty');
+    if(pos && pos.isOnline===1){
+      posEmpty.style.display='none';
+      posCard.style.display='block';
+      $('opPosTime').textContent='· 更新于 '+pos.PTime;
+      $('opPosLon').textContent=pos.Lon.toFixed(6);
+      $('opPosLat').textContent=pos.Lat.toFixed(6);
+      $('opPosElev').textContent=pos.Elevation;
+      $('opPosSpeed').textContent=pos.Speed+' 节';
+      $('opPosCourse').textContent=pos.Course+'°';
+      $('opPosOnline').innerHTML='<span style="color:var(--success);font-weight:600;">在线</span>';
+      $('opAlertText').textContent=pos.Alert||'正常';
+      $('opAlertText').style.color=pos.Alert&&pos.Alert!=='正常'?'var(--warn)':'var(--success)';
+    } else {
+      posCard.style.display='none';
+      posEmpty.style.display='block';
+      $('opPosTime').textContent='';
+    }
+    /* 重置地图 */
+    _opTrackVisible=false;
+    $('opTrackBtn').classList.remove('active');
+    $('opTrackBtn').querySelector('span').textContent='查看定位轨迹';
+    $('opMapPlaceholder').style.display='flex';
+    $('opMapContainer').style.display='none';
+    renderOpTrack(d);
+    renderOpPhotos(d);
+  }
+  function toggleOpTrack(){
+    _opTrackVisible=!_opTrackVisible;
+    var btn=$('opTrackBtn');
+    if(_opTrackVisible){ btn.classList.add('active'); btn.querySelector('span').textContent='隐藏定位轨迹'; $('opMapPlaceholder').style.display='none'; $('opMapContainer').style.display='block'; }
+    else { btn.classList.remove('active'); btn.querySelector('span').textContent='查看定位轨迹'; $('opMapPlaceholder').style.display='flex'; $('opMapContainer').style.display='none'; }
+  }
+  function renderOpTrack(d){
+    if(!d.track || d.track.length<2) return;
+    var pts=d.track.map(function(p){return p[0]+','+p[1];}).join(' ');
+    var polyPts=pts+' '+d.track[0][0]+','+d.track[0][1];
+    $('opAreaPolygon').setAttribute('points', polyPts);
+    $('opTrajectoryGlow').setAttribute('points', pts);
+    $('opTrajectoryLine').setAttribute('points', pts);
+    var wp=$('opWaypoints'); wp.innerHTML='';
+    d.track.forEach(function(p){ wp.innerHTML+='<circle class="op-wp" cx="'+p[0]+'" cy="'+p[1]+'" r="3"/>'; });
+    var mk=$('opMarkers'); var st=d.track[0], en=d.track[d.track.length-1];
+    var live = d.status==='进行中';
+    var endLabel = live ? '当前位置' : '终点';
+    mk.innerHTML =
+      '<circle class="op-mk-start op-mk-rim" cx="'+st[0]+'" cy="'+st[1]+'" r="6"/>'
+      +'<text class="op-lbl-start" x="'+st[0]+'" y="'+(st[1]-12)+'" text-anchor="middle" font-size="11">起点</text>'
+      +'<circle class="op-mk-end op-mk-rim'+(live?' live':'')+'" cx="'+en[0]+'" cy="'+en[1]+'" r="6"/>'
+      +'<text class="op-lbl-end'+(live?' live':'')+'" x="'+en[0]+'" y="'+(en[1]-12)+'" text-anchor="middle" font-size="11">'+endLabel+'</text>';
+    $('opTrackCount').textContent=d.trackCount;
+    $('opTrackDist').textContent=d.trackDist;
+    $('opTrackArea').textContent=d.trackArea;
+  }
+  function renderDayTrack(rec, isUAV){
+    /* 用 OP 记录里同类型的轨迹作为示意图 */
+    var keys=Object.keys(opDetailData); var tdata=null;
+    for(var i=0;i<keys.length;i++){ if(opDetailData[keys[i]].type===_opType){ tdata=opDetailData[keys[i]]; break; } }
+    if(!tdata) tdata=opDetailData[keys[0]];
+    if(!tdata||!tdata.track||tdata.track.length<2) return;
+    var pts=tdata.track.map(function(p){return p[0]+','+p[1];}).join(' ');
+    var polyPts=pts+' '+tdata.track[0][0]+','+tdata.track[0][1];
+    $('dayAreaPoly').setAttribute('points', polyPts);
+    $('dayTrackGlow').setAttribute('points', pts);
+    $('dayTrackLine').setAttribute('points', pts);
+    var wp=$('dayWaypoints'); wp.innerHTML='';
+    tdata.track.forEach(function(p){ wp.innerHTML+='<circle class="op-wp" cx="'+p[0]+'" cy="'+p[1]+'" r="3"/>'; });
+    var mk=$('dayMarkers'); var st=tdata.track[0], en=tdata.track[tdata.track.length-1];
+    mk.innerHTML=
+      '<circle class="op-mk-start op-mk-rim" cx="'+st[0]+'" cy="'+st[1]+'" r="6"/>'
+      +'<text class="op-lbl-start" x="'+st[0]+'" y="'+(st[1]-12)+'" text-anchor="middle" font-size="11">起点</text>'
+      +'<circle class="op-mk-end op-mk-rim" cx="'+en[0]+'" cy="'+en[1]+'" r="6"/>'
+      +'<text class="op-lbl-end" x="'+en[0]+'" y="'+(en[1]-12)+'" text-anchor="middle" font-size="11">终点</text>';
+    $('dayTrackCount').textContent=tdata.trackCount;
+    $('dayTrackDist').textContent=tdata.trackDist;
+    $('dayTrackArea').textContent=tdata.trackArea;
+  }
+
+  /* ════════ 抓拍 + 灯箱 ════════ */
+  function renderOpPhotos(d){
+    var grid=$('opPhotosGrid'); var cnt=$('opPhotoCount');
+    if(!d.photos){ grid.innerHTML=''; cnt.textContent='0 张'; return; }
+    cnt.textContent=d.photos.length+' 张';
+    var list=d.photos.map(function(p,i){ return {time:p.time,label:p.label,location:p.location,tag:p.tag,seed:(i*7+d.photos.length*3)}; });
+    grid.innerHTML=list.map(function(p,i){
+      var url=getPhotoUrl(p.seed);
+      return '<div class="op-photo-item" onclick="openPhotoViewerFromList(__opPhotos,'+i+')">'
+        +'<img src="'+url+'" alt="'+p.label+'">'
+        +'<span class="op-photo-tag tag-'+p.tag+'">'+(p.tag==='auto'?'自动':'人工')+'</span>'
+        +(p.time!=='—'?'<span class="op-photo-time">'+p.time+'</span>':'')+'</div>';
+    }).join('');
+    window.__opPhotos=list;
+  }
+  function openPhotoViewerFromList(list, idx){
+    _curPhotoList=list; _curPhotoIdx=idx; showPhoto();
+    $('photoViewer').classList.add('open');
+  }
+  function showPhoto(){
+    var p=_curPhotoList[_curPhotoIdx]; if(!p) return;
+    var url=getPhotoUrl(p.seed).replace('w=600&h=450','w=900&h=700');
+    $('viewerImg').src=url;
+    $('viewerCap').textContent=(p.time!=='—'?('2026-06-02 '+p.time+'  ·  '):'')+p.label+'  ·  '+(p.location||'');
+  }
+  function closePhotoViewer(){ $('photoViewer').classList.remove('open'); }
+  function prevPhoto(){ if(!_curPhotoList.length)return; _curPhotoIdx=(_curPhotoIdx-1+_curPhotoList.length)%_curPhotoList.length; showPhoto(); }
+  function nextPhoto(){ if(!_curPhotoList.length)return; _curPhotoIdx=(_curPhotoIdx+1)%_curPhotoList.length; showPhoto(); }
+
+  /* ════════ 弹窗开关 + ESC ════════ */
+  function openOverlay(id){ $(id).classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeOverlay(id){ $(id).classList.remove('open'); document.body.style.overflow=''; }
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      if($('photoViewer').classList.contains('open')){ closePhotoViewer(); return; }
+      if($('dayDetailModal').classList.contains('open')){
+        if($('dayOpView').style.display!=='none'){ backToDayList(); } else { closeDayModal(); }
+        return;
+      }
+    }
+  });
+
+  /* ════════ 导出 ════════ */
+  function exportReport(){
+    var rows=[['作业类型','今日作业(亩)','昨日作业(亩)','累计面积(亩)']];
+    OP_TYPES.forEach(function(t){ rows.push([t.name,t.today,t.yesterday,t.total]); });
+    var csv='﻿'+rows.map(function(r){return r.join(',');}).join('\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='黄陂-农机作业查询报表.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+  }
+
+  /* ════════ 启动 ════════ */
+  initTopCards();
+  </script>
+</body>
+</html>
